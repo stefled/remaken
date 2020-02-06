@@ -1,2 +1,3 @@
  #!/bin/bash
- remaken --action install -d  /Users/ltouraine/tmp -s unix -t github -c debug -f /Users/ltouraine/workspace/labs/DIT/SFT/remaken/samples/packagedependencies-github.txt 
+ ALTERNATE_REPO_URL="https://..."
+ remaken --action install -r  /Users/ltouraine/tmp/remaken_alt_test -s linux -t github -l artifactory -u $ALTERNATE_REPO_URL --cpp-std 17 -c debug -f samples/packagedependencies-github.txt

@@ -235,17 +235,28 @@ std::vector<Dependency> DependencyManager::parse(const fs::path &  dependenciesP
 }
 
 
-void DependencyManager::retrieveDependency(const Dependency &  dependency)
+void DependencyManager::retrieveDependency(Dependency &  dependency)
 {
     fs::detail::utf8_codecvt_facet utf8;
     shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(dependency, m_options);
     std::string source = fileRetriever->computeSourcePath(dependency);
-    if (!m_cache.contains(source)){
+    if (!m_cache.contains(source) || !m_options.useCache()){
         try {
             std::cout<<"=> Installing "<<dependency.getRepositoryType()<<"::"<<source<<std::endl;
-            fs::path outputDirectory = fileRetriever->installArtefact(dependency);
+            fs::path outputDirectory;
+            try {
+                outputDirectory = fileRetriever->installArtefact(dependency);
+            }
+            catch (std::runtime_error & e) { // try alternate repository
+                shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(m_options,true);
+                dependency.changeBaseRepository(m_options.getAlternateRepoUrl());
+                source = fileRetriever->computeSourcePath(dependency);
+                fileRetriever->installArtefact(dependency);
+            }
 
-            m_cache.add(source);
+            if (m_options.useCache()) {
+                m_cache.add(source);
+            }
             std::vector<fs::path> childrenDependencies = getChildrenDependencies(dependency,outputDirectory);
             for (fs::path childDependency : childrenDependencies) {
                 if (fs::exists(childDependency)) {
@@ -276,7 +287,7 @@ void DependencyManager::retrieveDependencies(const fs::path &  dependenciesFile)
             }
         }
         std::vector<std::shared_ptr<std::thread>> thread_group;
-        for (Dependency const & dependency : dependencies) {
+        for (Dependency & dependency : dependencies) {
 #ifdef REMAKEN_USE_THREADS
             thread_group.push_back(std::make_shared<std::thread>(&DependencyManager::retrieveDependency,this, dependency));
 #else

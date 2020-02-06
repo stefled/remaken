@@ -48,7 +48,7 @@ private:
     void bundleDependencies(const fs::path & dependenciesFiles);
     void bundleDependency(const Dependency & dep);
     void retrieveDependencies(const fs::path & dependenciesFiles);
-    void retrieveDependency(const Dependency &  dependency);
+    void retrieveDependency(Dependency &  dependency);
     std::vector<fs::path> getChildrenDependencies(const Dependency & dependency, const fs::path & outputDirectory);
     CmdOptions m_options;
     Cache m_cache;

@@ -64,6 +64,10 @@ public:
         return m_baseRepository;
     }
 
+    inline void changeBaseRepository(const std::string & otherRepo) {
+        m_baseRepository = otherRepo;
+    }
+
     inline const std::string & getMode() const  {
         return m_mode;
     }
