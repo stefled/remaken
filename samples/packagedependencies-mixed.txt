@@ -1,0 +1,10 @@
+opencv | 3.4.3 | opencv | thirdParties@github | https://github.com/SolarFramework/binaries/releases/download
+boost | 1.68.0 | boost | thirdParties@github|https://github.com/SolarFramework/binaries/releases/download
+xpcf | 2.1.0 | xpcf | @github | https://github.com/SolarFramework/binaries/releases/download
+spdlog | 0.14.0 | spdlog | bincrafters@conan | conan-center | na
+eigen | 3.3.3 | eigen | brew@system |
+libeigen3-dev | 3.3.4 | eigen | apt-get@system |
+eigen | 3.3.5 | eigen | system |
+fbow | 0.0.1 | fbow | thirdParties@github | https://github.com/SolarFramework/binaries/releases/download
+freeglut | 3.0.0 | freeglut | thirdParties@github | https://github.com/SolarFramework/binaries/releases/download
+

@@ -1,0 +1,13 @@
+libname=boost
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/interfaces
+
+Name: boost
+Description: 
+Version: 1.68.0
+Requires:
+Libs:  -lboost_atomic -L${libdir} -lboost_chrono -lboost_container -lboost_context -lboost_contract -lboost_coroutine -lboost_date_time -lboost_fiber -lboost_filesystem -lboost_graph -lboost_iostreams -lboost_locale -lboost_log -lboost_log_setup -lboost_math_c99 -lboost_math_c99f -lboost_math_c99l -lboost_math_tr1 -lboost_math_tr1f -lboost_math_tr1l -lboost_program_options -lboost_random -lboost_regex -lboost_serialization -lboost_signals -lboost_system -lboost_thread -lboost_timer -lboost_type_erasure -lboost_unit_test_framework -lboost_wave -lboost_wserialization
+Libs.private:  ${libdir}/${pfx}boost_atomic.${lext} ${libdir}/${pfx}boost_chrono.${lext} ${libdir}/${pfx}boost_container.${lext} ${libdir}/${pfx}boost_context.${lext} ${libdir}/${pfx}boost_coroutine.${lext} ${libdir}/${pfx}boost_date_time.${lext} ${libdir}/${pfx}boost_exception.${lext} ${libdir}/${pfx}boost_fiber.${lext} ${libdir}/${pfx}boost_filesystem.${lext} ${libdir}/${pfx}boost_graph.${lext} ${libdir}/${pfx}boost_iostreams.${lext} ${libdir}/${pfx}boost_locale.${lext} ${libdir}/${pfx}boost_log.${lext} ${libdir}/${pfx}boost_log_setup.${lext} ${libdir}/${pfx}boost_math_c99.${lext} ${libdir}/${pfx}boost_math_c99f.${lext} ${libdir}/${pfx}boost_math_c99l.${lext} ${libdir}/${pfx}boost_math_tr1.${lext} ${libdir}/${pfx}boost_math_tr1f.${lext} ${libdir}/${pfx}boost_math_tr1l.${lext} ${libdir}/${pfx}boost_prg_exec_monitor.${lext} ${libdir}/${pfx}boost_program_options.${lext} ${libdir}/${pfx}boost_random.${lext} ${libdir}/${pfx}boost_regex.${lext} ${libdir}/${pfx}boost_serialization.${lext} ${libdir}/${pfx}boost_signals.${lext} ${libdir}/${pfx}boost_system.${lext} ${libdir}/${pfx}boost_test_exec_monitor.${lext} ${libdir}/${pfx}boost_thread.${lext} ${libdir}/${pfx}boost_timer.${lext} ${libdir}/${pfx}boost_type_erasure.${lext} ${libdir}/${pfx}boost_unit_test_framework.${lext} ${libdir}/${pfx}boost_wave.${lext} ${libdir}/${pfx}boost_wserialization.${lext}
+Cflags: -I${includedir}

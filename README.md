@@ -30,7 +30,7 @@ For each project, a packagedependencies.txt file can be created in the root proj
 
 Each line follows the pattern :
 
-framework#channel | version | library name | identifier@repository\_type | repository\_url | link\_mode | options
+framework#channel | version | [condition]#library name | identifier@repository\_type | repository\_url | link\_mode | options
 
 where repository_type is a value in:
 
@@ -72,7 +72,8 @@ when identifier is not specified :
 
 when channel is not specified, it defaults to stable for conan dependencies.
 
-For artifactory, nexus and github repositories, channel can be a combination of values from the remaken packaging manifest. 
+NOT IMPLEMENTED :
+For artifactory, nexus and github repositories, channel is a named scope describing a common combination of compile options from the remaken packaging manifests. The combination of values become a named scope. (TODO : manage named scopes)
 
 It is not used for other kind of repos.
 
@@ -108,7 +109,7 @@ freeglut#testing | 3.0.0 | freeglut | user@conan | https://github.com/SolarFrame
 
 github, artifactory, nexus and path dependencies are installed using remaken packaging format through an url or filesystem repository.
 
-system dependencies are installed using operating system dependent package manager (apt for linux 
+system dependencies are installed using operating system dependent package manager (apt for linux
 
 debian and derivatives, brew for Mac OS X, chocolatey for windows...)
 
@@ -119,3 +120,23 @@ vcpkg dependencies are installed using vcpkg packaging format with vcpkg package
 WARNING : using system without any OS option implies the current system the tool is run on.
 Moreover, some OSes don't have a package manager, hence don't rely on system for android cross-compilation for instance.
 
+## Remaken packaging structure
+### Default behavior
+### Package tree
+package_name/package_version/
+package_name-package_version_remakeninfo.txt (or libname ??)
+bcom-lib_name.pc (should be renamed to remaken-\*.pc ?)
+interfaces/
+lib/[arch]/[mode]/[config]/
+
+## Building remaken
+Install Qt Creator from https://www.qt.io/download
+
+### Linux build
+from the scripts folder, run ./packages.sh
+It performs the needed thirdparties installations.
+
+### Windows build
+
+
+### Mac OS build
