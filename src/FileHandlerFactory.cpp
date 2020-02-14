@@ -26,19 +26,23 @@ FileHandlerFactory * FileHandlerFactory::instance()
 }
 
 
-std::shared_ptr<IFileRetriever> FileHandlerFactory::getFileHandler(const CmdOptions & options)
+std::shared_ptr<IFileRetriever> FileHandlerFactory::getFileHandler(const CmdOptions & options, bool useAlternateRepo)
 {
-    if (options.getRepositoryType() == "github") {
+     std::string repoType = options.getRepositoryType();
+     if (useAlternateRepo) {
+         repoType = options.getAlternateRepoType();
+     }
+    if (repoType == "github") {
         return make_shared<HttpFileRetriever>(options);
     }
-    if ((options.getRepositoryType() == "artifactory") || (options.getRepositoryType() == "nexus")) {
+    if ((repoType == "artifactory") || (repoType == "nexus")) {
         return make_shared<CredentialsFileRetriever>(options);
     }
-    if (options.getRepositoryType() == "path") {
+    if (repoType == "path") {
         return make_shared<FSFileRetriever>(options);
     }
     // This should never happen, as command line options are validated in CmdOptions after parsing
-    throw std::runtime_error("Unkwown repository type " + options.getRepositoryType());
+    throw std::runtime_error("Unkwown repository type " + repoType);
 }
 
 std::shared_ptr<IFileRetriever> FileHandlerFactory::getFileHandler(const Dependency & dependency,const CmdOptions & options)

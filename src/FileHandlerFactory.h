@@ -33,7 +33,7 @@ class FileHandlerFactory
 {
     public:
         static FileHandlerFactory* instance();
-        std::shared_ptr<IFileRetriever> getFileHandler(const CmdOptions & options);
+        std::shared_ptr<IFileRetriever> getFileHandler(const CmdOptions & options, bool useAlternateRepo = false);
         std::shared_ptr<IFileRetriever> getFileHandler(const Dependency & dependency,const CmdOptions & options);
 
 private:

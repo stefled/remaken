@@ -65,11 +65,11 @@ public:
         return m_config;
     }
 
-    inline std::string getApiKey() const {
+    inline const std::string & getApiKey() const {
         return m_apiKey;
     }
 
-    inline std::string getOS() const {
+    inline const std::string & getOS() const {
         return m_os;
     }
 
@@ -81,24 +81,36 @@ public:
         return m_remakenRootPath;
     }
 
-    inline std::string getRepositoryType() const {
+    inline const std::string & getRepositoryType() const {
         return m_repositoryType;
     }
 
-    inline std::string getCppVersion() const {
+    inline const std::string & getCppVersion() const {
         return m_cppVersion;
     }
 
-    inline std::string getBuildToolchain() const {
+    inline const std::string & getBuildToolchain() const {
         return m_toolchain;
     }
 
-    inline std::string getZipTool() const {
+    inline const std::string & getZipTool() const {
         return m_zipTool;
     }
 
     inline bool getVerbose() const {
         return m_verbose;
+    }
+
+    inline const std::string & getAlternateRepoType() const {
+        return m_altRepoType;
+    }
+
+    inline const std::string & getAlternateRepoUrl() const {
+        return m_altRepoUrl;
+    }
+
+    inline bool useCache() const {
+        return !m_ignoreCache;
     }
 
 private:
@@ -118,6 +130,9 @@ private:
     std::string m_cppVersion;
     std::string m_toolchain;
     std::string m_zipTool;
+    std::string m_altRepoUrl;
+    std::string m_altRepoType;
+    bool m_ignoreCache;
     bool m_verbose;
 
     po::options_description m_optionsDesc{"Usage"};
