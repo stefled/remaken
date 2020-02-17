@@ -104,56 +104,21 @@ int DependencyManager::bundle()
         BOOST_LOG_TRIVIAL(error)<<e.what();
         return -1;
     }
-    BOOST_LOG_TRIVIAL(warning)<<"bundle command under implementation : conan dependencies not yet supported, rpath not reinterpreted after copy";
+    BOOST_LOG_TRIVIAL(warning)<<"bundle command under implementation : rpath not reinterpreted after copy";
     return 0;
 }
-
-static const std::map<const std::string_view,const  std::string_view> os2sharedSuffix = {
-    {"mac",".dylib"},
-    {"win",".dll"},
-    {"unix",".so"},
-    {"android",".so"},
-    {"ios",".dylib"},
-    {"linux",".so"}
-};
-
-const std::string_view & sharedSuffix(const std::string_view & osStr)
-{
-    if (os2sharedSuffix.find(osStr) == os2sharedSuffix.end()) {
-        return os2sharedSuffix.at("unix");
-    }
-    return os2sharedSuffix.at(osStr);
-}
-
 
 void DependencyManager::bundleDependency(const Dependency & dependency)
 {
     fs::detail::utf8_codecvt_facet utf8;
     shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(dependency, m_options);
-    fs::path rootLibDir = fileRetriever->computeRootLibDir(dependency);
-    if (!fs::exists(rootLibDir)) { // ignoring header only dependencies
-        BOOST_LOG_TRIVIAL(warning)<<"Ignoring "<<dependency.getName()<<" dependency: no shared library found from "<<rootLibDir;
-        return;
-    }
-    for (fs::directory_entry& x : fs::directory_iterator(rootLibDir)) {
-        fs::path filepath = x.path();
-        if (fs::is_symlink(x.path())) {
-            if (fs::exists(m_options.getDestinationRoot()/filepath.filename())) {
-                fs::remove(m_options.getDestinationRoot()/filepath.filename());
+    fs::path outputDirectory = fileRetriever->bundleArtefact(dependency);
+    if (!outputDirectory.empty() && dependency.getType() == Dependency::Type::REMAKEN) {
+        std::vector<fs::path> childrenDependencies = getChildrenDependencies(dependency,outputDirectory);
+        for (fs::path childDependency : childrenDependencies) {
+            if (fs::exists(childDependency)) {
+                this->bundleDependencies(childDependency);
             }
-            fs::copy_symlink(x.path(),m_options.getDestinationRoot()/filepath.filename());
-        }
-        else if (is_regular_file(filepath)) {
-            if (filepath.extension().string(utf8) == sharedSuffix(m_options.getOS())) {
-                fs::copy_file(filepath , m_options.getDestinationRoot()/filepath.filename(), fs::copy_option::overwrite_if_exists);
-            }
-        }
-    }
-    fs::path outputDirectory = fileRetriever->computeLocalDepencyRootDir(dependency);
-    std::vector<fs::path> childrenDependencies = getChildrenDependencies(dependency,outputDirectory);
-    for (fs::path childDependency : childrenDependencies) {
-        if (fs::exists(childDependency)) {
-            this->retrieveDependencies(childDependency);
         }
     }
 }
@@ -175,7 +140,7 @@ void DependencyManager::bundleDependencies(const fs::path &  dependenciesFile)
         }
         std::vector<std::shared_ptr<std::thread>> thread_group;
         for (Dependency const & dependency : dependencies) {
-            if (dependency.getType() == Dependency::Type::REMAKEN) {
+            if (dependency.getType() == Dependency::Type::REMAKEN || dependency.getType() == Dependency::Type::CONAN) {
 #ifdef REMAKEN_USE_THREADS
                 thread_group.push_back(std::make_shared<std::thread>(&DependencyManager::bundleDependency,this, dependency));
 #else
@@ -306,7 +271,7 @@ std::vector<fs::path> DependencyManager::getChildrenDependencies(const Dependenc
     childrenDependencies.push_back("packagedependencies-"+ m_options.getOS() + ".txt");
     std::vector<fs::path> subDepsPath;
     for (std::string childDependency : childrenDependencies) {
-        fs::path chidrenPackageDependenciesPath = outputDirectory / dependency.getPackageName() / dependency.getVersion() / childDependency;
+        fs::path chidrenPackageDependenciesPath = outputDirectory / childDependency;
         if (fs::exists(chidrenPackageDependenciesPath)) {
             subDepsPath.push_back(fs::absolute(chidrenPackageDependenciesPath));
         }

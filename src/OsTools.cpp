@@ -42,3 +42,40 @@ bool OsTools::isElevated()
 #endif
     return false;
 }
+
+static const std::map<const std::string_view,const  std::string_view> os2sharedSuffix = {
+    {"mac",".dylib"},
+    {"win",".dll"},
+    {"unix",".so"},
+    {"android",".so"},
+    {"ios",".dylib"},
+    {"linux",".so"}
+};
+
+const std::string_view & OsTools::sharedSuffix(const std::string_view & osStr)
+{
+    if (os2sharedSuffix.find(osStr) == os2sharedSuffix.end()) {
+        return os2sharedSuffix.at("unix");
+    }
+    return os2sharedSuffix.at(osStr);
+}
+
+
+void OsTools::copySharedLibraries(const fs::path & sourceRootFolder, const CmdOptions & options)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    for (fs::directory_entry& x : fs::directory_iterator(sourceRootFolder)) {
+        fs::path filepath = x.path();
+        if (fs::is_symlink(x.path())) {
+            if (fs::exists(options.getDestinationRoot()/filepath.filename())) {
+                fs::remove(options.getDestinationRoot()/filepath.filename());
+            }
+        //    fs::copy_symlink(x.path(),options.getDestinationRoot()/filepath.filename());
+        }
+        else if (is_regular_file(filepath)) {
+            if (filepath.extension().string(utf8) == sharedSuffix(options.getOS())) {
+                fs::copy_file(filepath , options.getDestinationRoot()/filepath.filename(), fs::copy_option::overwrite_if_exists);
+            }
+        }
+    }
+}

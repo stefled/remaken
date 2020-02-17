@@ -117,10 +117,10 @@ Dependency::Dependency(const std::string & rawFormat, const std::string & mainMo
         boost::trim(m_mode);
     }
     else {
-        m_mode = "na";
-        if (m_type != Dependency::Type::CONAN) {// default to mainMode from optionsdemai
-            m_mode = mainMode;
-        }
+        m_mode = mainMode;
+        /*if (m_type == Dependency::Type::CONAN) {// before conan mode was set to na
+            m_mode = "na"; // should detect supported options
+        }*/
     }
     if (results.size() == 7){
         m_bHasOptions = true;

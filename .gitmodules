@@ -1,3 +1,6 @@
 [submodule "builddefs/qmake"]
 	path = builddefs/qmake
 	url = https://github.com/b-com-software-basis/builddefs-qmake.git
+[submodule "libs/nlohmann-json"]
+	path = libs/nlohmann-json
+	url = https://github.com/nlohmann/json.git

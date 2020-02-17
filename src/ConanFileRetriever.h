@@ -30,6 +30,7 @@ class ConanFileRetriever : public SystemFileRetriever
 public:
     ConanFileRetriever(const CmdOptions & options);
     ~ConanFileRetriever() override = default;
+    fs::path bundleArtefact(const Dependency & dependency) override;
 
 };
 

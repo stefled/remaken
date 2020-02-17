@@ -1,23 +1,28 @@
 #include "SystemTools.h"
+#include "OsTools.h"
 
 #include <boost/process.hpp>
 #include <boost/predef.h>
 #include <string>
 #include <map>
+#include <nlohmann/json.hpp>
 
 namespace bp = boost::process;
+namespace nj = nlohmann;
 
 static const std::map<std::string,std::string> options2vcpkg ={{"mac","osx"},
-                                                     {"win","windows"},
-                                                     {"linux","linux"},
-                                                     {"android","android"},
-                                                     {"x86_64","x64"},
-                                                     {"i386","x86"},
-                                                     {"arm","arm"},
-                                                     {"arm64","arm64"},
-                                                     {"shared","dynamic"},
-                                                     {"static","static"},
-                                                     {"unix","linux"}};
+                                                               {"win","windows"},
+                                                               {"linux","linux"},
+                                                               {"android","android"},
+                                                               {"x86_64","x64"},
+                                                               {"i386","x86"},
+                                                               {"arm","arm"},
+                                                               {"arm64","arm64"},
+                                                               {"shared","dynamic"},
+                                                               {"static","static"},
+                                                               {"unix","linux"}};
+
+
 
 
 
@@ -235,6 +240,64 @@ std::shared_ptr<BaseSystemTool> SystemTools::createTool(const CmdOptions & optio
 
 void ConanSystemTool::update()
 {
+}
+
+void ConanSystemTool::bundle(const Dependency & dependency)
+{
+    std::string source = computeSourcePath(dependency);
+    std::string buildType = "build_type=Debug";
+    const fs::path & destination = m_options.getDestinationRoot();
+
+    if (m_options.getConfig() == "release") {
+        buildType = "build_type=Release";
+    }
+    std::string cppStd="compiler.cppstd=";
+    cppStd += m_options.getCppVersion();
+    int result = -1;
+    if (dependency.getMode() == "na") {
+        if (dependency.getBaseRepository().empty()) {
+            result = bp::system(m_systemInstallerPath, "install", "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if", destination, "-g", "json", source.c_str());
+        }
+        else {
+            result = bp::system(m_systemInstallerPath, "install", "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if", destination, "-g", "json", "-r", dependency.getBaseRepository().c_str(), source.c_str());
+        }
+    }
+    else {
+        std::string buildMode = dependency.getName() + ":";
+        if (dependency.getMode() == "static") {
+            buildMode += "shared=False";
+        }
+        else {
+            buildMode += "shared=True";
+        }
+        if (dependency.getBaseRepository().empty()) {
+            result = bp::system(m_systemInstallerPath, "install", "-o", buildMode.c_str(), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if", destination, "-g", "json", source.c_str());
+        }
+        else {
+            result = bp::system(m_systemInstallerPath, "install", "-o", buildMode.c_str(), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if", destination, "-g", "json", "-r", dependency.getBaseRepository().c_str(), source.c_str());
+        }
+    }
+    if (result != 0) {
+        throw std::runtime_error("Error bundling conan dependency : " + source);
+    }
+    fs::detail::utf8_codecvt_facet utf8;
+    fs::path conanBuildInfoJson = destination/"conanbuildinfo.json";
+    if (fs::exists(conanBuildInfoJson)) {
+        std::ifstream ifs1{ conanBuildInfoJson.generic_string(utf8) };
+        nj::json conanBuildData = nj::json::parse(ifs1);
+        for (auto dep:conanBuildData["dependencies"]) {
+            auto root = dep["rootpath"];
+            auto lib_paths = dep["lib_paths"];
+            auto bin_paths = dep["bin_paths"];
+
+            for (auto lib_path : lib_paths) {
+                fs::path libPath = lib_path;
+                if (fs::exists(libPath)) {
+                    OsTools::copySharedLibraries(libPath, m_options);
+                }
+            }
+        }
+    }
 }
 
 void ConanSystemTool::install(const Dependency & dependency)
