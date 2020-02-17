@@ -23,6 +23,11 @@
 #ifndef OSTOOLS_H
 #define OSTOOLS_H
 
+#include "CmdOptions.h"
+
+#include <boost/filesystem.hpp>
+
+namespace fs = boost::filesystem;
 
 class OsTools
 {
@@ -30,6 +35,8 @@ public:
     OsTools() = delete;
     ~OsTools() = delete;
     static bool isElevated();
+    static void copySharedLibraries(const fs::path & sourceRootFolder, const CmdOptions & options);
+    static const std::string_view & sharedSuffix(const std::string_view & osStr);
 };
 
 #endif // OSTOOLS_H

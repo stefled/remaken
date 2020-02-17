@@ -114,6 +114,8 @@ win32 {
     LIBS += -luser32 -ladvapi32
 }
 
+INCLUDEPATH += libs/nlohmann-json/single_include
+
 DISTFILES += \
     samples/packagedependencies-github.txt \
     samples/packagedependencies-mixed.txt

@@ -28,6 +28,9 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 
+//--action install -r  path_to_remaken_root -i -s linux -t github -l nexus -u http://url_to_root_nexus_repo --cpp-std 17 -c debug -f packagedependencies-github.txt
+
+//--action bundle -d ~/tmp/conanDeployed/ --cpp-std 17 -c debug
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
 
@@ -73,11 +76,11 @@ public:
         return m_os;
     }
 
-    inline fs::path getDestinationRoot() const {
+    inline const fs::path & getDestinationRoot() const {
         return m_destinationRootPath;
     }
 
-    inline fs::path getRemakenRoot() const {
+    inline const fs::path & getRemakenRoot() const {
         return m_remakenRootPath;
     }
 

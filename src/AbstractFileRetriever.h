@@ -33,12 +33,14 @@ public:
     AbstractFileRetriever(const CmdOptions & options);
     virtual ~AbstractFileRetriever() override;
     virtual fs::path installArtefact(const Dependency & dependency) override;
+    virtual fs::path bundleArtefact(const Dependency & dependency) override;
     virtual std::string computeSourcePath( const Dependency &  dependency) override;
     virtual fs::path computeRootLibDir( const Dependency & dependency) override;
-    virtual fs::path computeLocalDepencyRootDir( const Dependency &  dependency) override;
+    virtual fs::path computeLocalDependencyRootDir( const Dependency &  dependency) override;
     virtual fs::path computeRemakenRootDir( const Dependency &  dependency) override;
 
 protected:
+    void copySharedLibraries(const fs::path & sourceRootFolder);
     void cleanUpWorkingDirectory();
     fs::path m_workingDirectory;
     CmdOptions m_options;

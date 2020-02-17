@@ -1,7 +1,9 @@
 #include "AbstractFileRetriever.h"
+#include "OsTools.h"
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <boost/log/trivial.hpp>
 
 AbstractFileRetriever::AbstractFileRetriever(const CmdOptions & options):m_options(options)
 {
@@ -67,7 +69,7 @@ std::string AbstractFileRetriever::computeSourcePath( const Dependency &  depend
 fs::path AbstractFileRetriever::computeRootLibDir( const Dependency & dependency)
 {
     fs::detail::utf8_codecvt_facet utf8;
-    fs::path libPath = computeLocalDepencyRootDir(dependency);
+    fs::path libPath = computeLocalDependencyRootDir(dependency);
     libPath = libPath / "lib" / m_options.getArchitecture() / dependency.getMode() / m_options.getConfig();
     return libPath;
 }
@@ -90,10 +92,33 @@ fs::path AbstractFileRetriever::installArtefact(const Dependency & dependency)
     //unzipper.extract(outputDirectory.generic_string(utf8));
     //unzipper.close();
     fs::remove(compressedDependency);
+    outputDirectory = computeLocalDependencyRootDir(dependency);
+    if (!fs::exists(outputDirectory)) {
+        throw std::runtime_error("Error : dependency folder " + outputDirectory.generic_string(utf8) + " doesn't exist after package unzip");
+    }
     return outputDirectory;
 }
 
-fs::path AbstractFileRetriever::computeLocalDepencyRootDir( const Dependency &  dependency) // not the root output dir
+void AbstractFileRetriever::copySharedLibraries(const fs::path & sourceRootFolder)
+{
+    OsTools::copySharedLibraries(sourceRootFolder, m_options);
+}
+
+fs::path AbstractFileRetriever::bundleArtefact(const Dependency & dependency)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    fs::path rootLibDir = computeRootLibDir(dependency);
+    if (!fs::exists(rootLibDir)) { // ignoring header only dependencies
+        BOOST_LOG_TRIVIAL(warning)<<"Ignoring "<<dependency.getName()<<" dependency: no shared library found from "<<rootLibDir;
+        return "";
+    }
+    copySharedLibraries(rootLibDir);
+    fs::path outputDirectory = computeLocalDependencyRootDir(dependency);
+    return outputDirectory;
+}
+
+
+fs::path AbstractFileRetriever::computeLocalDependencyRootDir( const Dependency &  dependency) // not the root output dir
 {
     fs::detail::utf8_codecvt_facet utf8;
     fs::path libPath = computeRemakenRootDir(dependency);

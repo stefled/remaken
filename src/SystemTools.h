@@ -26,6 +26,7 @@
 #include "Constants.h"
 #include "CmdOptions.h"
 #include <list>
+#include <boost/log/trivial.hpp>
 
 #include "Dependency.h"
 class BaseSystemTool
@@ -34,10 +35,15 @@ public:
     BaseSystemTool(const CmdOptions & options, const std::string & installer);
     virtual ~BaseSystemTool() = default;
     virtual void update() = 0;
+    virtual void bundle(const Dependency & dependency) {
+        BOOST_LOG_TRIVIAL(warning)<<"bundle() not implemented yet for tool "<<m_systemInstallerPath;
+    }
     virtual void install(const Dependency & dependency) = 0;
     virtual bool installed(const Dependency & dependency) = 0;
     virtual std::string computeSourcePath( const Dependency &  dependency);
     virtual fs::path sudo() { return m_sudoCmd; }
+
+
 protected:
     fs::path m_systemInstallerPath;
     fs::path m_sudoCmd;
@@ -59,6 +65,7 @@ public:
     ConanSystemTool(const CmdOptions & options):BaseSystemTool(options, "conan") {}
     ~ConanSystemTool() override = default;
     void update() override;
+    void bundle(const Dependency & dependency) override;
     void install(const Dependency & dependency) override;
     bool installed(const Dependency & dependency) override;
     std::string computeSourcePath( const Dependency &  dependency) override;
