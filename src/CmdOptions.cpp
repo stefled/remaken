@@ -58,15 +58,19 @@ std::string computeToolChain()
 CmdOptions::CmdOptions()
 {
     fs::detail::utf8_codecvt_facet utf8;
-    fs::path remakenRootPath = getHomePath() / ".remaken" / "packages";
+    fs::path remakenRootPath = getHomePath() / ".remaken";
     char * rootDirectoryVar = getenv(Constants::REMAKENDEVROOT);
     if (rootDirectoryVar != nullptr) {
         std::cerr<<Constants::REMAKENDEVROOT<<" environment variable exists"<<std::endl;
         remakenRootPath = rootDirectoryVar;
     }
+    remakenRootPath /= "packages";
     m_optionsDesc.add_options()
             ("help,h", "produce help message")
-            ("action", po::value<string>(&m_action)->default_value("install"), "Action to perform : install, parse (to check dependency file validity), bundle (to copy shared libraries deps in a destination folder), version")
+            ("action", po::value<string>(&m_action)->default_value("install"), "Action to perform : install, parse (to check dependency file validity), "
+                                                                               "bundle (to copy shared libraries deps in a destination folder), "
+                                                                               "bundleXpcf (to copy xpcf modules and their dependencies from an xpcf xml file),"
+                                                                               "version")
             ("architecture,a", po::value<string>(&m_architecture)->default_value("x86_64"), "Architecture: x86_64, i386, arm, arm64")
             ("apiKey,k", po::value<string>(&m_apiKey), "Artifactory api key")
             ("config,c", po::value<string>(&m_config)->default_value("release"), "Config: release, debug")
@@ -75,13 +79,16 @@ CmdOptions::CmdOptions()
             ("file,f", po::value<string>(&m_dependenciesFile)->default_value("packagedependencies.txt"), "Dependencies files")
             ("mode,m", po::value<string>(&m_mode)->default_value("shared"), "Mode: shared, static")
             ("type,t", po::value<string>(&m_repositoryType)->default_value("github"), "Repository type: github, artifactory, nexus, path")
-            ("build-toolchain,b", po::value<string>(&m_toolchain)->default_value(computeToolChain()), "Build toolchain: clang, clang-version, gcc-version, cl-version .. ex: cl-14.1")
-            ("operating-system,s", po::value<string>(&m_os)->default_value(computeOS()), "Operating system: mac, win, unix, ios, android")
+            ("build-toolchain,b", po::value<string>(&m_toolchain)->default_value(computeToolChain()), "Build toolchain: clang, clang-version, "
+                                                                                                      "gcc-version, cl-version .. ex: cl-14.1")
+            ("operating-system,o", po::value<string>(&m_os)->default_value(computeOS()), "Operating system: mac, win, unix, ios, android")
             ("cpp-std", po::value<string>(&m_cppVersion)->default_value("11"), "c++ standard version: 11, 14, 17, 20 ...")
             ("alternate-remote-type,l", po::value<string>(&m_altRepoType), "alternate remote type: github, artifactory, nexus, path")
             ("alternate-remote-url,u", po::value<string>(&m_altRepoUrl), "alternate remote url to use when the declared remote fails to provide a dependency")
             ("ignore-cache,i", po::bool_switch(&m_ignoreCache)->default_value(false), "ignore cache entries : dependencies update is forced")
             ("ziptool,z", po::value<string>(&m_zipTool)->default_value(ZipTool::getZipToolIdentifier()), "unzipper tool name : unzip, compact ...")
+            ("modules-subfolder,s", po::value<string>(&m_moduleSubfolder)->default_value("modules"), "relative folder where XPCF modules will be "
+                                                                                                     "copied with their dependencies")
             ("verbose,v", po::bool_switch(&m_verbose), "verbose mode")
             ;
 }

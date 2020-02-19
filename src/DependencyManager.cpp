@@ -8,8 +8,11 @@
 #include "SystemTools.h"
 #include "OsTools.h"
 #include <boost/log/trivial.hpp>
+#include "tinyxmlhelper.h"
 
 using namespace std;
+using std::placeholders::_1;
+using std::placeholders::_2;
 
 bool isSystemDependency(const Dependency & dep)
 {
@@ -26,14 +29,12 @@ bool isGenericSystemDependency(const Dependency & dep)
     return isSystemDependency(dep) && (dep.getIdentifier() == "system");
 }
 
+#ifdef BOOST_OS_WINDOWS_AVAILABLE
 bool isSystemNeededElevation(const Dependency & dep)
 {
-#ifdef BOOST_OS_WINDOWS_AVAILABLE
      return (isSystemDependency(dep) && SystemTools::getToolIdentifier() == "choco");
-#else
-     return false;
-#endif
 }
+#endif
 
 DependencyManager::DependencyManager(const CmdOptions & options):m_options(options),m_cache(options)
 {
@@ -78,19 +79,22 @@ int DependencyManager::parse()
         if (!dep.validate()) {
             bValid = false;
         }
-
+#ifdef BOOST_OS_WINDOWS_AVAILABLE
         if (isSystemNeededElevation(dep)) {
             bNeedElevation = true;
         }
+#endif
     }
     if (!bValid) {
         BOOST_LOG_TRIVIAL(error)<<"Semantic error parsing file "<<depPath<<" please fix the above dependency(ies) declaration error(s)";
         return -1;
     }
+#ifdef BOOST_OS_WINDOWS_AVAILABLE
     if (bNeedElevation) {
         BOOST_LOG_TRIVIAL(warning)<<"Information of parsing file : remaken needs elevated privileges to install system Windows (choco) dependencies ";
         return -2;
     }
+#endif
     BOOST_LOG_TRIVIAL(info)<<"File "<<depPath<<" successfully parsed";
     return 0;
 }
@@ -104,9 +108,64 @@ int DependencyManager::bundle()
         BOOST_LOG_TRIVIAL(error)<<e.what();
         return -1;
     }
+
+#ifndef BOOST_OS_WINDOWS_AVAILABLE
     BOOST_LOG_TRIVIAL(warning)<<"bundle command under implementation : rpath not reinterpreted after copy";
+#endif
     return 0;
 }
+
+int DependencyManager::bundleXpcf()
+{
+    try {
+        fs::path xpcfConfigFilePath = buildDependencyPath();
+       /* for (auto module : modules) {
+            bundleDependencies(buildDependencyPath());
+        }*/
+    }
+    catch (const std::runtime_error & e) {
+        BOOST_LOG_TRIVIAL(error)<<e.what();
+        return -1;
+    }
+#ifndef BOOST_OS_WINDOWS_AVAILABLE
+    BOOST_LOG_TRIVIAL(warning)<<"bundleXpcf command under implementation : rpath not reinterpreted after copy";
+#endif
+    return 0;
+}
+
+int DependencyManager::loadXpcfConfiguration(const fs::path & configurationFilePath)
+{
+    if ( ! fs::exists(configurationFilePath)) {
+        return -1;
+    }
+    if ( configurationFilePath.extension() != ".xml") {
+         return -1;
+    }
+
+    int result = -1;
+    tinyxml2::XMLDocument doc;
+    enum tinyxml2::XMLError loadOkay = doc.LoadFile(configurationFilePath.string().c_str());
+    if (loadOkay == 0) {
+        try {
+            //TODO : check each element exists before using it !
+            // a check should be performed upon announced module uuid and inner module uuid
+            // check xml node is xpcf-registry first !
+            tinyxml2::XMLElement * rootElt = doc.RootElement();
+            string rootName = rootElt->Value();
+            if (rootName != "xpcf-registry" && rootName != "xpcf-configuration") {
+                return -1;
+            }
+            result = 0;
+
+            //processXmlNode(rootElt, "module", std::bind(&IRegistry::declareModule, m_registry.get(), _1));
+        }
+        catch (const std::runtime_error & e) {
+            return -1;
+        }
+    }
+    return result;
+}
+
 
 void DependencyManager::bundleDependency(const Dependency & dependency)
 {
@@ -132,10 +191,11 @@ void DependencyManager::bundleDependencies(const fs::path &  dependenciesFile)
                 if (!dependency.validate()) {
                     throw std::runtime_error("Error parsing dependency file : invalid format ");
                 }
-
+#ifdef BOOST_OS_WINDOWS_AVAILABLE
                 if (isSystemNeededElevation(dependency) && !OsTools::isElevated()) {
                     throw std::runtime_error("Remaken needs elevated privileges to install system Windows " + SystemTools::getToolIdentifier() + " dependencies");
                 }
+#endif
             }
         }
         std::vector<std::shared_ptr<std::thread>> thread_group;
@@ -246,10 +306,11 @@ void DependencyManager::retrieveDependencies(const fs::path &  dependenciesFile)
             if (!dep.validate()) {
                 throw std::runtime_error("Error parsing dependency file : invalid format ");
             }
-
+#ifdef BOOST_OS_WINDOWS_AVAILABLE
             if (isSystemNeededElevation(dep) && !OsTools::isElevated()) {
                 throw std::runtime_error("Remaken needs elevated privileges to install system Windows " + SystemTools::getToolIdentifier() + " dependencies");
             }
+#endif
         }
         std::vector<std::shared_ptr<std::thread>> thread_group;
         for (Dependency & dependency : dependencies) {

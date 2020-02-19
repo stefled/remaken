@@ -42,8 +42,10 @@ public:
     int retrieve();
     int parse();
     int bundle();
+    int bundleXpcf();
 
 private:
+    int loadXpcfConfiguration(const fs::path & configurationFilePath);
     std::vector<Dependency> parse(const fs::path & dependenciesPath);
     void bundleDependencies(const fs::path & dependenciesFiles);
     void bundleDependency(const Dependency & dep);

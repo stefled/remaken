@@ -24,7 +24,7 @@
 #define CONSTANTS_H
 
 #ifndef ROOTFOLDERENV
-#define ROOTFOLDERENV "BCOMDEVROOT"
+#define ROOTFOLDERENV "REMAKEN_ROOT"
 #endif
 
 class Constants {
