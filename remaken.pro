@@ -124,4 +124,6 @@ INCLUDEPATH += libs/nlohmann-json/single_include
 
 DISTFILES += \
     samples/packagedependencies-github.txt \
-    samples/packagedependencies-mixed.txt
+    samples/packagedependencies-mixed.txt \
+    resources/install_remaken_3rdparties.nsh \
+    resources/install_remaken_custom_pages.nsh
