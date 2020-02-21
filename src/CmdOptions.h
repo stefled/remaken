@@ -114,6 +114,10 @@ public:
         return m_altRepoUrl;
     }
 
+    inline const fs::path & getModulesSubfolder() const {
+        return m_moduleSubfolderPath;
+    }
+
     inline bool useCache() const {
         return !m_ignoreCache;
     }
@@ -138,6 +142,7 @@ private:
     std::string m_altRepoUrl;
     std::string m_altRepoType;
     std::string m_moduleSubfolder;
+    fs::path m_moduleSubfolderPath;
     bool m_ignoreCache;
     bool m_verbose;
 

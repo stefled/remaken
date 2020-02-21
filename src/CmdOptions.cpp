@@ -7,6 +7,7 @@
 #include "ZipTool.h"
 #include <boost/process.hpp>
 #include <boost/predef.h>
+#include "PathBuilder.h"
 namespace bp = boost::process;
 using namespace std;
 
@@ -58,7 +59,7 @@ std::string computeToolChain()
 CmdOptions::CmdOptions()
 {
     fs::detail::utf8_codecvt_facet utf8;
-    fs::path remakenRootPath = getHomePath() / ".remaken";
+    fs::path remakenRootPath = PathBuilder::getHomePath() / Constants::REMAKEN_FOLDER;
     char * rootDirectoryVar = getenv(Constants::REMAKENDEVROOT);
     if (rootDirectoryVar != nullptr) {
         std::cerr<<Constants::REMAKENDEVROOT<<" environment variable exists"<<std::endl;
@@ -94,7 +95,7 @@ CmdOptions::CmdOptions()
 }
 
 
-static const map<std::string,std::vector<std::string>> validationMap ={{"action",{"install","parse","version","bundle"}},
+static const map<std::string,std::vector<std::string>> validationMap ={{"action",{"install","parse","version","bundle", "bundleXpcf"}},
                                                                        {"architecture",{"x86_64","i386"}},
                                                                        {"config",{"release","debug"}},
                                                                        {"mode",{"shared","static"}},
@@ -132,7 +133,7 @@ CmdOptions::OptionResult CmdOptions::parseArguments(int argc, char** argv)
         po::store(po::command_line_parser(argc, argv).
                   options(m_optionsDesc).positional(p).run(), m_optionsVars);
 
-        fs::path configPath = getHomePath() / Constants::REMAKEN_FOLDER / "config";
+        fs::path configPath = PathBuilder::getHomePath() / Constants::REMAKEN_FOLDER / "config";
 
         if (fs::exists(configPath)) {
             ifstream configFile(configPath.generic_string());
@@ -145,6 +146,7 @@ CmdOptions::OptionResult CmdOptions::parseArguments(int argc, char** argv)
         // path is assigned after to ensure utf8 codecvt
         m_destinationRootPath.assign(m_destinationRoot,utf8);
         m_remakenRootPath.assign(m_remakenRoot,utf8);
+        m_moduleSubfolderPath.assign(m_moduleSubfolder,utf8);
     }
     catch(exception& e) {
         cout << "Error : " <<e.what() << endl;

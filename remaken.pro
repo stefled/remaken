@@ -39,6 +39,7 @@ HEADERS += \
     src/Cache.h \
     src/AbstractCommand.h \
     src/InstallCommand.h \
+    src/PathBuilder.h \
     src/VersionCommand.h \
     src/FileHandlerFactory.h \
     src/CredentialsFileRetriever.h \
@@ -61,6 +62,7 @@ HEADERS += \
 
 SOURCES += \
     src/BundleXpcfCommand.cpp \
+    src/PathBuilder.cpp \
     src/ZipTool.cpp \
     src/main.cpp \
     src/Dependency.cpp \

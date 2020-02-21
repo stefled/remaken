@@ -30,8 +30,6 @@
 std::string xmlGetTextSecure(tinyxml2::XMLElement * elt, const std::string & nodeName,
                              bool optional = false, const std::string & defaultValue = "");
 
-namespace org { namespace bcom { namespace xpcf {
-
 inline void processXmlNode(tinyxml2::XMLElement * xmlElt, const char * nodeName, std::function<void(tinyxml2::XMLElement*)>  func)
 {
     tinyxml2::XMLElement *element = xmlElt->FirstChildElement(nodeName);
@@ -62,5 +60,4 @@ void processXmlNode(SRef<T> element, tinyxml2::XMLElement * xmlParentElt, const 
     }
 }*/
 
-}}}
 #endif // TINYXMLHELPER_H

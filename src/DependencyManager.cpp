@@ -8,7 +8,7 @@
 #include "SystemTools.h"
 #include "OsTools.h"
 #include <boost/log/trivial.hpp>
-#include "tinyxmlhelper.h"
+#include "PathBuilder.h"
 
 using namespace std;
 using std::placeholders::_1;
@@ -102,6 +102,9 @@ int DependencyManager::parse()
 int DependencyManager::bundle()
 {
     try {
+        if (!fs::exists(m_options.getDestinationRoot())) {
+            fs::create_directory(m_options.getDestinationRoot());
+        }
         bundleDependencies(buildDependencyPath());
     }
     catch (const std::runtime_error & e) {
@@ -118,10 +121,20 @@ int DependencyManager::bundle()
 int DependencyManager::bundleXpcf()
 {
     try {
+        if (!fs::exists(m_options.getDestinationRoot()/m_options.getModulesSubfolder())) {
+            fs::create_directories(m_options.getDestinationRoot()/m_options.getModulesSubfolder());
+        }
         fs::path xpcfConfigFilePath = buildDependencyPath();
-       /* for (auto module : modules) {
-            bundleDependencies(buildDependencyPath());
-        }*/
+        if ( xpcfConfigFilePath.extension() != ".xml") {
+             return -1;
+        }
+        fs::copy_file(xpcfConfigFilePath , m_options.getDestinationRoot()/xpcfConfigFilePath.filename(), fs::copy_option::overwrite_if_exists);
+
+        parseXpcfModulesConfiguration(xpcfConfigFilePath);
+        updateXpcfModulesPath(m_options.getDestinationRoot()/xpcfConfigFilePath.filename());
+         for (auto & [name,modulePath] : m_modulesPathMap) {
+            OsTools::copySharedLibraries(modulePath,m_options,true);
+        }
     }
     catch (const std::runtime_error & e) {
         BOOST_LOG_TRIVIAL(error)<<e.what();
@@ -133,17 +146,70 @@ int DependencyManager::bundleXpcf()
     return 0;
 }
 
-int DependencyManager::loadXpcfConfiguration(const fs::path & configurationFilePath)
+void DependencyManager::updateModuleNode(tinyxml2::XMLElement * xmlModuleElt)
 {
-    if ( ! fs::exists(configurationFilePath)) {
-        return -1;
+    fs::detail::utf8_codecvt_facet utf8;
+    xmlModuleElt->SetAttribute("path",m_options.getModulesSubfolder().string(utf8).c_str());
+}
+
+int DependencyManager::updateXpcfModulesPath(const fs::path & configurationFilePath)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    int result = -1;
+    tinyxml2::XMLDocument xmlDoc;
+    enum tinyxml2::XMLError loadOkay = xmlDoc.LoadFile(configurationFilePath.string(utf8).c_str());
+    if (loadOkay == 0) {
+        try {
+            //TODO : check each element exists before using it !
+            // a check should be performed upon announced module uuid and inner module uuid
+            // check xml node is xpcf-registry first !
+            tinyxml2::XMLElement * rootElt = xmlDoc.RootElement();
+            string rootName = rootElt->Value();
+            if (rootName != "xpcf-registry" && rootName != "xpcf-configuration") {
+                return -1;
+            }
+            result = 0;
+
+            processXmlNode(rootElt, "module", std::bind(&DependencyManager::updateModuleNode, this, _1));
+            xmlDoc.SaveFile(configurationFilePath.string(utf8).c_str());
+        }
+        catch (const std::runtime_error & e) {
+            return -1;
+        }
     }
-    if ( configurationFilePath.extension() != ".xml") {
-         return -1;
+    return result;
+}
+
+void DependencyManager::declareModule(tinyxml2::XMLElement * xmlModuleElt)
+{
+    std::string moduleName = xmlModuleElt->Attribute("name");
+    std::string moduleDescription = "";
+    if (xmlModuleElt->Attribute("description") != nullptr) {
+        moduleDescription = xmlModuleElt->Attribute("description");
+    }
+    std::string moduleUuid =  xmlModuleElt->Attribute("uuid");
+    fs::path modulePath = PathBuilder::buildModuleFolderPath(xmlModuleElt->Attribute("path"), m_options.getConfig());
+    if (! mapContains(m_modulesUUiDMap, moduleName)) {
+        m_modulesUUiDMap[moduleName] = moduleUuid;
+    }
+    else {
+        std::string previousModuleUUID = m_modulesUUiDMap.at(moduleName);
+        if (moduleUuid != previousModuleUUID) {
+            BOOST_LOG_TRIVIAL(warning)<<"Already found a module named "<<moduleName<<" with a different UUID: first UUID found ="<<previousModuleUUID<<" last UUID = "<<moduleUuid;
+        }
     }
 
+    if (! mapContains(m_modulesPathMap, moduleName)) {
+        m_modulesPathMap[moduleName] = modulePath;
+    }
+}
+
+
+int DependencyManager::parseXpcfModulesConfiguration(const fs::path & configurationFilePath)
+{
     int result = -1;
     tinyxml2::XMLDocument doc;
+    m_modulesPathMap.clear();
     enum tinyxml2::XMLError loadOkay = doc.LoadFile(configurationFilePath.string().c_str());
     if (loadOkay == 0) {
         try {
@@ -157,7 +223,7 @@ int DependencyManager::loadXpcfConfiguration(const fs::path & configurationFileP
             }
             result = 0;
 
-            //processXmlNode(rootElt, "module", std::bind(&IRegistry::declareModule, m_registry.get(), _1));
+            processXmlNode(rootElt, "module", std::bind(&DependencyManager::declareModule, this, _1));
         }
         catch (const std::runtime_error & e) {
             return -1;

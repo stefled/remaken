@@ -47,41 +47,13 @@ namespace fs = boost::filesystem;
 #include <sys/types.h>
 #endif
 
-inline fs::path getUTF8PathObserver(const char * sourcePath)
-{
-    fs::detail::utf8_codecvt_facet utf8;
-    fs::path utf8ObservedPath(sourcePath, utf8);
-    return utf8ObservedPath;
-}
 
-inline fs::path getHomePath()
+template < typename Key, typename T> bool mapContains(const std::map<Key,T> & mapContainer, Key k)
 {
-    char * homePathStr;
-    fs::path homePath;
-#ifdef WIN32
-    homePathStr = getenv("USERPROFILE");
-    if (homePathStr == nullptr) {
-        homePathStr = getenv("HOMEDRIVE");
-        if (homePathStr) {
-            homePath = getUTF8PathObserver(homePathStr);
-            homePath /= getenv("HOMEPATH");
-        }
+    if (mapContainer.find(k) != mapContainer.end()) {
+        return true;
     }
-    else {
-        homePath = getUTF8PathObserver(homePathStr);
-    }
-#else
-    struct passwd* pwd = getpwuid(getuid());
-    if (pwd) {
-        homePathStr = pwd->pw_dir;
-    }
-    else {
-        // try the $HOME environment variable
-        homePathStr = getenv("HOME");
-    }
-    homePath = getUTF8PathObserver(homePathStr);
-#endif
-    return homePath;
+    return false;
 }
 
 // following range find definitions must be removed once c++20 is here !

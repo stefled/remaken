@@ -30,6 +30,7 @@
 #include "Dependency.h"
 #include "CmdOptions.h"
 #include "Cache.h"
+#include "tinyxmlhelper.h"
 
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
@@ -45,13 +46,18 @@ public:
     int bundleXpcf();
 
 private:
-    int loadXpcfConfiguration(const fs::path & configurationFilePath);
+    void updateModuleNode(tinyxml2::XMLElement * xmlModuleElt);
+    int updateXpcfModulesPath(const fs::path & configurationFilePath);
+    void declareModule(tinyxml2::XMLElement * xmlModuleElt);
+    int parseXpcfModulesConfiguration(const fs::path & configurationFilePath);
     std::vector<Dependency> parse(const fs::path & dependenciesPath);
     void bundleDependencies(const fs::path & dependenciesFiles);
     void bundleDependency(const Dependency & dep);
     void retrieveDependencies(const fs::path & dependenciesFiles);
     void retrieveDependency(Dependency &  dependency);
     std::vector<fs::path> getChildrenDependencies(const Dependency & dependency, const fs::path & outputDirectory);
+    std::map<std::string, fs::path> m_modulesPathMap;
+    std::map<std::string, std::string> m_modulesUUiDMap;
     CmdOptions m_options;
     Cache m_cache;
 
