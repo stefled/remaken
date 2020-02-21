@@ -128,7 +128,8 @@ fs::path findPackageRoot(fs::path moduleLibPath)
     std::smatch sm;
     while (!bFoundVersion) {
         std::regex tmplRegex(versionRegex, std::regex_constants::extended);
-        if (std::regex_search(currentFilename.string(utf8), sm, tmplRegex, std::regex_constants::match_flag_type::match_any)) {
+        std::string currentFilenameStr = currentFilename.string(utf8);
+        if (std::regex_search(currentFilenameStr, sm, tmplRegex, std::regex_constants::match_flag_type::match_any)) {
             std::string matchStr = sm.str(0);
             BOOST_LOG_TRIVIAL(warning)<<"Found "<< matchStr<<" version for modulepath "<<moduleLibPath;
             std::cout<<"Found "<< matchStr<<" version "<<std::endl;
