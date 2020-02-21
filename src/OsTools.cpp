@@ -61,11 +61,11 @@ const std::string_view & OsTools::sharedSuffix(const std::string_view & osStr)
 }
 
 
-void OsTools::copySharedLibraries(const fs::path & sourceRootFolder, const CmdOptions & options, bool xpcfBundle)
+void OsTools::copySharedLibraries(const fs::path & sourceRootFolder, const CmdOptions & options)
 {
     fs::detail::utf8_codecvt_facet utf8;
     fs::path destinationFolderPath = options.getDestinationRoot();
-    if (xpcfBundle) {
+    if (options.isXpcfBundle()) {
         destinationFolderPath /= options.getModulesSubfolder();
     }
     for (fs::directory_entry& x : fs::directory_iterator(sourceRootFolder)) {

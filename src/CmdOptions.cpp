@@ -117,6 +117,11 @@ void CmdOptions::validateOptions()
                 throw std::runtime_error(message);
             }
         }
+        if (name == "action") {
+            if (value.as<string>() == "bundleXpcf") {
+                m_isXpcfBundle = true;
+            }
+        }
     }
     fs::path zipToolPath = bp::search_path(m_optionsVars["ziptool"].as<string>()); //or get it from somewhere else.
     if (zipToolPath.empty()) {

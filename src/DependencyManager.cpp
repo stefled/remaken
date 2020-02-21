@@ -9,6 +9,7 @@
 #include "OsTools.h"
 #include <boost/log/trivial.hpp>
 #include "PathBuilder.h"
+#include <regex>
 
 using namespace std;
 using std::placeholders::_1;
@@ -118,6 +119,30 @@ int DependencyManager::bundle()
     return 0;
 }
 
+fs::path findPackageRoot(fs::path moduleLibPath)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    std::string versionRegex = "[0-9]+\.[0-9]+\.[0-9]+";
+    fs::path currentFilename = moduleLibPath.filename();
+    bool bFoundVersion = false;
+    std::smatch sm;
+    while (!bFoundVersion) {
+        std::regex tmplRegex(versionRegex, std::regex_constants::extended);
+        if (std::regex_search(currentFilename.string(utf8), sm, tmplRegex, std::regex_constants::match_flag_type::match_any)) {
+            std::string matchStr = sm.str(0);
+            BOOST_LOG_TRIVIAL(warning)<<"Found "<< matchStr<<" version for modulepath "<<moduleLibPath;
+            std::cout<<"Found "<< matchStr<<" version "<<std::endl;
+            return moduleLibPath;
+        }
+        else {
+            moduleLibPath = moduleLibPath.parent_path();
+            currentFilename = moduleLibPath.filename();
+        }
+    }
+    // no path found : return empty path
+    return fs::path();
+}
+
 int DependencyManager::bundleXpcf()
 {
     try {
@@ -133,7 +158,22 @@ int DependencyManager::bundleXpcf()
         parseXpcfModulesConfiguration(xpcfConfigFilePath);
         updateXpcfModulesPath(m_options.getDestinationRoot()/xpcfConfigFilePath.filename());
          for (auto & [name,modulePath] : m_modulesPathMap) {
-            OsTools::copySharedLibraries(modulePath,m_options,true);
+            OsTools::copySharedLibraries(modulePath,m_options);
+        }
+
+         for (auto & [name,modulePath] : m_modulesPathMap) {
+            OsTools::copySharedLibraries(modulePath,m_options);
+            fs::path packageRootPath = findPackageRoot(modulePath);
+            if (!fs::exists(packageRootPath)) {
+                BOOST_LOG_TRIVIAL(warning)<<"Unable to find root package path "<<packageRootPath<<" for module "<<name;
+            }
+            if (fs::exists(packageRootPath/"packagedependencies.txt")) {
+                bundleDependencies(packageRootPath/"packagedependencies.txt");
+            }
+            else {
+                BOOST_LOG_TRIVIAL(warning)<<"Unable to find packagedependencies.txt file in package path"<<packageRootPath<<" for module "<<name;
+            }
+
         }
     }
     catch (const std::runtime_error & e) {

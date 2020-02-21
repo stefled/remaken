@@ -122,6 +122,10 @@ public:
         return !m_ignoreCache;
     }
 
+    inline bool isXpcfBundle() const {
+        return m_isXpcfBundle;
+    }
+
 private:
     void validateOptions();
     std::string m_action;
@@ -145,6 +149,7 @@ private:
     fs::path m_moduleSubfolderPath;
     bool m_ignoreCache;
     bool m_verbose;
+    bool m_isXpcfBundle = false;
 
     po::options_description m_optionsDesc{"Usage"};
     po::variables_map m_optionsVars;

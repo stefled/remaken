@@ -35,7 +35,7 @@ public:
     OsTools() = delete;
     ~OsTools() = delete;
     static bool isElevated();
-    static void copySharedLibraries(const fs::path & sourceRootFolder, const CmdOptions & options, bool xpcfBundle = false);
+    static void copySharedLibraries(const fs::path & sourceRootFolder, const CmdOptions & options);
     static const std::string_view & sharedSuffix(const std::string_view & osStr);
 };
 
