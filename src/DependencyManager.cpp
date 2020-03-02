@@ -8,8 +8,12 @@
 #include "SystemTools.h"
 #include "OsTools.h"
 #include <boost/log/trivial.hpp>
+#include "PathBuilder.h"
+#include <regex>
 
 using namespace std;
+using std::placeholders::_1;
+using std::placeholders::_2;
 
 bool isSystemDependency(const Dependency & dep)
 {
@@ -26,14 +30,12 @@ bool isGenericSystemDependency(const Dependency & dep)
     return isSystemDependency(dep) && (dep.getIdentifier() == "system");
 }
 
+#ifdef BOOST_OS_WINDOWS_AVAILABLE
 bool isSystemNeededElevation(const Dependency & dep)
 {
-#ifdef BOOST_OS_WINDOWS_AVAILABLE
      return (isSystemDependency(dep) && SystemTools::getToolIdentifier() == "choco");
-#else
-     return false;
-#endif
 }
+#endif
 
 DependencyManager::DependencyManager(const CmdOptions & options):m_options(options),m_cache(options)
 {
@@ -78,19 +80,22 @@ int DependencyManager::parse()
         if (!dep.validate()) {
             bValid = false;
         }
-
+#ifdef BOOST_OS_WINDOWS_AVAILABLE
         if (isSystemNeededElevation(dep)) {
             bNeedElevation = true;
         }
+#endif
     }
     if (!bValid) {
         BOOST_LOG_TRIVIAL(error)<<"Semantic error parsing file "<<depPath<<" please fix the above dependency(ies) declaration error(s)";
         return -1;
     }
+#ifdef BOOST_OS_WINDOWS_AVAILABLE
     if (bNeedElevation) {
         BOOST_LOG_TRIVIAL(warning)<<"Information of parsing file : remaken needs elevated privileges to install system Windows (choco) dependencies ";
         return -2;
     }
+#endif
     BOOST_LOG_TRIVIAL(info)<<"File "<<depPath<<" successfully parsed";
     return 0;
 }
@@ -98,15 +103,176 @@ int DependencyManager::parse()
 int DependencyManager::bundle()
 {
     try {
+        if (!fs::exists(m_options.getDestinationRoot())) {
+            fs::create_directory(m_options.getDestinationRoot());
+        }
         bundleDependencies(buildDependencyPath());
     }
     catch (const std::runtime_error & e) {
         BOOST_LOG_TRIVIAL(error)<<e.what();
         return -1;
     }
+
+#ifndef BOOST_OS_WINDOWS_AVAILABLE
     BOOST_LOG_TRIVIAL(warning)<<"bundle command under implementation : rpath not reinterpreted after copy";
+#endif
     return 0;
 }
+
+fs::path findPackageRoot(fs::path moduleLibPath)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    std::string versionRegex = "[0-9]+\.[0-9]+\.[0-9]+";
+    fs::path currentFilename = moduleLibPath.filename();
+    bool bFoundVersion = false;
+    std::smatch sm;
+    while (!bFoundVersion) {
+        std::regex tmplRegex(versionRegex, std::regex_constants::extended);
+        std::string currentFilenameStr = currentFilename.string(utf8);
+        if (std::regex_search(currentFilenameStr, sm, tmplRegex, std::regex_constants::match_flag_type::match_any)) {
+            std::string matchStr = sm.str(0);
+            BOOST_LOG_TRIVIAL(warning)<<"Found "<< matchStr<<" version for modulepath "<<moduleLibPath;
+            std::cout<<"Found "<< matchStr<<" version "<<std::endl;
+            return moduleLibPath;
+        }
+        else {
+            moduleLibPath = moduleLibPath.parent_path();
+            currentFilename = moduleLibPath.filename();
+        }
+    }
+    // no path found : return empty path
+    return fs::path();
+}
+
+int DependencyManager::bundleXpcf()
+{
+    try {
+        if (!fs::exists(m_options.getDestinationRoot()/m_options.getModulesSubfolder())) {
+            fs::create_directories(m_options.getDestinationRoot()/m_options.getModulesSubfolder());
+        }
+        fs::path xpcfConfigFilePath = buildDependencyPath();
+        if ( xpcfConfigFilePath.extension() != ".xml") {
+             return -1;
+        }
+        fs::copy_file(xpcfConfigFilePath , m_options.getDestinationRoot()/xpcfConfigFilePath.filename(), fs::copy_option::overwrite_if_exists);
+
+        parseXpcfModulesConfiguration(xpcfConfigFilePath);
+        updateXpcfModulesPath(m_options.getDestinationRoot()/xpcfConfigFilePath.filename());
+         for (auto & [name,modulePath] : m_modulesPathMap) {
+            OsTools::copySharedLibraries(modulePath,m_options);
+        }
+
+         for (auto & [name,modulePath] : m_modulesPathMap) {
+            OsTools::copySharedLibraries(modulePath,m_options);
+            fs::path packageRootPath = findPackageRoot(modulePath);
+            if (!fs::exists(packageRootPath)) {
+                BOOST_LOG_TRIVIAL(warning)<<"Unable to find root package path "<<packageRootPath<<" for module "<<name;
+            }
+            if (fs::exists(packageRootPath/"packagedependencies.txt")) {
+                bundleDependencies(packageRootPath/"packagedependencies.txt");
+            }
+            else {
+                BOOST_LOG_TRIVIAL(warning)<<"Unable to find packagedependencies.txt file in package path"<<packageRootPath<<" for module "<<name;
+            }
+
+        }
+    }
+    catch (const std::runtime_error & e) {
+        BOOST_LOG_TRIVIAL(error)<<e.what();
+        return -1;
+    }
+#ifndef BOOST_OS_WINDOWS_AVAILABLE
+    BOOST_LOG_TRIVIAL(warning)<<"bundleXpcf command under implementation : rpath not reinterpreted after copy";
+#endif
+    return 0;
+}
+
+void DependencyManager::updateModuleNode(tinyxml2::XMLElement * xmlModuleElt)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    xmlModuleElt->SetAttribute("path",m_options.getModulesSubfolder().string(utf8).c_str());
+}
+
+int DependencyManager::updateXpcfModulesPath(const fs::path & configurationFilePath)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    int result = -1;
+    tinyxml2::XMLDocument xmlDoc;
+    enum tinyxml2::XMLError loadOkay = xmlDoc.LoadFile(configurationFilePath.string(utf8).c_str());
+    if (loadOkay == 0) {
+        try {
+            //TODO : check each element exists before using it !
+            // a check should be performed upon announced module uuid and inner module uuid
+            // check xml node is xpcf-registry first !
+            tinyxml2::XMLElement * rootElt = xmlDoc.RootElement();
+            string rootName = rootElt->Value();
+            if (rootName != "xpcf-registry" && rootName != "xpcf-configuration") {
+                return -1;
+            }
+            result = 0;
+
+            processXmlNode(rootElt, "module", std::bind(&DependencyManager::updateModuleNode, this, _1));
+            xmlDoc.SaveFile(configurationFilePath.string(utf8).c_str());
+        }
+        catch (const std::runtime_error & e) {
+            return -1;
+        }
+    }
+    return result;
+}
+
+void DependencyManager::declareModule(tinyxml2::XMLElement * xmlModuleElt)
+{
+    std::string moduleName = xmlModuleElt->Attribute("name");
+    std::string moduleDescription = "";
+    if (xmlModuleElt->Attribute("description") != nullptr) {
+        moduleDescription = xmlModuleElt->Attribute("description");
+    }
+    std::string moduleUuid =  xmlModuleElt->Attribute("uuid");
+    fs::path modulePath = PathBuilder::buildModuleFolderPath(xmlModuleElt->Attribute("path"), m_options.getConfig());
+    if (! mapContains(m_modulesUUiDMap, moduleName)) {
+        m_modulesUUiDMap[moduleName] = moduleUuid;
+    }
+    else {
+        std::string previousModuleUUID = m_modulesUUiDMap.at(moduleName);
+        if (moduleUuid != previousModuleUUID) {
+            BOOST_LOG_TRIVIAL(warning)<<"Already found a module named "<<moduleName<<" with a different UUID: first UUID found ="<<previousModuleUUID<<" last UUID = "<<moduleUuid;
+        }
+    }
+
+    if (! mapContains(m_modulesPathMap, moduleName)) {
+        m_modulesPathMap[moduleName] = modulePath;
+    }
+}
+
+
+int DependencyManager::parseXpcfModulesConfiguration(const fs::path & configurationFilePath)
+{
+    int result = -1;
+    tinyxml2::XMLDocument doc;
+    m_modulesPathMap.clear();
+    enum tinyxml2::XMLError loadOkay = doc.LoadFile(configurationFilePath.string().c_str());
+    if (loadOkay == 0) {
+        try {
+            //TODO : check each element exists before using it !
+            // a check should be performed upon announced module uuid and inner module uuid
+            // check xml node is xpcf-registry first !
+            tinyxml2::XMLElement * rootElt = doc.RootElement();
+            string rootName = rootElt->Value();
+            if (rootName != "xpcf-registry" && rootName != "xpcf-configuration") {
+                return -1;
+            }
+            result = 0;
+
+            processXmlNode(rootElt, "module", std::bind(&DependencyManager::declareModule, this, _1));
+        }
+        catch (const std::runtime_error & e) {
+            return -1;
+        }
+    }
+    return result;
+}
+
 
 void DependencyManager::bundleDependency(const Dependency & dependency)
 {
@@ -132,10 +298,11 @@ void DependencyManager::bundleDependencies(const fs::path &  dependenciesFile)
                 if (!dependency.validate()) {
                     throw std::runtime_error("Error parsing dependency file : invalid format ");
                 }
-
+#ifdef BOOST_OS_WINDOWS_AVAILABLE
                 if (isSystemNeededElevation(dependency) && !OsTools::isElevated()) {
                     throw std::runtime_error("Remaken needs elevated privileges to install system Windows " + SystemTools::getToolIdentifier() + " dependencies");
                 }
+#endif
             }
         }
         std::vector<std::shared_ptr<std::thread>> thread_group;
@@ -246,10 +413,11 @@ void DependencyManager::retrieveDependencies(const fs::path &  dependenciesFile)
             if (!dep.validate()) {
                 throw std::runtime_error("Error parsing dependency file : invalid format ");
             }
-
+#ifdef BOOST_OS_WINDOWS_AVAILABLE
             if (isSystemNeededElevation(dep) && !OsTools::isElevated()) {
                 throw std::runtime_error("Remaken needs elevated privileges to install system Windows " + SystemTools::getToolIdentifier() + " dependencies");
             }
+#endif
         }
         std::vector<std::shared_ptr<std::thread>> thread_group;
         for (Dependency & dependency : dependencies) {

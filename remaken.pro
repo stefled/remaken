@@ -17,7 +17,7 @@ CONFIG(release,debug|release) {
 }
 
 DEFINES += BOOST_ALL_NO_LIB
-DEFINES += ROOTFOLDERENV=$$shell_quote(\"BCOMDEVROOT\")
+DEFINES += ROOTFOLDERENV=$$shell_quote(\"REMAKEN_ROOT\")
 
 # Include bundle configuration parameters
 include(_BundleConfig.pri)
@@ -31,6 +31,7 @@ CONFIG += app_setup
 include (builddefs/qmake/templateappconfig.pri)
 
 HEADERS += \
+    src/BundleXpcfCommand.h \
     src/Dependency.h \
     src/DependencyManager.h \
     src/CmdOptions.h \
@@ -38,6 +39,7 @@ HEADERS += \
     src/Cache.h \
     src/AbstractCommand.h \
     src/InstallCommand.h \
+    src/PathBuilder.h \
     src/VersionCommand.h \
     src/FileHandlerFactory.h \
     src/CredentialsFileRetriever.h \
@@ -54,9 +56,13 @@ HEADERS += \
     src/ParseCommand.h \
     src/BundleCommand.h \
     src/ZipTool.h \
-    src/OsTools.h
+    src/OsTools.h \
+    src/tinyxml2.h \
+    src/tinyxmlhelper.h
 
 SOURCES += \
+    src/BundleXpcfCommand.cpp \
+    src/PathBuilder.cpp \
     src/ZipTool.cpp \
     src/main.cpp \
     src/Dependency.cpp \
@@ -78,7 +84,9 @@ SOURCES += \
     src/SystemTools.cpp \
     src/ParseCommand.cpp \
     src/BundleCommand.cpp \
-    src/OsTools.cpp
+    src/OsTools.cpp \
+    src/tinyxml2.cpp \
+    src/tinyxmlhelper.cpp
 
 unix {
    # QMAKE_CXXFLAGS += --coverage
@@ -118,4 +126,6 @@ INCLUDEPATH += libs/nlohmann-json/single_include
 
 DISTFILES += \
     samples/packagedependencies-github.txt \
-    samples/packagedependencies-mixed.txt
+    samples/packagedependencies-mixed.txt \
+    resources/install_remaken_3rdparties.nsh \
+    resources/install_remaken_custom_pages.nsh

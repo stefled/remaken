@@ -22,9 +22,11 @@ static const std::map<std::string,std::string> options2vcpkg ={{"mac","osx"},
                                                                {"static","static"},
                                                                {"unix","linux"}};
 
-
-
-
+#ifdef BOOST_OS_WINDOWS_AVAILABLE
+#define OSSHAREDLIBNODEPATH "bin_paths"
+#else
+#define OSSHAREDLIBNODEPATH "lib_paths"
+#endif
 
 class AptSystemTool : public BaseSystemTool
 {
@@ -285,17 +287,16 @@ void ConanSystemTool::bundle(const Dependency & dependency)
     if (fs::exists(conanBuildInfoJson)) {
         std::ifstream ifs1{ conanBuildInfoJson.generic_string(utf8) };
         nj::json conanBuildData = nj::json::parse(ifs1);
-        for (auto dep:conanBuildData["dependencies"]) {
+        for (auto dep : conanBuildData["dependencies"]) {
             auto root = dep["rootpath"];
-            auto lib_paths = dep["lib_paths"];
-            auto bin_paths = dep["bin_paths"];
-
+            auto lib_paths = dep[OSSHAREDLIBNODEPATH];
             for (auto lib_path : lib_paths) {
-                fs::path libPath = lib_path;
-                if (fs::exists(libPath)) {
+                boost::filesystem::path libPath = std::string(lib_path);
+                if (boost::filesystem::exists(libPath)) {
                     OsTools::copySharedLibraries(libPath, m_options);
                 }
             }
+
         }
     }
 }

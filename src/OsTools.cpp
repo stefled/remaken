@@ -64,17 +64,21 @@ const std::string_view & OsTools::sharedSuffix(const std::string_view & osStr)
 void OsTools::copySharedLibraries(const fs::path & sourceRootFolder, const CmdOptions & options)
 {
     fs::detail::utf8_codecvt_facet utf8;
+    fs::path destinationFolderPath = options.getDestinationRoot();
+    if (options.isXpcfBundle()) {
+        destinationFolderPath /= options.getModulesSubfolder();
+    }
     for (fs::directory_entry& x : fs::directory_iterator(sourceRootFolder)) {
         fs::path filepath = x.path();
         if (fs::is_symlink(x.path())) {
-            if (fs::exists(options.getDestinationRoot()/filepath.filename())) {
-                fs::remove(options.getDestinationRoot()/filepath.filename());
+            if (fs::exists(destinationFolderPath/filepath.filename())) {
+                fs::remove(destinationFolderPath/filepath.filename());
             }
         //    fs::copy_symlink(x.path(),options.getDestinationRoot()/filepath.filename());
         }
         else if (is_regular_file(filepath)) {
             if (filepath.extension().string(utf8) == sharedSuffix(options.getOS())) {
-                fs::copy_file(filepath , options.getDestinationRoot()/filepath.filename(), fs::copy_option::overwrite_if_exists);
+                fs::copy_file(filepath , destinationFolderPath/filepath.filename(), fs::copy_option::overwrite_if_exists);
             }
         }
     }

@@ -4,6 +4,7 @@
 #include "InstallCommand.h"
 #include "ParseCommand.h"
 #include "BundleCommand.h"
+#include "BundleXpcfCommand.h"
 #include "VersionCommand.h"
 #include <memory>
 
@@ -21,6 +22,7 @@ int main(int argc, char** argv)
     dispatcher["install"] = make_shared<InstallCommand>(opts);
     dispatcher["parse"] = make_shared<ParseCommand>(opts);
     dispatcher["bundle"] = make_shared<BundleCommand>(opts);
+    dispatcher["bundleXpcf"] = make_shared<BundleXpcfCommand>(opts);
     dispatcher["version"] = make_shared<VersionCommand>();
     dispatcher.at(opts.getAction())->execute();
     return 0;

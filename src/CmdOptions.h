@@ -28,9 +28,11 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 
-//--action install -r  path_to_remaken_root -i -s linux -t github -l nexus -u http://url_to_root_nexus_repo --cpp-std 17 -c debug -f packagedependencies-github.txt
+//--action install -r  path_to_remaken_root -i -o linux -t github -l nexus -u http://url_to_root_nexus_repo --cpp-std 17 -c debug -f packagedependencies-github.txt
 
-//--action bundle -d ~/tmp/conanDeployed/ --cpp-std 17 -c debug
+//--action bundle -d ~/tmp/conanDeployed/ --cpp-std 17 -c debug [-f packagedependencies.txt]
+
+//--action bundleXpcf -d ~/tmp/conanDeployed/ -s relative_install_path_to_modules_folder --cpp-std 17 -c debug -f xpcfApplication.xml
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
 
@@ -112,8 +114,16 @@ public:
         return m_altRepoUrl;
     }
 
+    inline const fs::path & getModulesSubfolder() const {
+        return m_moduleSubfolderPath;
+    }
+
     inline bool useCache() const {
         return !m_ignoreCache;
+    }
+
+    inline bool isXpcfBundle() const {
+        return m_isXpcfBundle;
     }
 
 private:
@@ -135,8 +145,11 @@ private:
     std::string m_zipTool;
     std::string m_altRepoUrl;
     std::string m_altRepoType;
+    std::string m_moduleSubfolder;
+    fs::path m_moduleSubfolderPath;
     bool m_ignoreCache;
     bool m_verbose;
+    bool m_isXpcfBundle = false;
 
     po::options_description m_optionsDesc{"Usage"};
     po::variables_map m_optionsVars;
