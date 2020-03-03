@@ -60,9 +60,9 @@ CmdOptions::CmdOptions()
 {
     fs::detail::utf8_codecvt_facet utf8;
     fs::path remakenRootPath = PathBuilder::getHomePath() / Constants::REMAKEN_FOLDER;
-    char * rootDirectoryVar = getenv(Constants::REMAKENDEVROOT);
+    char * rootDirectoryVar = getenv(Constants::REMAKENPKGROOT);
     if (rootDirectoryVar != nullptr) {
-        std::cerr<<Constants::REMAKENDEVROOT<<" environment variable exists"<<std::endl;
+        std::cerr<<Constants::REMAKENPKGROOT<<" environment variable exists"<<std::endl;
         remakenRootPath = rootDirectoryVar;
     }
     remakenRootPath /= "packages";

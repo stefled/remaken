@@ -119,6 +119,19 @@ public:
 private:
 };
 
+class ScoopSystemTool : public BaseSystemTool
+{
+public:
+    ScoopSystemTool(const CmdOptions & options):BaseSystemTool(options, "scoop") {}
+    ~ScoopSystemTool() override = default;
+    void update() override;
+    void install(const Dependency & dependency) override;
+    bool installed(const Dependency & dependency) override;
+
+
+private:
+};
+
 class ZypperSystemTool : public BaseSystemTool
 {
 public:
@@ -573,11 +586,33 @@ bool ChocoSystemTool::installed(const Dependency & dependency)
     return false;
 }
 
+void ScoopSystemTool::update()
+{
+    int result = bp::system(m_systemInstallerPath, "update");
+    if (result != 0) {
+        throw std::runtime_error("Error updating scoop repositories");
+    }
+}
+
+void ScoopSystemTool::install(const Dependency & dependency)
+{
+    std::string source = computeSourcePath(dependency);
+    int result = bp::system(m_systemInstallerPath, "install","--yes", source.c_str());
+    if (result != 0) {
+        throw std::runtime_error("Error installing scoop dependency : " + source);
+    }
+}
+
+bool ScoopSystemTool::installed(const Dependency & dependency)
+{
+    return false;
+}
+
 void ZypperSystemTool::update()
 {
     int result = bp::system(sudo(), m_systemInstallerPath, "--non-interactive","ref");
     if (result != 0) {
-        throw std::runtime_error("Error updating choco repositories");
+        throw std::runtime_error("Error updating zypper repositories");
     }
 }
 
@@ -586,7 +621,7 @@ void ZypperSystemTool::install(const Dependency & dependency)
     std::string source = computeSourcePath(dependency);
     int result = bp::system(sudo(), m_systemInstallerPath, "--non-interactive","in", source.c_str());
     if (result != 0) {
-        throw std::runtime_error("Error installing choco dependency : " + source);
+        throw std::runtime_error("Error installing zypper dependency : " + source);
     }
 }
 
