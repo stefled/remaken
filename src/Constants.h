@@ -30,6 +30,7 @@
 class Constants {
 public:
     static constexpr const char * REMAKENPKGROOT = ROOTFOLDERENV;
+    static constexpr const char * REMAKENPKGFILENAME = ".packagespath";
     static constexpr const char * REMAKEN_FOLDER = ".remaken";
     static constexpr const char * REMAKEN_CACHE_FILE = ".remaken-cache";
     static constexpr const char * ARTIFACTORY_API_KEY = "artifactoryApiKey";
