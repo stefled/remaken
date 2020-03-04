@@ -1,32 +1,36 @@
-; remaken_root first path defintion
-Var remaken_root_text
+; REMAKEN_PKG_ROOT first path defintion
+Var remaken_pkg_root_text
 
 Section "!Remaken"	REMAKEN_APP
-	SetRegView 64
-	WriteRegStr HKCU "Environment" "REMAKEN_ROOT" "$remaken_root_text\.remaken"
+	EnVar::SetHKCU
+	EnVar::AddValue "REMAKEN_PKG_ROOT" "$remaken_pkg_root_text\.remaken"
 SectionEnd
 
 Section "!un.Remaken"
-	SetRegView 64
-	DeleteRegValue HKCU "Environment" "REMAKEN_ROOT"
+	EnVar::SetHKCU
+	EnVar::Delete "REMAKEN_PKG_ROOT"
 SectionEnd
 
 Section "!BuilddefsQmake"   BUILDDEFS_QMAKE
-    SetOutPath "$remaken_root_text\.remaken\rules"
-    CreateDirectory $remaken_root_text\.remaken\rules
-    File /nonfatal /a /r "${SETUP_PROJECT_PATH}\Builddefs\"
-	SetRegView 64
-	WriteRegStr HKCU "Environment" "REMAKEN_RULES_ROOT" "$remaken_root_text\.remaken\rules"
+    SetOutPath "$PROFILE\.remaken\rules"
+    CreateDirectory $PROFILE\.remaken\rules
+    File /nonfatal /a /r "${SETUP_PROJECT_PATH}\Builddefs\"	
+	EnVar::SetHKCU
+	EnVar::AddValue "REMAKEN_RULES_ROOT" "$PROFILE\.remaken\rules"
 SectionEnd
 
 Section "un.BuilddefsQmake"
-    RMDir /r "$remaken_root_text\.remaken\rules"
-	RMDir "$remaken_root_text\.remaken"
-	RMDir "$remaken_root_text"
-	SetRegView 64
-	DeleteRegValue HKCU "Environment" "REMAKEN_RULES_ROOT"
+    RMDir /r "$PROFILE\.remaken\rules"
+	RMDir "$PROFILE\.remaken"
+	EnVar::SetHKCU
+	EnVar::Delete "REMAKEN_RULES_ROOT"
 SectionEnd
 
+;Section
+;	FileOpen $9 $PROFILE\.remaken\.packagespath w
+;	FileWrite $9 "$remaken_pkg_root_text\.remaken"
+;	FileClose $9 
+;SectionEnd	
 
 SectionGroup /e "Chocolatey" CHOCO_TOOLS
 	Section "-hidden InstallChoco"	INSTALL_CHOCO
@@ -73,20 +77,19 @@ Function CustomizeOnInit
     SectionSetFlags ${CHOCO_TOOLS} 51   ; selected, ReadOnly and expanded
 	SectionSetFlags ${CHOCO_TOOLS_7ZIP} 17
 	
-	; manage custom REMAKEN_ROOT
+	; manage custom REMAKEN_PKG_ROOT
 	SetRegView 64
-	ReadRegStr $0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${SETUP_GUID}" "current_remaken_root"
-	StrCpy $remaken_root_text $0
+	ReadRegStr $0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${SETUP_GUID}" "current_remaken_pkg_root"
+	StrCpy $remaken_pkg_root_text $0
 FunctionEnd
 !endif
 
 !ifdef CUSTOMIZE_UNONINIT
 Function un.CustomizeUnOnInit
-	
-	; manage custom REMAKEN_ROOT
+	; manage custom REMAKEN_PKG_ROOT
 	SetRegView 64
-	ReadRegStr $0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${SETUP_GUID}" "current_remaken_root"
-	StrCpy $remaken_root_text $0
+	ReadRegStr $0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${SETUP_GUID}" "current_remaken_pkg_root"
+	StrCpy $remaken_pkg_root_text $0
 FunctionEnd
 !endif
 
@@ -109,26 +112,30 @@ Var NextButton
 Function custompage_remakenroot 
 	
 	;if empty use $PROFILE else currentdir read in registry
-	StrCmp $remaken_root_text '' 0 lbl_currentdir
-	StrCpy $remaken_root_text "$PROFILE"
+	StrCmp $remaken_pkg_root_text '' 0 lbl_currentdir
+	StrCpy $remaken_pkg_root_text "$PROFILE"
 	lbl_currentdir:
 		
-	!insertmacro MUI_HEADER_TEXT "Define REMAKEN_ROOT environment variable" ""
+	!insertmacro MUI_HEADER_TEXT "Define where to install Remaken packages" ""
     nsDialogs::Create 1018
     Pop $0
-    ${NSD_CreateLabel} 0 0 100% 12u "Define the 'first part' of REMAKEN_ROOT environment variable"
-	${NSD_CreateLabel} 0 12u 100% 12u "by default (if not overrided in previous install) :"
-	${NSD_CreateLabel} 12u 24u 100% 12u "- REMAKEN_ROOT is $PROFILE (+ \.remaken)"
-	${NSD_CreateLabel} 12u 36u 100% 12u "- REMAKEN_RULES_ROOT is $PROFILE (+ \.remaken\rules)"
-	${NSD_CreateLabel} 0u 60u 100% 12u "Current REMAKEN_ROOT is :"
+    ;${NSD_CreateLabel} 0 0 100% 12u "Define where to install Remaken packages : "
+	${NSD_CreateLabel} 0 0u 100% 12u "When not overrided in a previous install, it defaults to :"
+	${NSD_CreateLabel} 12u 12u 100% 12u "$PROFILE (+ \.remaken\packages)"
+	${NSD_CreateLabel} 0u 36u 100% 12u "Current Remaken packages 'root path' is : $remaken_pkg_root_text"
+	${NSD_CreateLabel} 0u 60u 100% 12u "Please select Remaken packages 'root path' (named below PKG_ROOT_PATH) :"
+		
 	Pop $0
-	${NSD_CreateDirRequest} 0 78u 84% 12u "$remaken_root_text"
+	${NSD_CreateDirRequest} 0 72u 84% 12u "$remaken_pkg_root_text"
     Pop $TextBox
-    ${NSD_SetText} $TextBox $remaken_root_text
+    ${NSD_SetText} $TextBox $remaken_pkg_root_text
     
-	${NSD_CreateBrowseButton} 85% 78u 15% 12u "Browse"
+	${NSD_CreateBrowseButton} 85% 72u 15% 12u "Browse"
     Pop $BrowseButton
     ${NSD_OnClick} $BrowseButton OnBrowseForDir	
+	
+	${NSD_CreateLabel} 0u 102u 100% 12u "- REMAKEN_PKG_ROOT env var is PKG_ROOT_PATH\.remaken"
+	${NSD_CreateLabel} 0u 114u 100% 12u "- REMAKEN_RULES_ROOT env var is $PROFILE\.remaken\rules"
 	
 	GetDlgItem $NextButton $HWNDPARENT 1 ; next=1, cancel=2, back=315
 	${NSD_OnChange} $TextBox OnValidatePath
@@ -140,26 +147,26 @@ Function custompage_remakenroot
 FunctionEnd
 
 Function custompage_remakenroot_leave
-	${NSD_GetText} $TextBox $remaken_root_text
+	${NSD_GetText} $TextBox $remaken_pkg_root_text
 	SetRegView 64
-	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${SETUP_GUID}" "current_remaken_root" "$remaken_root_text"
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${SETUP_GUID}" "current_remaken_pkg_root" "$remaken_pkg_root_text"
 FunctionEnd
 
 Function OnBrowseForDir
-	${NSD_GetText} $TextBox $remaken_root_text
-    nsDialogs::SelectFolderDialog /NOUNLOAD "Directory" $remaken_root_text
+	${NSD_GetText} $TextBox $remaken_pkg_root_text
+    nsDialogs::SelectFolderDialog /NOUNLOAD "Directory" $remaken_pkg_root_text
     Pop $0
     ${If} $0 == error
     ${Else}
-        StrCpy $remaken_root_text $0
-        ${NSD_SetText} $TextBox $remaken_root_text
+        StrCpy $remaken_pkg_root_text $0
+        ${NSD_SetText} $TextBox $remaken_pkg_root_text
     ${EndIf}
 FunctionEnd
 
 ; check valid path
 Function OnValidatePath	
-	${NSD_GetText} $TextBox $remaken_root_text
-	StrCpy $R2 $remaken_root_text 1 2
+	${NSD_GetText} $TextBox $remaken_pkg_root_text
+	StrCpy $R2 $remaken_pkg_root_text 1 2
 	StrCmp $R2 "\" PathOK
 	EnableWindow $NextButton 0 ;disable next/install button
 	goto OnValidatePathEnd
