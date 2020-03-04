@@ -24,12 +24,13 @@
 #define CONSTANTS_H
 
 #ifndef ROOTFOLDERENV
-#define ROOTFOLDERENV "REMAKEN_ROOT"
+#define ROOTFOLDERENV "REMAKEN_PKG_ROOT"
 #endif
 
 class Constants {
 public:
-    static constexpr const char * REMAKENDEVROOT = ROOTFOLDERENV;
+    static constexpr const char * REMAKENPKGROOT = ROOTFOLDERENV;
+    static constexpr const char * REMAKENPKGFILENAME = ".packagespath";
     static constexpr const char * REMAKEN_FOLDER = ".remaken";
     static constexpr const char * REMAKEN_CACHE_FILE = ".remaken-cache";
     static constexpr const char * ARTIFACTORY_API_KEY = "artifactoryApiKey";

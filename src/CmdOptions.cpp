@@ -60,10 +60,24 @@ CmdOptions::CmdOptions()
 {
     fs::detail::utf8_codecvt_facet utf8;
     fs::path remakenRootPath = PathBuilder::getHomePath() / Constants::REMAKEN_FOLDER;
-    char * rootDirectoryVar = getenv(Constants::REMAKENDEVROOT);
+    char * rootDirectoryVar = getenv(Constants::REMAKENPKGROOT);
     if (rootDirectoryVar != nullptr) {
-        std::cerr<<Constants::REMAKENDEVROOT<<" environment variable exists"<<std::endl;
+        std::cerr<<Constants::REMAKENPKGROOT<<" environment variable exists"<<std::endl;
         remakenRootPath = rootDirectoryVar;
+    }
+    else if (fs::exists(remakenRootPath / Constants::REMAKENPKGFILENAME)) {
+        fs::path pkgFile = remakenRootPath / Constants::REMAKENPKGFILENAME;
+        ifstream fis(pkgFile.string(utf8),ios::in);
+        fs::path pkgPath;
+        while (!fis.eof()) {
+            std::string curLine;
+            getline(fis,curLine);
+            if (!curLine.empty()) {
+                pkgPath = curLine;
+            }
+        }
+        fis.close();
+        remakenRootPath = pkgPath;
     }
     remakenRootPath /= "packages";
     m_optionsDesc.add_options()

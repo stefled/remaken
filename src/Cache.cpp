@@ -4,7 +4,7 @@
 using namespace std;
 Cache::Cache(const CmdOptions & options)
 {
-    //fs::path rootPath = getenv(Constants::REMAKENDEVROOT); //?nullptr !!
+    //fs::path rootPath = getenv(Constants::REMAKENPKGROOT); //?nullptr !!
     m_cacheFile = options.getRemakenRoot() / Constants::REMAKEN_CACHE_FILE;
 }
 

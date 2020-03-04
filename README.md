@@ -10,14 +10,14 @@ Remaken also provide its own C++ packaging structure, based on pkg-config descri
 
 ## Command line usage samples
 ### Installing dependencies
-```remaken --action install -r  path_to_remaken_root -i -o linux -t github -l nexus -u http://url_to_root_repo --cpp-std 17 -c debug -f path_to_remaken_dependencies_description_file.txt ```
+```remaken --action install [-r  path_to_remaken_root] -i [-o linux] -t github [-l nexus -u http://url_to_root_nexus_repo] [--cpp-std 17] [-c debug] [-f path_to_remaken_dependencies_description_file.txt] ```
 
 Note: remaken_root defaults to ```$(HOME)/.remaken``` or if ```REMAKEN_ROOT``` environment variable is defined to ```${REMAKEN_ROOT)```. ```REMAKEN_ROOT``` contains ```.remaken``` folder.
 
 Note: ```remaken_dependencies_description_file``` defaults to current folder ```packagedependencies.txt```file.
  
 ### Bundling dependencies together
-```remaken --action bundle -d ~/tmp/conanDeployed/ --cpp-std 17 -c debug [-f path_to_remaken_dependencies_description_file.txt]```
+```remaken --action bundle -d ~/tmp/conanDeployed/ --cpp-std 17 [-c debug] [-f path_to_remaken_dependencies_description_file.txt]```
 
 Note: ```remaken_dependencies_description_file``` defaults to current folder ```packagedependencies.txt```file.
 
