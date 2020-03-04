@@ -72,14 +72,12 @@ CmdOptions::CmdOptions()
         while (!fis.eof()) {
             std::string curLine;
             getline(fis,curLine);
-            if (fs::exists(curLine)) {
+            if (!curLine.empty()) {
                 pkgPath = curLine;
             }
         }
         fis.close();
-        if (fs::exists(pkgPath)) {
-            remakenRootPath = pkgPath;
-        }
+        remakenRootPath = pkgPath;
     }
     remakenRootPath /= "packages";
     m_optionsDesc.add_options()
