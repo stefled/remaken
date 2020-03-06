@@ -34,7 +34,7 @@ public:
     static constexpr const char * NAME="parse";
 
 private:
-    CmdOptions m_options;
+    const CmdOptions & m_options;
 };
 
 #endif // PARSECOMMAND_H

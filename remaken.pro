@@ -1,5 +1,5 @@
 TARGET = remaken
-VERSION=1.4.0
+VERSION=1.4.2
 
 CONFIG += c++1z
 CONFIG += console
@@ -122,7 +122,7 @@ win32 {
     LIBS += -luser32 -ladvapi32
 }
 
-INCLUDEPATH += libs/nlohmann-json/single_include
+INCLUDEPATH += libs/nlohmann-json/single_include libs/CLI11/include
 
 DISTFILES += \
     samples/packagedependencies-github.txt \

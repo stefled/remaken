@@ -8,7 +8,6 @@
 #include "VersionCommand.h"
 #include <memory>
 
-namespace po = boost::program_options;
 using namespace std;
 
 int main(int argc, char** argv)
@@ -16,6 +15,7 @@ int main(int argc, char** argv)
     map<string,shared_ptr<AbstractCommand>> dispatcher;
 
     CmdOptions opts;
+    try {
     if (auto result = opts.parseArguments(argc,argv); result != CmdOptions::OptionResult::RESULT_SUCCESS ) {
         return static_cast<int>(result);
     }
@@ -26,4 +26,9 @@ int main(int argc, char** argv)
     dispatcher["version"] = make_shared<VersionCommand>();
     dispatcher.at(opts.getAction())->execute();
     return 0;
+    }
+    catch (std::runtime_error & e) {
+        std::cout << "ERROR: "<<e.what() << std::endl;
+        opts.printUsage();
+    }
 }

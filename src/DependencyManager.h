@@ -33,7 +33,6 @@
 #include "tinyxmlhelper.h"
 
 namespace fs = boost::filesystem;
-namespace po = boost::program_options;
 
 class DependencyManager
 {
@@ -58,7 +57,7 @@ private:
     std::vector<fs::path> getChildrenDependencies(const Dependency & dependency, const fs::path & outputDirectory);
     std::map<std::string, fs::path> m_modulesPathMap;
     std::map<std::string, std::string> m_modulesUUiDMap;
-    CmdOptions m_options;
+    const CmdOptions & m_options;
     Cache m_cache;
 
 };

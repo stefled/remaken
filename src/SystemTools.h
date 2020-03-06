@@ -47,7 +47,7 @@ public:
 protected:
     fs::path m_systemInstallerPath;
     fs::path m_sudoCmd;
-    CmdOptions m_options;
+    const CmdOptions & m_options;
 };
 
 class SystemTools

@@ -24,16 +24,15 @@
 #define CMDOPTIONS_H
 
 #include <string>
-#include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
+#include <libs/CLI11/include/CLI/CLI.hpp>
 
-//--action install -r  path_to_remaken_root -i -o linux -t github -l nexus -u http://url_to_root_nexus_repo --cpp-std 17 -c debug -f packagedependencies-github.txt
+//remaken install -r  path_to_remaken_root -i -o linux -t github -l nexus -u http://url_to_root_nexus_repo --cpp-std 17 -c debug -- packagedependencies-github.txt
 
-//--action bundle -d ~/tmp/conanDeployed/ --cpp-std 17 -c debug [-f packagedependencies.txt]
+//remaken bundle -d ~/tmp/conanDeployed/ --cpp-std 17 -c debug [-- packagedependencies.txt]
 
-//--action bundleXpcf -d ~/tmp/conanDeployed/ -s relative_install_path_to_modules_folder --cpp-std 17 -c debug -f xpcfApplication.xml
-namespace po = boost::program_options;
+//remaken bundleXpcf -d ~/tmp/conanDeployed/ -s relative_install_path_to_modules_folder --cpp-std 17 -c debug -- xpcfApplication.xml
 namespace fs = boost::filesystem;
 
 class CmdOptions
@@ -150,9 +149,7 @@ private:
     bool m_ignoreCache;
     bool m_verbose;
     bool m_isXpcfBundle = false;
-
-    po::options_description m_optionsDesc{"Usage"};
-    po::variables_map m_optionsVars;
+    CLI::App m_cliApp{"remaken"};
 };
 
 #endif // CMDOPTIONS_H
