@@ -101,20 +101,26 @@ CmdOptions::CmdOptions()
     m_cliApp.add_option("--architecture,-a",m_architecture, "Architecture: x86_64, i386, arm, arm64",true);
     m_verbose = false;
     m_cliApp.add_flag("--verbose,-v", m_verbose, "verbose mode");
+    m_dependenciesFile = "packagedependencies.txt";
 
     CLI::App * bundleCommand = m_cliApp.add_subcommand("bundle","copy shared libraries dependencies to a destination folder");
-    bundleCommand->add_option("--destination,-d", m_destinationRoot, "Destination directory", true);
+    bundleCommand->add_option("--destination,-d", m_destinationRoot, "Destination directory")->required();
+    bundleCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files", true)->required();
 
     CLI::App * bundleXpcfCommand = m_cliApp.add_subcommand("bundleXpcf","copy xpcf modules and their dependencies from their declaration in a xpcf xml file");
     m_moduleSubfolder = "modules";
-    bundleXpcfCommand->add_option("--destination,-d", m_destinationRoot, "Destination directory", true);
+    bundleXpcfCommand->add_option("--destination,-d", m_destinationRoot, "Destination directory")->required();
     bundleXpcfCommand->add_option("--modules-subfolder,-s", m_moduleSubfolder, "relative folder where XPCF modules will be "
                                                                                "copied with their dependencies", true);
+    bundleCommand->add_option("file", m_dependenciesFile, "XPCF xml module declaration file")->required();
+
+    CLI::App * cleanCommand = m_cliApp.add_subcommand("clean","WARNING : remove every remaken installed packages");
 
     CLI::App * installCommand = m_cliApp.add_subcommand("install","install dependencies for a package from its packagedependencies file(s)");
     installCommand->add_option("--alternate-remote-type,-l", m_altRepoType, "alternate remote type: github, artifactory, nexus, path");
     installCommand->add_option("--alternate-remote-url,-u", m_altRepoUrl, "alternate remote url to use when the declared remote fails to provide a dependency");
     installCommand->add_option("--apiKey,-k", m_apiKey, "Artifactory api key");
+    installCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files", true)->required();
 
     m_ignoreCache = false;
     installCommand->add_flag("--ignore-cache,-i", m_ignoreCache, "ignore cache entries : dependencies update is forced");
@@ -126,9 +132,7 @@ CmdOptions::CmdOptions()
     installCommand->add_option("--ziptool,-z", m_zipTool, "unzipper tool name : unzip, compact ...", true);
 
     CLI::App * parseCommand = m_cliApp.add_subcommand("parse","check dependency file validity");
-
-    m_dependenciesFile = "packagedependencies.txt";
-    m_cliApp.add_option("file", m_dependenciesFile, "Dependencies files");
+    parseCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files", true)->required();
 }
 
 
@@ -178,6 +182,7 @@ CmdOptions::OptionResult CmdOptions::parseArguments(int argc, char** argv)
             m_action = m_cliApp.get_subcommands().at(0)->get_name();
         }
         else {
+            m_action = "help";
             return OptionResult::RESULT_ERROR; //Usage ??
         }
         // path is assigned after to ensure utf8 codecvt

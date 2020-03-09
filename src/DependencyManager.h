@@ -43,6 +43,7 @@ public:
     int parse();
     int bundle();
     int bundleXpcf();
+    int clean();
 
 private:
     void updateModuleNode(tinyxml2::XMLElement * xmlModuleElt);

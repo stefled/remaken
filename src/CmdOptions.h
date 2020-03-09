@@ -125,6 +125,10 @@ public:
         return m_isXpcfBundle;
     }
 
+    inline bool cleanAllEnabled() const {
+        return m_cleanAll;
+    }
+
 private:
     void validateOptions();
     std::string m_action;
@@ -149,6 +153,7 @@ private:
     bool m_ignoreCache;
     bool m_verbose;
     bool m_isXpcfBundle = false;
+    bool m_cleanAll = true;
     CLI::App m_cliApp{"remaken"};
 };
 

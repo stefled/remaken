@@ -93,7 +93,7 @@ std::shared_ptr<ZipTool> ZipTool::createZipTool(const CmdOptions & options)
         return std::make_shared<sevenZTool>(!options.getVerbose());
     }
     // This should never happen, as command line options are validated in CmdOptions after parsing
-    throw std::runtime_error("Unkwown ziptool type " + options.getZipTool());
+    throw std::runtime_error("Unknown ziptool type " + options.getZipTool());
 }
 
 

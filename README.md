@@ -28,6 +28,9 @@ Note: ```remaken_dependencies_description_file``` defaults to current folder ```
 ### Checking packagedependencies file format validity
 ```remaken parse [-- path_to_remaken_dependencies_description_file.txt]```
 
+### Removing installed remaken dependencies
+```remaken clean```
+
 ## Package formats supported
 ### Cross platforms packaging systems :
 - Conan

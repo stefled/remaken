@@ -32,6 +32,7 @@ include (builddefs/qmake/templateappconfig.pri)
 
 HEADERS += \
     src/BundleXpcfCommand.h \
+    src/CleanCommand.h \
     src/Dependency.h \
     src/DependencyManager.h \
     src/CmdOptions.h \
@@ -62,6 +63,7 @@ HEADERS += \
 
 SOURCES += \
     src/BundleXpcfCommand.cpp \
+    src/CleanCommand.cpp \
     src/PathBuilder.cpp \
     src/ZipTool.cpp \
     src/main.cpp \
