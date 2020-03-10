@@ -34,7 +34,7 @@ public:
     static constexpr const char * NAME="bundleXpcf";
 
 private:
-    CmdOptions m_options;
+    const CmdOptions & m_options;
 };
 
 #endif // BUNDLEXPCFCOMMAND_H

@@ -1,5 +1,5 @@
 TARGET = remaken
-VERSION=1.4.0
+VERSION=1.4.2
 
 CONFIG += c++1z
 CONFIG += console
@@ -32,6 +32,7 @@ include (builddefs/qmake/templateappconfig.pri)
 
 HEADERS += \
     src/BundleXpcfCommand.h \
+    src/CleanCommand.h \
     src/Dependency.h \
     src/DependencyManager.h \
     src/CmdOptions.h \
@@ -62,6 +63,7 @@ HEADERS += \
 
 SOURCES += \
     src/BundleXpcfCommand.cpp \
+    src/CleanCommand.cpp \
     src/PathBuilder.cpp \
     src/ZipTool.cpp \
     src/main.cpp \
@@ -122,7 +124,7 @@ win32 {
     LIBS += -luser32 -ladvapi32
 }
 
-INCLUDEPATH += libs/nlohmann-json/single_include
+INCLUDEPATH += libs/nlohmann-json/single_include libs/CLI11/include
 
 DISTFILES += \
     samples/packagedependencies-github.txt \

@@ -119,6 +119,35 @@ int DependencyManager::bundle()
     return 0;
 }
 
+bool yesno_prompt(char const* prompt) {
+  using namespace std;
+  while (true) {
+    cout << prompt << " [y/n] ";
+    string line;
+    if (!getline(cin, line)) {
+      throw std::runtime_error("unexpected input error");
+    }
+    else if (line.size() == 1 && line.find_first_of("YyNn") != line.npos) {
+      return line == "Y" || line == "y";
+    }
+  }
+}
+
+int DependencyManager::clean()
+{
+    try {
+        std::cout<<"WARNING: all remaken installed packages will be removed (note: system, conan ... dependencies are kept)"<<std::endl;
+        if (yesno_prompt("are you sure ?")) {
+            fs::remove_all(m_options.getRemakenRoot());
+        }
+    }
+    catch (const std::runtime_error & e) {
+        BOOST_LOG_TRIVIAL(error)<<e.what();
+        return -1;
+    }
+    return 0;
+}
+
 fs::path findPackageRoot(fs::path moduleLibPath)
 {
     fs::detail::utf8_codecvt_facet utf8;

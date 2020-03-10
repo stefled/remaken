@@ -43,7 +43,7 @@ protected:
     void copySharedLibraries(const fs::path & sourceRootFolder);
     void cleanUpWorkingDirectory();
     fs::path m_workingDirectory;
-    CmdOptions m_options;
+    const CmdOptions & m_options;
     std::shared_ptr<ZipTool> m_zipTool;
 
 };

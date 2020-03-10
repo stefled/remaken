@@ -20,21 +20,21 @@
  * @date 2019-11-15
  */
 
-#ifndef PARSECOMMAND_H
-#define PARSECOMMAND_H
+#ifndef CLEANCOMMAND_H
+#define CLEANCOMMAND_H
 
 #include "AbstractCommand.h"
 #include "CmdOptions.h"
 
-class ParseCommand : public AbstractCommand
+class CleanCommand : public AbstractCommand
 {
 public:
-    ParseCommand(const CmdOptions & options);
+    CleanCommand(const CmdOptions & options);
     int execute() override;
-    static constexpr const char * NAME="parse";
+    static constexpr const char * NAME="clean";
 
 private:
     const CmdOptions & m_options;
 };
 
-#endif // PARSECOMMAND_H
+#endif // CLEANCOMMAND_H

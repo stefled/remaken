@@ -34,7 +34,7 @@ public:
     static constexpr const char * NAME="bundle";
 
 private:
-    CmdOptions m_options;
+    const CmdOptions & m_options;
 };
 
 #endif // BUNDLECOMMAND_H

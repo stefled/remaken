@@ -28,10 +28,10 @@ FileHandlerFactory * FileHandlerFactory::instance()
 
 std::shared_ptr<IFileRetriever> FileHandlerFactory::getFileHandler(const CmdOptions & options, bool useAlternateRepo)
 {
-     std::string repoType = options.getRepositoryType();
-     if (useAlternateRepo) {
-         repoType = options.getAlternateRepoType();
-     }
+    std::string repoType = options.getRepositoryType();
+    if (useAlternateRepo) {
+        repoType = options.getAlternateRepoType();
+    }
     if (repoType == "github") {
         return make_shared<HttpFileRetriever>(options);
     }
@@ -42,7 +42,7 @@ std::shared_ptr<IFileRetriever> FileHandlerFactory::getFileHandler(const CmdOpti
         return make_shared<FSFileRetriever>(options);
     }
     // This should never happen, as command line options are validated in CmdOptions after parsing
-    throw std::runtime_error("Unkwown repository type " + repoType);
+    throw std::runtime_error("Unknown repository type " + repoType);
 }
 
 std::shared_ptr<IFileRetriever> FileHandlerFactory::getFileHandler(const Dependency & dependency,const CmdOptions & options)
