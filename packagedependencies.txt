@@ -1,2 +1,2 @@
-boost#stable|1.70.0|boost|conan|https://api.bintray.com/conan/conan-community/conan
+boost#stable|1.71.0|boost|conan|https://api.bintray.com/conan/conan-community/conan
 OpenSSL#stable|1.1.1|OpenSSL|conan|https://api.bintray.com/conan/conan-community/conan
