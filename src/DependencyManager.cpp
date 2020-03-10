@@ -127,7 +127,7 @@ bool yesno_prompt(char const* prompt) {
     if (!getline(cin, line)) {
       throw std::runtime_error("unexpected input error");
     }
-    else if (line.size() == 1 and line.find_first_of("YyNn") != line.npos) {
+    else if (line.size() == 1 && line.find_first_of("YyNn") != line.npos) {
       return line == "Y" || line == "y";
     }
   }
