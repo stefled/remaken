@@ -412,9 +412,9 @@ void DependencyManager::retrieveDependency(Dependency &  dependency)
                 shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(m_options,true);
                 dependency.changeBaseRepository(m_options.getAlternateRepoUrl());
                 source = fileRetriever->computeSourcePath(dependency);
-                fileRetriever->installArtefact(dependency);
+                outputDirectory = fileRetriever->installArtefact(dependency);
             }
-
+            std::cout<<"===> "<<dependency.getName()<<" installed in "<<outputDirectory<<std::endl;
             if (m_options.useCache()) {
                 m_cache.add(source);
             }

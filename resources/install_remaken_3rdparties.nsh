@@ -26,11 +26,11 @@ Section "un.BuilddefsQmake"
 	EnVar::Delete "REMAKEN_RULES_ROOT"
 SectionEnd
 
-;Section
-;	FileOpen $9 $PROFILE\.remaken\.packagespath w
-;	FileWrite $9 "$remaken_pkg_root_text\.remaken"
-;	FileClose $9 
-;SectionEnd	
+Section
+	FileOpen $9 $PROFILE\.remaken\.packagespath w
+	FileWrite $9 "$remaken_pkg_root_text\.remaken"
+	FileClose $9 
+SectionEnd	
 
 SectionGroup /e "Chocolatey" CHOCO_TOOLS
 	Section "-hidden InstallChoco"	INSTALL_CHOCO
