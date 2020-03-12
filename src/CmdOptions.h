@@ -149,6 +149,7 @@ private:
     std::string m_altRepoUrl;
     std::string m_altRepoType;
     std::string m_moduleSubfolder;
+    std::map<std::string,std::string> m_packageOptions;
     fs::path m_moduleSubfolderPath;
     bool m_ignoreCache;
     bool m_verbose;

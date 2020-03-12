@@ -131,6 +131,35 @@ CmdOptions::CmdOptions()
     m_zipTool = ZipTool::getZipToolIdentifier();
     installCommand->add_option("--ziptool,-z", m_zipTool, "unzipper tool name : unzip, compact ...", true);
 
+    CLI::App * packageCommand = m_cliApp.add_subcommand("package","package a build result in remaken format");
+    packageCommand->add_option("--sourcedir,-s", m_packageOptions["sourcedir"], "product root directory (where libs and includes are located)", true)->required();
+    packageCommand->add_option("--includedir,-i", m_packageOptions["sourcedir"], " relative path to include folder to export (defaults to the sourcedir provided with -s)\n");
+    packageCommand->add_option("--libdir,-l", m_packageOptions["sourcedir"], " relative path to the library folder to export (defaults to the sourcedir provided with -s)\n");
+    packageCommand->add_option("--redistfile,-f", m_packageOptions["sourcedir"], " relative path and filename of a redistribution file to use (such as redist.txt intel ipp's file). Only listed libraries in this file will be packaged\n");
+    packageCommand->add_option("--destination,-d", m_destinationRoot, "Destination directory")->required();
+    packageCommand->add_option("--packagename,-p", m_packageOptions["sourcedir"], " package name\n");
+    packageCommand->add_option("--packageversion,-k", m_packageOptions["sourcedir"], " package version\n");
+    packageCommand->add_option("--ignore-mode,-n", m_packageOptions["sourcedir"], " forces the pkg-config generated file to ignore the mode when providing -L flags\n");
+    m_mode = "shared";
+    packageCommand->add_option("--mode,-m", m_mode, "Mode: shared, static", true);
+    packageCommand->add_option("--withsuffix,-w", m_packageOptions["sourcedir"], " specify the suffix used by the thirdparty when building with mode mode\n");
+    packageCommand->add_option("--useOriginalPCfiles,-u", m_packageOptions["sourcedir"], " specify to search and use original pkgconfig files from the thirdparty, instead of generating them\n");
+
+    /*print "    -s, --sourcedir                  => product root directory (where libs and includes are located)\n");
+    print "    -o, --osname                     => specify the operating system targeted by the product build. It is one of [win|mac|linux]. (defaults to the current OS environment)\n";
+    print "    -i, --includedir                 => relative path to include folder to export (defaults to the sourcedir provided with -s)\n";
+    print "    -l, --libdir                     => relative path to the library folder to export (defaults to the sourcedir provided with -s)\n";
+    print "    -r, --redistfile                 => relative path and filename of a redistribution file to use (such as redist.txt intel ipp's file). Only listed libraries in this file will be packaged\n";
+    print "    -d, --destinationdir             => package directory root destination (where the resulting packaging will be stored)\n";
+    print "    -p, --packagename                => package name\n";
+    print "    -v, --packageversion             => package version\n";
+    print "    -n, --ignore-mode                => forces the pkg-config generated file to ignore the mode when providing -L flags\n";
+    print "    -m, --mode [debug|release]       => specify the current product build mode. Binaries will be packaged in the appropriate [mode] folder\n";
+    print "    -a, --architecture [x86_64|i386] => specify the current product build architecture. Binaries will be packaged in the appropriate [architecture] folder\n";
+    print "    -w, --withsuffix suffix          => specify the suffix used by the thirdparty when building with mode mode\n";
+    print "    -u, --useOriginalPCfiles         => specify to search and use original pkgconfig files from the thirdparty, instead of generating them\n";
+   */
+
     CLI::App * parseCommand = m_cliApp.add_subcommand("parse","check dependency file validity");
     parseCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files", true);
 }

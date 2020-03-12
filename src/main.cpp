@@ -3,6 +3,7 @@
 #include "CmdOptions.h"
 #include "InstallCommand.h"
 #include "ParseCommand.h"
+#include "PackageCommand.h"
 #include "BundleCommand.h"
 #include "CleanCommand.h"
 #include "BundleXpcfCommand.h"
@@ -23,6 +24,7 @@ int main(int argc, char** argv)
         dispatcher["clean"] = make_shared<CleanCommand>(opts);
         dispatcher["install"] = make_shared<InstallCommand>(opts);
         dispatcher["parse"] = make_shared<ParseCommand>(opts);
+        dispatcher["package"] = make_shared<PackageCommand>(opts);
         dispatcher["bundle"] = make_shared<BundleCommand>(opts);
         dispatcher["bundleXpcf"] = make_shared<BundleXpcfCommand>(opts);
         dispatcher["version"] = make_shared<VersionCommand>();
