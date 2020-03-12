@@ -137,7 +137,7 @@ CmdOptions::CmdOptions()
 
 
 static const map<std::string,std::vector<std::string>> validationMap ={{"action",{"install","parse","version","bundle", "bundleXpcf"}},
-                                                                       {"--architecture",{"x86_64","i386"}},
+                                                                       {"--architecture",{"x86_64","i386","arm","arm64"}},
                                                                        {"--config",{"release","debug"}},
                                                                        {"--mode",{"shared","static"}},
                                                                        {"--type",{"github","artifactory","nexus","path"}},
