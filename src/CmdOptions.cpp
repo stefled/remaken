@@ -112,7 +112,7 @@ CmdOptions::CmdOptions()
     bundleXpcfCommand->add_option("--destination,-d", m_destinationRoot, "Destination directory")->required();
     bundleXpcfCommand->add_option("--modules-subfolder,-s", m_moduleSubfolder, "relative folder where XPCF modules will be "
                                                                                "copied with their dependencies", true);
-    bundleCommand->add_option("file", m_dependenciesFile, "XPCF xml module declaration file")->required();
+    bundleXpcfCommand->add_option("file", m_dependenciesFile, "XPCF xml module declaration file")->required();
 
     CLI::App * cleanCommand = m_cliApp.add_subcommand("clean","WARNING : remove every remaken installed packages");
 
