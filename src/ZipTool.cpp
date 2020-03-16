@@ -41,7 +41,7 @@ int sevenZTool::uncompressArtefact(const fs::path & compressedDependency, const 
     outputDirOption += destinationRootFolder.generic_string(utf8).c_str();
     int result = -1;
     if (m_quiet) {
-        result = bp::system(m_zipToolPath,"x", compressedDependency.generic_string(utf8).c_str(), outputDirOption, "-y");
+        result = bp::system(m_zipToolPath,"x", compressedDependency.generic_string(utf8).c_str(), outputDirOption, "-y", bp::std_out > bp::null);
     }
     else  {
         result = bp::system(m_zipToolPath,"x", compressedDependency.generic_string(utf8).c_str(), outputDirOption, "-y", "-bb3");
