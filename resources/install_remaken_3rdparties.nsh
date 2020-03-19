@@ -12,9 +12,15 @@ Section "!un.Remaken"
 SectionEnd
 
 Section "!BuilddefsQmake"   BUILDDEFS_QMAKE
-    SetOutPath "$PROFILE\.remaken\rules"
+	SetOutPath "$PROFILE\.remaken\rules"
     CreateDirectory $PROFILE\.remaken\rules
-    File /nonfatal /a /r "${SETUP_PROJECT_PATH}\Builddefs\"	
+    
+	#get the config dir for builddefs/qmake repo
+	!ifdef SETUP_COPYDIR
+		File /nonfatal /a /r "${SETUP_COPYDIR}\"
+	!endif
+	RMDir /r "$SetupInstallDir\qmake"
+	
 	EnVar::SetHKCU
 	EnVar::AddValue "REMAKEN_RULES_ROOT" "$PROFILE\.remaken\rules"
 SectionEnd
