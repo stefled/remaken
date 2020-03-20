@@ -32,7 +32,6 @@ for:
         
         echo "eval \$($(brew --prefix)/bin/brew shellenv)" >>~/.profile
       
-for:
   -
     matrix:
       only:
