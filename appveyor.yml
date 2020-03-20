@@ -51,10 +51,10 @@ clone_script:
 environment:
   QMAKE_ASSET_URL: https://github.com/b-com-software-basis/builddefs-qmake/releases/download/
   matrix:
-    - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
+    - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu1804
       QMAKE_SPEC: linux-g++
       CONAN_LIBSTDCPP: libstdc++11
-    - APPVEYOR_BUILD_WORKER_IMAGE: macOS
+    - APPVEYOR_BUILD_WORKER_IMAGE: macOS-Mojave
       QMAKE_SPEC: macx-clang
       CONAN_LIBSTDCPP: libc++
 install:
