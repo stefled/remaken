@@ -12,7 +12,7 @@ for:
     matrix:
       only:
         - image: Ubuntu1804
-    init_script:
+    init:
     - sh: >-
         set -e
 
@@ -36,7 +36,7 @@ for:
     matrix:
       only:
         - image: macOS-Mojave
-    init_script:
+    init:
     - sh: >-
         set -e
 
