@@ -6,12 +6,17 @@ skip_tags: true
 image:
 - Ubuntu1804
 - macOS-Mojave
+environment:
+  QMAKE_ASSET_URL: https://github.com/b-com-software-basis/builddefs-qmake/releases/download/
 
 for:
   -
     matrix:
       only:
         - image: Ubuntu1804
+    environment:
+      QMAKE_SPEC: linux-g++
+      CONAN_LIBSTDCPP: libstdc++11
     init:
     - sh: >-
         set -e
@@ -36,6 +41,9 @@ for:
     matrix:
       only:
         - image: macOS-Mojave
+    environment:
+      QMAKE_SPEC: macx-clang
+      CONAN_LIBSTDCPP: libc++
     init:
     - sh: >-
         set -e
@@ -48,15 +56,9 @@ clone_script:
     cd $APPVEYOR_BUILD_FOLDER
 
     git checkout -qf $APPVEYOR_REPO_COMMIT
-environment:
-  QMAKE_ASSET_URL: https://github.com/b-com-software-basis/builddefs-qmake/releases/download/
-  matrix:
-    - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu1804
-      QMAKE_SPEC: linux-g++
-      CONAN_LIBSTDCPP: libstdc++11
-    - APPVEYOR_BUILD_WORKER_IMAGE: macOS-Mojave
-      QMAKE_SPEC: macx-clang
-      CONAN_LIBSTDCPP: libc++
+
+    rm $APPVEYOR_BUILD_FOLDER/libs/CLI11/tests/mesonTest/subprojects/CLI11
+
 install:
 - sh: >-
     mkdir $HOME/projects/build-zipper
