@@ -1,6 +1,7 @@
 #include <iostream>
 #include "Constants.h"
 #include "CmdOptions.h"
+#include "InitCommand.h"
 #include "InstallCommand.h"
 #include "ParseCommand.h"
 #include "BundleCommand.h"
@@ -21,6 +22,7 @@ int main(int argc, char** argv)
             return static_cast<int>(result);
         }
         dispatcher["clean"] = make_shared<CleanCommand>(opts);
+        dispatcher["init"] = make_shared<InitCommand>(opts);
         dispatcher["install"] = make_shared<InstallCommand>(opts);
         dispatcher["parse"] = make_shared<ParseCommand>(opts);
         dispatcher["bundle"] = make_shared<BundleCommand>(opts);

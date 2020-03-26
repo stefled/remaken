@@ -39,6 +39,7 @@ HEADERS += \
     src/Constants.h \
     src/Cache.h \
     src/AbstractCommand.h \
+    src/InitCommand.h \
     src/InstallCommand.h \
     src/PathBuilder.h \
     src/VersionCommand.h \
@@ -64,6 +65,7 @@ HEADERS += \
 SOURCES += \
     src/BundleXpcfCommand.cpp \
     src/CleanCommand.cpp \
+    src/InitCommand.cpp \
     src/PathBuilder.cpp \
     src/ZipTool.cpp \
     src/main.cpp \
