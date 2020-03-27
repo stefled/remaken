@@ -269,12 +269,20 @@ void ConanSystemTool::bundle(const Dependency & dependency)
     std::string cppStd="compiler.cppstd=";
     cppStd += m_options.getCppVersion();
     int result = -1;
+     std::vector<std::string> options;
+     std::vector<std::string> optionsArgs;
+    if (dependency.hasOptions()) {
+        boost::split(options, dependency.getToolOptions(), [](char c){return c == '#';});
+        for (const auto & option: options) {
+            optionsArgs.push_back("-o " + option);
+        }
+    }
     if (dependency.getMode() == "na") {
         if (dependency.getBaseRepository().empty()) {
-            result = bp::system(m_systemInstallerPath, "install", "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if", destination, "-g", "json", source.c_str());
+            result = bp::system(m_systemInstallerPath, "install", "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if", destination, bp::args(optionsArgs), "-g", "json", source.c_str());
         }
         else {
-            result = bp::system(m_systemInstallerPath, "install", "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if", destination, "-g", "json", "-r", dependency.getBaseRepository().c_str(), source.c_str());
+            result = bp::system(m_systemInstallerPath, "install", "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if", destination, bp::args(optionsArgs), "-g", "json", "-r", dependency.getBaseRepository().c_str(), source.c_str());
         }
     }
     else {
@@ -286,10 +294,10 @@ void ConanSystemTool::bundle(const Dependency & dependency)
             buildMode += "shared=True";
         }
         if (dependency.getBaseRepository().empty()) {
-            result = bp::system(m_systemInstallerPath, "install", "-o", buildMode.c_str(), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if", destination, "-g", "json", source.c_str());
+            result = bp::system(m_systemInstallerPath, "install", "-o", buildMode.c_str(), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if", destination, bp::args(optionsArgs), "-g", "json", source.c_str());
         }
         else {
-            result = bp::system(m_systemInstallerPath, "install", "-o", buildMode.c_str(), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if", destination, "-g", "json", "-r", dependency.getBaseRepository().c_str(), source.c_str());
+            result = bp::system(m_systemInstallerPath, "install", "-o", buildMode.c_str(), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if", destination, bp::args(optionsArgs), "-g", "json", "-r", dependency.getBaseRepository().c_str(), source.c_str());
         }
     }
     if (result != 0) {
