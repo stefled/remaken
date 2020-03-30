@@ -269,8 +269,8 @@ void ConanSystemTool::bundle(const Dependency & dependency)
     std::string cppStd="compiler.cppstd=";
     cppStd += m_options.getCppVersion();
     int result = -1;
-     std::vector<std::string> options;
-     std::vector<std::string> optionsArgs;
+    std::vector<std::string> options;
+    std::vector<std::string> optionsArgs;
     if (dependency.hasOptions()) {
         boost::split(options, dependency.getToolOptions(), [](char c){return c == '#';});
         for (const auto & option: options) {
@@ -330,15 +330,23 @@ void ConanSystemTool::install(const Dependency & dependency)
     if (m_options.getConfig() == "release") {
         buildType = "build_type=Release";
     }
+    std::vector<std::string> options;
+    std::vector<std::string> optionsArgs;
+    if (dependency.hasOptions()) {
+        boost::split(options, dependency.getToolOptions(), [](char c){return c == '#';});
+        for (const auto & option: options) {
+            optionsArgs.push_back("-o " + option);
+        }
+    }
     std::string cppStd="compiler.cppstd=";
     cppStd += m_options.getCppVersion();
     int result = -1;
     if (dependency.getMode() == "na") {
         if (dependency.getBaseRepository().empty()) {
-            result = bp::system(m_systemInstallerPath, "install", "-s", buildType.c_str(), "-s", cppStd.c_str(),"--build=missing", source.c_str());
+            result = bp::system(m_systemInstallerPath, "install", "-s", buildType.c_str(), "-s", cppStd.c_str(), bp::args(optionsArgs),"--build=missing", source.c_str());
         }
         else {
-            result = bp::system(m_systemInstallerPath, "install", "-s", buildType.c_str(), "-s", cppStd.c_str(),"--build=missing", "-r", dependency.getBaseRepository().c_str(), source.c_str());
+            result = bp::system(m_systemInstallerPath, "install", "-s", buildType.c_str(), "-s", cppStd.c_str(), bp::args(optionsArgs),"--build=missing", "-r", dependency.getBaseRepository().c_str(), source.c_str());
         }
     }
     else {
@@ -348,10 +356,10 @@ void ConanSystemTool::install(const Dependency & dependency)
         }
 
         if (dependency.getBaseRepository().empty()) {
-            result = bp::system(m_systemInstallerPath, "install", "-o", buildMode.c_str(), "-s", buildType.c_str(), "-s", cppStd.c_str(),"--build=missing", source.c_str());
+            result = bp::system(m_systemInstallerPath, "install", "-o", buildMode.c_str(), "-s", buildType.c_str(), "-s", cppStd.c_str(), bp::args(optionsArgs),"--build=missing", source.c_str());
         }
         else {
-            result = bp::system(m_systemInstallerPath, "install", "-o", buildMode.c_str(), "-s", buildType.c_str(), "-s", cppStd.c_str(),"--build=missing", "-r", dependency.getBaseRepository().c_str(), source.c_str());
+            result = bp::system(m_systemInstallerPath, "install", "-o", buildMode.c_str(), "-s", buildType.c_str(), "-s", cppStd.c_str(), bp::args(optionsArgs),"--build=missing", "-r", dependency.getBaseRepository().c_str(), source.c_str());
         }
     }
     if (result != 0) {

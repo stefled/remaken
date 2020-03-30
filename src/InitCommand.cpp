@@ -38,9 +38,12 @@ int InitCommand::execute()
     fs::path remakenRootPath = PathBuilder::getHomePath() / Constants::REMAKEN_FOLDER;
     fs::path remakenRulesPath = remakenRootPath / "rules";
     fs::path remakenProfilesPath = remakenRootPath / Constants::REMAKEN_PROFILES_FOLDER;
-    fs::path qmakeRootPath = remakenRootPath / "qmake";
+    fs::path qmakeRootPath = remakenRulesPath / "qmake";
 
     auto linkStatus = boost::filesystem::symlink_status(qmakeRootPath);
+    if (!fs::exists(remakenProfilesPath)) {
+        fs::create_directory(remakenProfilesPath);
+    }
     if (fs::exists(qmakeRootPath) || linkStatus.type() != fs::file_not_found) {
         BOOST_LOG_TRIVIAL(info)<<"qmake rules already installed ! skipping...";
         return 0;
@@ -48,14 +51,11 @@ int InitCommand::execute()
     if (!fs::exists(remakenRulesPath)) {
         fs::create_directories(remakenRulesPath);
     }
-    if (!fs::exists(remakenProfilesPath)) {
-        fs::create_directory(remakenProfilesPath);
-    }
     std::string source="https://github.com/b-com-software-basis/builddefs-qmake/archive/github_v4.3.0.zip";
     fs::path artefactFolder = installArtefact(m_options,source,remakenRulesPath);
 
     if (fs::exists(artefactFolder)) {
-        fs::create_symlink(artefactFolder,qmakeRootPath);
+        fs::create_symlink(artefactFolder.filename(),qmakeRootPath);
     }
     return 0;
 }

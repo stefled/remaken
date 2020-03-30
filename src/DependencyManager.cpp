@@ -33,7 +33,7 @@ bool isGenericSystemDependency(const Dependency & dep)
 #ifdef BOOST_OS_WINDOWS_AVAILABLE
 bool isSystemNeededElevation(const Dependency & dep)
 {
-     return (isSystemDependency(dep) && SystemTools::getToolIdentifier() == "choco");
+    return (isSystemDependency(dep) && SystemTools::getToolIdentifier() == "choco");
 }
 #endif
 
@@ -120,17 +120,17 @@ int DependencyManager::bundle()
 }
 
 bool yesno_prompt(char const* prompt) {
-  using namespace std;
-  while (true) {
-    cout << prompt << " [y/n] ";
-    string line;
-    if (!getline(cin, line)) {
-      throw std::runtime_error("unexpected input error");
+    using namespace std;
+    while (true) {
+        cout << prompt << " [y/n] ";
+        string line;
+        if (!getline(cin, line)) {
+            throw std::runtime_error("unexpected input error");
+        }
+        else if (line.size() == 1 && line.find_first_of("YyNn") != line.npos) {
+            return line == "Y" || line == "y";
+        }
     }
-    else if (line.size() == 1 && line.find_first_of("YyNn") != line.npos) {
-      return line == "Y" || line == "y";
-    }
-  }
 }
 
 int DependencyManager::clean()
@@ -181,17 +181,17 @@ int DependencyManager::bundleXpcf()
         }
         fs::path xpcfConfigFilePath = buildDependencyPath();
         if ( xpcfConfigFilePath.extension() != ".xml") {
-             return -1;
+            return -1;
         }
         fs::copy_file(xpcfConfigFilePath , m_options.getDestinationRoot()/xpcfConfigFilePath.filename(), fs::copy_option::overwrite_if_exists);
 
         parseXpcfModulesConfiguration(xpcfConfigFilePath);
         updateXpcfModulesPath(m_options.getDestinationRoot()/xpcfConfigFilePath.filename());
-         for (auto & [name,modulePath] : m_modulesPathMap) {
+        for (auto & [name,modulePath] : m_modulesPathMap) {
             OsTools::copySharedLibraries(modulePath,m_options);
         }
 
-         for (auto & [name,modulePath] : m_modulesPathMap) {
+        for (auto & [name,modulePath] : m_modulesPathMap) {
             OsTools::copySharedLibraries(modulePath,m_options);
             fs::path packageRootPath = findPackageRoot(modulePath);
             if (!fs::exists(packageRootPath)) {
@@ -309,7 +309,7 @@ void DependencyManager::bundleDependency(const Dependency & dependency)
     shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(dependency, m_options);
     fs::path outputDirectory = fileRetriever->bundleArtefact(dependency);
     if (!outputDirectory.empty() && dependency.getType() == Dependency::Type::REMAKEN) {
-        std::vector<fs::path> childrenDependencies = getChildrenDependencies(dependency,outputDirectory);
+        std::vector<fs::path> childrenDependencies = getChildrenDependencies(outputDirectory);
         for (fs::path childDependency : childrenDependencies) {
             if (fs::exists(childDependency)) {
                 this->bundleDependencies(childDependency);
@@ -401,10 +401,10 @@ void DependencyManager::retrieveDependency(Dependency &  dependency)
     fs::detail::utf8_codecvt_facet utf8;
     shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(dependency, m_options);
     std::string source = fileRetriever->computeSourcePath(dependency);
-    if (!m_cache.contains(source) || !m_options.useCache()){
+    fs::path outputDirectory;
+    if (!m_cache.contains(source) || !m_options.useCache()) {
         try {
             std::cout<<"=> Installing "<<dependency.getRepositoryType()<<"::"<<source<<std::endl;
-            fs::path outputDirectory;
             try {
                 outputDirectory = fileRetriever->installArtefact(dependency);
             }
@@ -418,12 +418,6 @@ void DependencyManager::retrieveDependency(Dependency &  dependency)
             if (m_options.useCache()) {
                 m_cache.add(source);
             }
-            std::vector<fs::path> childrenDependencies = getChildrenDependencies(dependency,outputDirectory);
-            for (fs::path childDependency : childrenDependencies) {
-                if (fs::exists(childDependency)) {
-                    this->retrieveDependencies(childDependency);
-                }
-            }
         }
         catch (const std::runtime_error & e) {
             throw std::runtime_error(e.what());
@@ -432,37 +426,44 @@ void DependencyManager::retrieveDependency(Dependency &  dependency)
     else {
         std::cout<<"=> Dependency "<<source<<" found in cache : already installed"<<std::endl;
     }
+    if (outputDirectory.empty()) {
+        outputDirectory = fileRetriever->computeLocalDependencyRootDir(dependency);
+    }
+    this->retrieveDependencies(outputDirectory/"packagedependencies.txt");
 }
 
 void DependencyManager::retrieveDependencies(const fs::path &  dependenciesFile)
 {
-    if (fs::exists(dependenciesFile)){
-        std::vector<Dependency> dependencies = parse(dependenciesFile);
-        for (auto dep : dependencies) {
-            if (!dep.validate()) {
-                throw std::runtime_error("Error parsing dependency file : invalid format ");
-            }
+    std::vector<fs::path> dependenciesFileList = getChildrenDependencies(dependenciesFile.parent_path());
+    for (fs::path depsFile : dependenciesFileList) {
+        if (fs::exists(depsFile)) {
+            std::vector<Dependency> dependencies = parse(depsFile);
+            for (auto dep : dependencies) {
+                if (!dep.validate()) {
+                    throw std::runtime_error("Error parsing dependency file : invalid format ");
+                }
 #ifdef BOOST_OS_WINDOWS_AVAILABLE
-            if (isSystemNeededElevation(dep) && !OsTools::isElevated()) {
-                throw std::runtime_error("Remaken needs elevated privileges to install system Windows " + SystemTools::getToolIdentifier() + " dependencies");
+                if (isSystemNeededElevation(dep) && !OsTools::isElevated()) {
+                    throw std::runtime_error("Remaken needs elevated privileges to install system Windows " + SystemTools::getToolIdentifier() + " dependencies");
+                }
+#endif
             }
-#endif
-        }
-        std::vector<std::shared_ptr<std::thread>> thread_group;
-        for (Dependency & dependency : dependencies) {
+            std::vector<std::shared_ptr<std::thread>> thread_group;
+            for (Dependency & dependency : dependencies) {
 #ifdef REMAKEN_USE_THREADS
-            thread_group.push_back(std::make_shared<std::thread>(&DependencyManager::retrieveDependency,this, dependency));
+                thread_group.push_back(std::make_shared<std::thread>(&DependencyManager::retrieveDependency,this, dependency));
 #else
-            retrieveDependency(dependency);
+                retrieveDependency(dependency);
 #endif
-        }
-        for (auto threadPtr : thread_group) {
-            threadPtr->join();
+            }
+            for (auto threadPtr : thread_group) {
+                threadPtr->join();
+            }
         }
     }
 }
 
-std::vector<fs::path> DependencyManager::getChildrenDependencies(const Dependency &  dependency, const fs::path &  outputDirectory)
+std::vector<fs::path> DependencyManager::getChildrenDependencies(const fs::path &  outputDirectory)
 {
     auto childrenDependencies = list<std::string>{"packagedependencies.txt"};
     childrenDependencies.push_back("packagedependencies-"+ m_options.getOS() + ".txt");
