@@ -98,7 +98,7 @@ CmdOptions::CmdOptions()
     m_os = computeOS();
     m_cliApp.add_option("--operating-system,-o", m_os, "Operating system: mac, win, unix, ios, android", true);
     m_architecture = "x86_64";
-    m_cliApp.add_option("--architecture,-a",m_architecture, "Architecture: x86_64, i386, arm, arm64",true);
+    m_cliApp.add_option("--architecture,-a",m_architecture, "Architecture: x86_64, i386, arm, arm64, armv6, armv7, armv7hf, armv8",true);
     m_verbose = false;
     m_cliApp.add_flag("--verbose,-v", m_verbose, "verbose mode");
     m_dependenciesFile = "packagedependencies.txt";
@@ -139,7 +139,7 @@ CmdOptions::CmdOptions()
 
 
 static const map<std::string,std::vector<std::string>> validationMap ={{"action",{"install","parse","version","bundle", "bundleXpcf"}},
-                                                                       {"--architecture",{"x86_64","i386","arm","arm64"}},
+                                                                       {"--architecture",{"x86_64","i386","arm","arm64","armv6","armv7","armv7hf","armv8"}},
                                                                        {"--config",{"release","debug"}},
                                                                        {"--mode",{"shared","static"}},
                                                                        {"--type",{"github","artifactory","nexus","path"}},
