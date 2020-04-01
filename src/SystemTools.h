@@ -69,6 +69,9 @@ public:
     void install(const Dependency & dependency) override;
     bool installed(const Dependency & dependency) override;
     std::string computeSourcePath( const Dependency &  dependency) override;
+
+private:
+    std::string computeConanRef(const Dependency & dependency);
 };
 
 class VCPKGSystemTool : public BaseSystemTool

@@ -272,7 +272,7 @@ void ConanSystemTool::update()
 
 void ConanSystemTool::bundle(const Dependency & dependency)
 {
-    std::string source = computeSourcePath(dependency);
+    std::string source = computeConanRef(dependency);
     std::string buildType = "build_type=Debug";
     const fs::path & destination = m_options.getDestinationRoot();
 
@@ -342,7 +342,7 @@ void ConanSystemTool::bundle(const Dependency & dependency)
 
 void ConanSystemTool::install(const Dependency & dependency)
 {
-    std::string source = computeSourcePath(dependency);
+    std::string source = computeConanRef(dependency);
     std::string buildType = "build_type=Debug";
 
     if (m_options.getConfig() == "release") {
@@ -395,13 +395,19 @@ bool ConanSystemTool::installed(const Dependency & dependency)
     return false;
 }
 
-
-std::string ConanSystemTool::computeSourcePath( const Dependency &  dependency)
+std::string ConanSystemTool::computeConanRef(const Dependency &  dependency)
 {
     std::string sourceURL = dependency.getPackageName();
     sourceURL += "/" + dependency.getVersion();
     sourceURL += "@" + dependency.getIdentifier();
     sourceURL += "/" + dependency.getChannel();
+    return sourceURL;
+}
+
+std::string ConanSystemTool::computeSourcePath(const Dependency &  dependency)
+{
+    std::string sourceURL = computeConanRef(dependency);
+    sourceURL += "|" + m_options.getBuildConfig();
     return sourceURL;
 }
 

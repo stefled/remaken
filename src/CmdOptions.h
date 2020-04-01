@@ -129,8 +129,15 @@ public:
         return m_cleanAll;
     }
 
+
+    const std::string & getBuildConfig() const {
+        return m_buildConfig;
+    }
+
+
 private:
     void validateOptions();
+    void initBuildConfig();
     std::string m_action;
     std::string m_dependenciesFile;
     std::string m_architecture;
@@ -149,6 +156,7 @@ private:
     std::string m_altRepoUrl;
     std::string m_altRepoType;
     std::string m_moduleSubfolder;
+    std::string m_buildConfig;
     fs::path m_moduleSubfolderPath;
     bool m_ignoreCache;
     bool m_verbose;

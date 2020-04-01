@@ -148,6 +148,16 @@ static const map<std::string,std::vector<std::string>> validationMap ={{"action"
                                                                        {"--cpp-std",{"11","14","17","20"}}
                                                                       };
 
+void CmdOptions::initBuildConfig()
+{
+    m_buildConfig = getOS();
+    m_buildConfig += "-" + getBuildToolchain();
+    m_buildConfig += "|" + getArchitecture();
+    m_buildConfig += "|" + getCppVersion();
+    m_buildConfig += "|" + getMode();
+    m_buildConfig += "|" + getConfig();
+}
+
 void CmdOptions::validateOptions()
 {
     for (auto opt : m_cliApp.get_options()) {
@@ -202,6 +212,7 @@ CmdOptions::OptionResult CmdOptions::parseArguments(int argc, char** argv)
         cout << "Error : apiKey argument must be specified for artifactory repositories !"<<endl;
         return OptionResult::RESULT_ERROR;
     }
+    initBuildConfig();
     return OptionResult::RESULT_SUCCESS;
 }
 

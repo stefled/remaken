@@ -401,8 +401,8 @@ void DependencyManager::retrieveDependency(Dependency &  dependency)
     fs::detail::utf8_codecvt_facet utf8;
     shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(dependency, m_options);
     std::string source = fileRetriever->computeSourcePath(dependency);
-    fs::path outputDirectory;
-    if (!m_cache.contains(source) || !m_options.useCache()) {
+    fs::path outputDirectory = fileRetriever->computeLocalDependencyRootDir(dependency);
+    if (!fs::exists(outputDirectory) && (!m_cache.contains(source) || !m_options.useCache())) {
         try {
             std::cout<<"=> Installing "<<dependency.getRepositoryType()<<"::"<<source<<std::endl;
             try {
@@ -424,10 +424,12 @@ void DependencyManager::retrieveDependency(Dependency &  dependency)
         }
     }
     else {
+        if (!fs::exists(outputDirectory)) {
         std::cout<<"=> Dependency "<<source<<" found in cache : already installed"<<std::endl;
-    }
-    if (outputDirectory.empty()) {
-        outputDirectory = fileRetriever->computeLocalDependencyRootDir(dependency);
+        }
+        else {
+            std::cout<<"=> Dependency "<<source<<" already installed :"<<std::endl<<"===> exists in folder : "<<outputDirectory<<std::endl;
+        }
     }
     this->retrieveDependencies(outputDirectory/"packagedependencies.txt");
 }
