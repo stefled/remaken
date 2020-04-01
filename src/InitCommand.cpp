@@ -44,14 +44,14 @@ int InitCommand::execute()
     if (!fs::exists(remakenProfilesPath)) {
         fs::create_directory(remakenProfilesPath);
     }
-    if (fs::exists(qmakeRootPath) || linkStatus.type() != fs::file_not_found) {
+    if (linkStatus.type() != fs::file_not_found || fs::exists(qmakeRootPath)) {
         BOOST_LOG_TRIVIAL(info)<<"qmake rules already installed ! skipping...";
         return 0;
     }
     if (!fs::exists(remakenRulesPath)) {
         fs::create_directories(remakenRulesPath);
     }
-    std::string source="https://github.com/b-com-software-basis/builddefs-qmake/archive/github_v4.3.0.zip";
+    std::string source="https://github.com/b-com-software-basis/builddefs-qmake/releases/download/builddefs-qmake-latest/builddefs-qmake-latest.zip";
     fs::path artefactFolder = installArtefact(m_options,source,remakenRulesPath);
 
     if (fs::exists(artefactFolder)) {
