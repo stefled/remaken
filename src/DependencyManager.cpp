@@ -405,7 +405,7 @@ bool DependencyManager::installDep(Dependency &  dependency, const std::string &
             }
             return false;
         }
-        return false;
+        return true;
     }
 
     if (m_options.useCache()) {
@@ -469,7 +469,7 @@ void DependencyManager::retrieveDependency(Dependency &  dependency)
         }
     }
     else {
-        if (m_cache.contains(source)) {
+        if (m_cache.contains(source) && m_options.useCache()) {
             std::cout<<"===> "<<dependency.getRepositoryType()<<"::"<<dependency.getName()<<"-"<<dependency.getVersion()<<" found in cache : already installed"<<std::endl;
         }
         else {
