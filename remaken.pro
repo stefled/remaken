@@ -25,7 +25,7 @@ include(_BundleConfig.pri)
 win32:CONFIG -= static
 win32:CONFIG += shared
 QMAKE_TARGET.arch = x86_64 #must be defined prior to include
-DEPENDENCIESCONFIG = staticlib
+DEPENDENCIESCONFIG = staticlib conanindex
 CONFIG += app_setup
 #NOTE : CONFIG as staticlib or sharedlib,  DEPENDENCIESCONFIG as staticlib or sharedlib, QMAKE_TARGET.arch and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibconfig.pri inclusion
 include (builddefs/qmake/templateappconfig.pri)
