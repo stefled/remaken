@@ -1,2 +1,2 @@
-boost#stable|1.71.0|boost|conan|conan-center|default|zlib=False#bzip2=False
-OpenSSL#stable|1.1.1|OpenSSL|conan|conan-center
+boost|1.71.0|boost|conan|conan-center|default|zlib=False#bzip2=False
+openssl|1.1.1f|openssl|conan|conan-center
