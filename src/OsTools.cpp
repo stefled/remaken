@@ -70,14 +70,21 @@ void OsTools::copySharedLibraries(const fs::path & sourceRootFolder, const CmdOp
     }
     for (fs::directory_entry& x : fs::directory_iterator(sourceRootFolder)) {
         fs::path filepath = x.path();
-        if (fs::is_symlink(x.path())) {
+        auto linkStatus = fs::symlink_status(x.path());
+        if (linkStatus.type() == fs::symlink_file) {
             if (fs::exists(destinationFolderPath/filepath.filename())) {
                 fs::remove(destinationFolderPath/filepath.filename());
             }
-        //    fs::copy_symlink(x.path(),options.getDestinationRoot()/filepath.filename());
+            fs::copy_symlink(x.path(),destinationFolderPath/filepath.filename());
         }
         else if (is_regular_file(filepath)) {
-            if (filepath.extension().string(utf8) == sharedSuffix(options.getOS())) {
+            fs::path currentPath = filepath;
+            fs::path fileSuffix;
+            while (currentPath.has_extension() && fileSuffix.string(utf8) != sharedSuffix(options.getOS())) {
+                fileSuffix = currentPath.extension();
+                currentPath = currentPath.stem();
+            }
+            if (fileSuffix.string(utf8) == sharedSuffix(options.getOS())) {
                 fs::copy_file(filepath , destinationFolderPath/filepath.filename(), fs::copy_option::overwrite_if_exists);
             }
         }

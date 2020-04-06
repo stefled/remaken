@@ -9,24 +9,28 @@ The dependency file follows a modular syntax.
 Remaken also provide its own C++ packaging structure, based on pkg-config description files.
 
 ## Command line usage samples
+### Initialize remaken default folder
+```remaken init```: creates the default .remaken folder.
+It also initializes .remaken/rules/qmake with the latest builddefs-qmake release from [builddefs-qmake](https://github.com/b-com-software-basis/builddefs-qmake/releases/tag/builddefs-qmake-latest)
+
 ### Installing dependencies
-```remaken install [-r  path_to_remaken_root] -i [-o linux] -t github [-l nexus -u http://url_to_root_nexus_repo] [--cpp-std 17] [-c debug] [-- path_to_remaken_dependencies_description_file.txt] ```
+```remaken install [-r  path_to_remaken_root] -i [-o linux] -t github [-l nexus -u http://url_to_root_nexus_repo] [--cpp-std 17] [-c debug] [path_to_remaken_dependencies_description_file.txt] ```
 
 Note: remaken_root defaults to ```$(HOME)/.remaken``` or if ```REMAKEN_ROOT``` environment variable is defined to ```${REMAKEN_ROOT)```. ```REMAKEN_ROOT``` contains ```.remaken``` folder.
 
 Note: ```remaken_dependencies_description_file``` defaults to current folder ```packagedependencies.txt```file.
  
 ### Bundling dependencies together
-```remaken bundle -d ~/tmp/conanDeployed/ --cpp-std 17 [-c debug] [-- path_to_remaken_dependencies_description_file.txt]```
+```remaken bundle -d ~/tmp/conanDeployed/ --cpp-std 17 [-c debug] [path_to_remaken_dependencies_description_file.txt]```
 
 Note: ```remaken_dependencies_description_file``` defaults to current folder ```packagedependencies.txt```file.
 
 
 ### Bundling XPCF applications
-```remaken bundleXpcf -d path_to_root_destination_folder -s relative_install_path_to_modules_folder --cpp-std 17 -c debug -- xpcfApplication.xml```
+```remaken bundleXpcf -d path_to_root_destination_folder -s relative_install_path_to_modules_folder --cpp-std 17 -c debug xpcfApplication.xml```
 
 ### Checking packagedependencies file format validity
-```remaken parse [-- path_to_remaken_dependencies_description_file.txt]```
+```remaken parse [path_to_remaken_dependencies_description_file.txt]```
 
 ### Removing installed remaken dependencies
 ```remaken clean```

@@ -97,11 +97,9 @@ inline HttpStatus convertStatus(const http::status & status)
     return httpStatusConverter.at(status);
 }
 
-fs::path HttpFileRetriever::retrieveArtefact(const Dependency & dependency)
+fs::path HttpFileRetriever::retrieveArtefact(const std::string & source)
 {
-
     // LOGGER.info(std::string.format("Download file %s", url));
-    std::string source = this->computeSourcePath(dependency);
     boost::uuids::uuid uuid = boost::uuids::random_generator()();
     fs::path output = this->m_workingDirectory / boost::uuids::to_string(uuid);
     std::string newUrl;
@@ -111,8 +109,15 @@ fs::path HttpFileRetriever::retrieveArtefact(const Dependency & dependency)
         status = downloadArtefact(newSource,output,newUrl);
     }
     if (status != http::status::ok) {
-        std::cout << log(dependency);
+        std::cout << source<<std::endl;
         throw std::runtime_error("Bad http response : http error code : " + std::to_string(static_cast<unsigned long>(status)));
     }
     return output;
+}
+
+fs::path HttpFileRetriever::retrieveArtefact(const Dependency & dependency)
+{
+    // LOGGER.info(std::string.format("Download file %s", url));
+    std::string source = this->computeSourcePath(dependency);
+    return retrieveArtefact(source);
 }

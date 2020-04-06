@@ -6,6 +6,7 @@
 #include <string>
 #include <map>
 #include <nlohmann/json.hpp>
+#include <map>
 
 namespace bp = boost::process;
 namespace nj = nlohmann;
@@ -155,9 +156,14 @@ BaseSystemTool::BaseSystemTool(const CmdOptions & options, const std::string & i
 }
 
 
-std::string BaseSystemTool::computeSourcePath( const Dependency &  dependency)
+std::string BaseSystemTool::computeToolRef( const Dependency &  dependency)
 {
     return dependency.getPackageName();
+}
+
+std::string BaseSystemTool::computeSourcePath( const Dependency &  dependency)
+{
+    return computeToolRef(dependency);
 }
 
 std::string SystemTools::getToolIdentifier()
@@ -253,13 +259,25 @@ std::shared_ptr<BaseSystemTool> SystemTools::createTool(const CmdOptions & optio
     return nullptr;
 }
 
+
+static const std::map<std::string,std::string> conanArchTranslationMap ={{"x86_64", "x86_64"},
+                                                                    {"i386", "x86"},
+                                                                    {"arm", "armv7"},
+                                                                    {"arm64", "armv8"},
+                                                                    {"armv6", "armv6"},
+                                                                    {"armv7", "armv7"},
+                                                                    {"armv7hf", "armv7hf"},
+                                                                    {"armv8", "armv8"}
+                                                                   };
+
+
 void ConanSystemTool::update()
 {
 }
 
 void ConanSystemTool::bundle(const Dependency & dependency)
 {
-    std::string source = computeSourcePath(dependency);
+    std::string source = computeConanRef(dependency);
     std::string buildType = "build_type=Debug";
     const fs::path & destination = m_options.getDestinationRoot();
 
@@ -269,12 +287,25 @@ void ConanSystemTool::bundle(const Dependency & dependency)
     std::string cppStd="compiler.cppstd=";
     cppStd += m_options.getCppVersion();
     int result = -1;
+    std::vector<std::string> options;
+    std::vector<std::string> optionsArgs;
+    std::vector<std::string> settingsArgs;
+    if (mapContains(conanArchTranslationMap, m_options.getArchitecture())) {
+        settingsArgs.push_back("-s");
+        settingsArgs.push_back("arch=" + conanArchTranslationMap.at(m_options.getArchitecture()));
+    }
+    if (dependency.hasOptions()) {
+        boost::split(options, dependency.getToolOptions(), [](char c){return c == '#';});
+        for (const auto & option: options) {
+            optionsArgs.push_back("-o " + option);
+        }
+    }
     if (dependency.getMode() == "na") {
         if (dependency.getBaseRepository().empty()) {
-            result = bp::system(m_systemInstallerPath, "install", "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if", destination, "-g", "json", source.c_str());
+            result = bp::system(m_systemInstallerPath, "install", bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if", destination, bp::args(optionsArgs), "-g", "json", source.c_str());
         }
         else {
-            result = bp::system(m_systemInstallerPath, "install", "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if", destination, "-g", "json", "-r", dependency.getBaseRepository().c_str(), source.c_str());
+            result = bp::system(m_systemInstallerPath, "install", bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if", destination, bp::args(optionsArgs), "-g", "json", "-r", dependency.getBaseRepository().c_str(), source.c_str());
         }
     }
     else {
@@ -286,10 +317,10 @@ void ConanSystemTool::bundle(const Dependency & dependency)
             buildMode += "shared=True";
         }
         if (dependency.getBaseRepository().empty()) {
-            result = bp::system(m_systemInstallerPath, "install", "-o", buildMode.c_str(), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if", destination, "-g", "json", source.c_str());
+            result = bp::system(m_systemInstallerPath, "install", "-o", buildMode.c_str(), bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if", destination, bp::args(optionsArgs), "-g", "json", source.c_str());
         }
         else {
-            result = bp::system(m_systemInstallerPath, "install", "-o", buildMode.c_str(), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if", destination, "-g", "json", "-r", dependency.getBaseRepository().c_str(), source.c_str());
+            result = bp::system(m_systemInstallerPath, "install", "-o", buildMode.c_str(), bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if", destination, bp::args(optionsArgs), "-g", "json", "-r", dependency.getBaseRepository().c_str(), source.c_str());
         }
     }
     if (result != 0) {
@@ -316,21 +347,34 @@ void ConanSystemTool::bundle(const Dependency & dependency)
 
 void ConanSystemTool::install(const Dependency & dependency)
 {
-    std::string source = computeSourcePath(dependency);
+    std::string source = computeConanRef(dependency);
     std::string buildType = "build_type=Debug";
 
     if (m_options.getConfig() == "release") {
         buildType = "build_type=Release";
+    }
+    std::vector<std::string> options;
+    std::vector<std::string> optionsArgs;
+    std::vector<std::string> settingsArgs;
+    if (mapContains(conanArchTranslationMap, m_options.getArchitecture())) {
+        settingsArgs.push_back("-s");
+        settingsArgs.push_back("arch=" + conanArchTranslationMap.at(m_options.getArchitecture()));
+    }
+    if (dependency.hasOptions()) {
+        boost::split(options, dependency.getToolOptions(), [](char c){return c == '#';});
+        for (const auto & option: options) {
+            optionsArgs.push_back("-o " + option);
+       }
     }
     std::string cppStd="compiler.cppstd=";
     cppStd += m_options.getCppVersion();
     int result = -1;
     if (dependency.getMode() == "na") {
         if (dependency.getBaseRepository().empty()) {
-            result = bp::system(m_systemInstallerPath, "install", "-s", buildType.c_str(), "-s", cppStd.c_str(),"--build=missing", source.c_str());
+            result = bp::system(m_systemInstallerPath, "install", bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), bp::args(optionsArgs),"--build=missing", source.c_str());
         }
         else {
-            result = bp::system(m_systemInstallerPath, "install", "-s", buildType.c_str(), "-s", cppStd.c_str(),"--build=missing", "-r", dependency.getBaseRepository().c_str(), source.c_str());
+            result = bp::system(m_systemInstallerPath, "install", bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), bp::args(optionsArgs),"--build=missing", "-r", dependency.getBaseRepository().c_str(), source.c_str());
         }
     }
     else {
@@ -340,10 +384,10 @@ void ConanSystemTool::install(const Dependency & dependency)
         }
 
         if (dependency.getBaseRepository().empty()) {
-            result = bp::system(m_systemInstallerPath, "install", "-o", buildMode.c_str(), "-s", buildType.c_str(), "-s", cppStd.c_str(),"--build=missing", source.c_str());
+            result = bp::system(m_systemInstallerPath, "install", "-o", buildMode.c_str(), bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), bp::args(optionsArgs),"--build=missing", source.c_str());
         }
         else {
-            result = bp::system(m_systemInstallerPath, "install", "-o", buildMode.c_str(), "-s", buildType.c_str(), "-s", cppStd.c_str(),"--build=missing", "-r", dependency.getBaseRepository().c_str(), source.c_str());
+            result = bp::system(m_systemInstallerPath, "install", "-o", buildMode.c_str(), bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), bp::args(optionsArgs),"--build=missing", "-r", dependency.getBaseRepository().c_str(), source.c_str());
         }
     }
     if (result != 0) {
@@ -356,13 +400,20 @@ bool ConanSystemTool::installed(const Dependency & dependency)
     return false;
 }
 
-
-std::string ConanSystemTool::computeSourcePath( const Dependency &  dependency)
+std::string ConanSystemTool::computeConanRef(const Dependency &  dependency)
 {
     std::string sourceURL = dependency.getPackageName();
     sourceURL += "/" + dependency.getVersion();
     sourceURL += "@" + dependency.getIdentifier();
     sourceURL += "/" + dependency.getChannel();
+    return sourceURL;
+}
+
+std::string ConanSystemTool::computeSourcePath(const Dependency &  dependency)
+{
+    std::string sourceURL = computeConanRef(dependency);
+    sourceURL += "|" + m_options.getBuildConfig();
+    sourceURL += "|" + dependency.getToolOptions();
     return sourceURL;
 }
 
@@ -373,7 +424,7 @@ void VCPKGSystemTool::update()
 
 void VCPKGSystemTool::install(const Dependency & dependency)
 {
-    std::string source = this->computeSourcePath(dependency);
+    std::string source = this->computeToolRef(dependency);
     int result = bp::system(m_systemInstallerPath, "install", source.c_str());
     if (result != 0) {
         throw std::runtime_error("Error installing vcpkg dependency : " + source);
@@ -385,7 +436,7 @@ bool VCPKGSystemTool::installed(const Dependency & dependency)
     return false;
 }
 
-std::string VCPKGSystemTool::computeSourcePath( const Dependency &  dependency)
+std::string VCPKGSystemTool::computeToolRef( const Dependency &  dependency)
 {
     std::string mode = dependency.getMode();
     std::string os =  m_options.getOS();
@@ -419,7 +470,7 @@ void AptSystemTool::update()
 
 void AptSystemTool::install(const Dependency & dependency)
 {
-    std::string source = computeSourcePath(dependency);
+    std::string source = computeToolRef(dependency);
 
     int result = bp::system(sudo(), m_systemInstallerPath, "install","-y", source.c_str());
 
@@ -431,7 +482,7 @@ void AptSystemTool::install(const Dependency & dependency)
 bool AptSystemTool::installed(const Dependency & dependency)
 {
     fs::path dpkg = bp::search_path("dpkg-query");
-    std::string source = computeSourcePath(dependency);
+    std::string source = computeToolRef(dependency);
     int result = bp::system(dpkg, "-W","-f='${Status}'", source.c_str(),"|","grep -q \"ok installed\"");
     return result == 0;
 }
@@ -451,7 +502,7 @@ void BrewSystemTool::install(const Dependency & dependency)
     if (installed(dependency)) {//TODO : version comparison and checking with range approach
         return;
     }
-    std::string source = computeSourcePath(dependency);
+    std::string source = computeToolRef(dependency);
     int result = bp::system(m_systemInstallerPath, "install", source.c_str());
     if (result != 0) {
         throw std::runtime_error("Error installing brew dependency : " + source);
@@ -460,7 +511,7 @@ void BrewSystemTool::install(const Dependency & dependency)
 
 bool BrewSystemTool::installed(const Dependency & dependency)
 {
-    std::string source = computeSourcePath(dependency);
+    std::string source = computeToolRef(dependency);
     int result = bp::system(m_systemInstallerPath, "ls","--versions", source.c_str());
     return (result == 0);
 }
@@ -477,7 +528,7 @@ void YumSystemTool::update()
 
 void YumSystemTool::install(const Dependency & dependency)
 {
-    std::string source = computeSourcePath(dependency);
+    std::string source = computeToolRef(dependency);
     int result = bp::system(sudo(), m_systemInstallerPath, "install","-y", source.c_str());
     if (result != 0) {
         throw std::runtime_error("Error installing yum dependency : " + source);
@@ -487,7 +538,7 @@ void YumSystemTool::install(const Dependency & dependency)
 bool YumSystemTool::installed(const Dependency & dependency)
 {
     fs::path rpm = bp::search_path("rpm");
-    std::string source = computeSourcePath(dependency);
+    std::string source = computeToolRef(dependency);
     int result = bp::system(rpm, "-q",source.c_str());
     return result == 0;
 }
@@ -504,7 +555,7 @@ void PacManSystemTool::update()
 
 void PacManSystemTool::install(const Dependency & dependency)
 {
-    std::string source = computeSourcePath(dependency);
+    std::string source = computeToolRef(dependency);
     int result = bp::system(sudo(), m_systemInstallerPath, "-S","--noconfirm", source.c_str());
     if (result != 0) {
         throw std::runtime_error("Error installing pacman dependency : " + source);
@@ -526,7 +577,7 @@ void PkgToolSystemTool::update()
 
 void PkgToolSystemTool::install(const Dependency & dependency)
 {
-    std::string source = computeSourcePath(dependency);
+    std::string source = computeToolRef(dependency);
     int result = bp::system(sudo(), m_systemInstallerPath, "install", "-y", source.c_str());
     if (result != 0) {
         throw std::runtime_error("Error installing vcpkg dependency : " + source);
@@ -535,7 +586,7 @@ void PkgToolSystemTool::install(const Dependency & dependency)
 
 bool PkgToolSystemTool::installed(const Dependency & dependency)
 {
-    std::string source = computeSourcePath(dependency);
+    std::string source = computeToolRef(dependency);
     int result = bp::system(m_systemInstallerPath, "info", source.c_str());
     return result == 0;
 }
@@ -551,7 +602,7 @@ void PkgUtilSystemTool::update()
 
 void PkgUtilSystemTool::install(const Dependency & dependency)
 {
-    std::string source = computeSourcePath(dependency);
+    std::string source = computeToolRef(dependency);
     int result = bp::system(sudo(), m_systemInstallerPath, "--install","--yes", source.c_str());
     if (result != 0) {
         throw std::runtime_error("Error installing pacman dependency : " + source);
@@ -574,7 +625,7 @@ void ChocoSystemTool::update()
 
 void ChocoSystemTool::install(const Dependency & dependency)
 {
-    std::string source = computeSourcePath(dependency);
+    std::string source = computeToolRef(dependency);
     int result = bp::system(m_systemInstallerPath, "install","--yes", source.c_str());
     if (result != 0) {
         throw std::runtime_error("Error installing choco dependency : " + source);
@@ -596,7 +647,7 @@ void ScoopSystemTool::update()
 
 void ScoopSystemTool::install(const Dependency & dependency)
 {
-    std::string source = computeSourcePath(dependency);
+    std::string source = computeToolRef(dependency);
     int result = bp::system(m_systemInstallerPath, "install","--yes", source.c_str());
     if (result != 0) {
         throw std::runtime_error("Error installing scoop dependency : " + source);
@@ -618,7 +669,7 @@ void ZypperSystemTool::update()
 
 void ZypperSystemTool::install(const Dependency & dependency)
 {
-    std::string source = computeSourcePath(dependency);
+    std::string source = computeToolRef(dependency);
     int result = bp::system(sudo(), m_systemInstallerPath, "--non-interactive","in", source.c_str());
     if (result != 0) {
         throw std::runtime_error("Error installing zypper dependency : " + source);
@@ -628,7 +679,7 @@ void ZypperSystemTool::install(const Dependency & dependency)
 bool ZypperSystemTool::installed(const Dependency & dependency)
 {
     fs::path rpm = bp::search_path("rpm");
-    std::string source = computeSourcePath(dependency);
+    std::string source = computeToolRef(dependency);
     int result = bp::system(rpm, "-q",source.c_str());
     return result == 0;
 }

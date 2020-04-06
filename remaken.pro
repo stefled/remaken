@@ -1,5 +1,5 @@
 TARGET = remaken
-VERSION=1.5.2
+VERSION=1.6.0
 
 CONFIG += c++1z
 CONFIG += console
@@ -39,6 +39,7 @@ HEADERS += \
     src/Constants.h \
     src/Cache.h \
     src/AbstractCommand.h \
+    src/InitCommand.h \
     src/InstallCommand.h \
     src/PathBuilder.h \
     src/VersionCommand.h \
@@ -64,6 +65,7 @@ HEADERS += \
 SOURCES += \
     src/BundleXpcfCommand.cpp \
     src/CleanCommand.cpp \
+    src/InitCommand.cpp \
     src/PathBuilder.cpp \
     src/ZipTool.cpp \
     src/main.cpp \
@@ -127,6 +129,7 @@ win32 {
 INCLUDEPATH += libs/nlohmann-json/single_include libs/CLI11/include
 
 DISTFILES += \
+    packagedependencies.txt \
     samples/packagedependencies-github.txt \
     samples/packagedependencies-mixed.txt \
     resources/install_remaken_3rdparties.nsh \

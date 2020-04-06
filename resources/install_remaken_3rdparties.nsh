@@ -11,21 +11,6 @@ Section "!un.Remaken"
 	EnVar::Delete "REMAKEN_PKG_ROOT"
 SectionEnd
 
-Section "!BuilddefsQmake"   BUILDDEFS_QMAKE
-    SetOutPath "$PROFILE\.remaken\rules"
-    CreateDirectory $PROFILE\.remaken\rules
-    File /nonfatal /a /r "${SETUP_PROJECT_PATH}\Builddefs\"	
-	EnVar::SetHKCU
-	EnVar::AddValue "REMAKEN_RULES_ROOT" "$PROFILE\.remaken\rules"
-SectionEnd
-
-Section "un.BuilddefsQmake"
-    RMDir /r "$PROFILE\.remaken\rules"
-	RMDir "$PROFILE\.remaken"
-	EnVar::SetHKCU
-	EnVar::Delete "REMAKEN_RULES_ROOT"
-SectionEnd
-
 Section
 	FileOpen $9 $PROFILE\.remaken\.packagespath w
 	FileWrite $9 "$remaken_pkg_root_text\.remaken"
@@ -73,7 +58,6 @@ SectionGroupEnd
 Function CustomizeOnInit
 	; enable/expand... section items
     SectionSetFlags ${REMAKEN_APP} 17 ; selected and ReadOnly
-    SectionSetFlags ${BUILDDEFS_QMAKE} 1 ; selected
     SectionSetFlags ${CHOCO_TOOLS} 51   ; selected, ReadOnly and expanded
 	SectionSetFlags ${CHOCO_TOOLS_7ZIP} 17
 	
@@ -97,7 +81,6 @@ FunctionEnd
 ; Section descriptions
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
   !insertmacro MUI_DESCRIPTION_TEXT ${REMAKEN_APP} "Install Remaken Tool"
-  !insertmacro MUI_DESCRIPTION_TEXT ${BUILDDEFS_QMAKE} "Install Builddefs/qmake"
   !insertmacro MUI_DESCRIPTION_TEXT ${CHOCO_TOOLS} "Remaken use Chocolatey as system install tool"
   !insertmacro MUI_DESCRIPTION_TEXT ${CHOCO_TOOLS_7ZIP} "Remaken use 7zip as system file compression/extraction tool"
   !insertmacro MUI_DESCRIPTION_TEXT ${CONAN} "Remaken can use Conan dependencies (Conan will be installed with Python and Pip also installed)"
@@ -109,6 +92,7 @@ FunctionEnd
 Var TextBox
 Var BrowseButton
 Var NextButton
+Var Label
 Function custompage_remakenroot 
 	
 	;if empty use $PROFILE else currentdir read in registry
@@ -122,21 +106,26 @@ Function custompage_remakenroot
     ;${NSD_CreateLabel} 0 0 100% 12u "Define where to install Remaken packages : "
 	${NSD_CreateLabel} 0 0u 100% 12u "When not overrided in a previous install, it defaults to :"
 	${NSD_CreateLabel} 12u 12u 100% 12u "$PROFILE (+ \.remaken\packages)"
-	${NSD_CreateLabel} 0u 36u 100% 12u "Current Remaken packages 'root path' is : $remaken_pkg_root_text"
-	${NSD_CreateLabel} 0u 60u 100% 12u "Please select Remaken packages 'root path' (named below PKG_ROOT_PATH) :"
+	${NSD_CreateLabel} 0u 28u 100% 12u "Current Remaken packages 'root path' is : $remaken_pkg_root_text"
+	${NSD_CreateLabel} 0u 44u 100% 12u "Please select Remaken packages 'root path' (named below PKG_ROOT_PATH) :"
 		
 	Pop $0
-	${NSD_CreateDirRequest} 0 72u 84% 12u "$remaken_pkg_root_text"
+	${NSD_CreateDirRequest} 0 56u 84% 12u "$remaken_pkg_root_text"
     Pop $TextBox
     ${NSD_SetText} $TextBox $remaken_pkg_root_text
     
-	${NSD_CreateBrowseButton} 85% 72u 15% 12u "Browse"
+	${NSD_CreateBrowseButton} 85% 56u 15% 12u "Browse"
     Pop $BrowseButton
     ${NSD_OnClick} $BrowseButton OnBrowseForDir	
 	
-	${NSD_CreateLabel} 0u 102u 100% 12u "- REMAKEN_PKG_ROOT env var is PKG_ROOT_PATH\.remaken"
-	${NSD_CreateLabel} 0u 114u 100% 12u "- REMAKEN_RULES_ROOT env var is $PROFILE\.remaken\rules"
+	${NSD_CreateLabel} 0u 74u 100% 12u "REMAKEN_PKG_ROOT env var is PKG_ROOT_PATH\.remaken"
 	
+	${NSD_CreateLabel} 0u 102u 100% 12u "Note : please run 'remaken init' to install qmake rules"
+	Pop $Label
+	CreateFont $0 "Arial" 14
+	SendMessage $Label ${WM_SETFONT} $0 1
+	
+
 	GetDlgItem $NextButton $HWNDPARENT 1 ; next=1, cancel=2, back=315
 	${NSD_OnChange} $TextBox OnValidatePath
 	
