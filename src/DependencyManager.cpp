@@ -395,6 +395,50 @@ std::vector<Dependency> DependencyManager::parse(const fs::path &  dependenciesP
     return removeRedundantDependencies(libraries);
 }
 
+bool DependencyManager::installDep(Dependency &  dependency, const std::string & source,
+                                   const fs::path & outputDirectory, const fs::path & libDirectory)
+{
+    if (dependency.getType() != Dependency::Type::REMAKEN) {
+        if (m_options.useCache()) {
+            if (!m_cache.contains(source)) {
+                return true;
+            }
+            return false;
+        }
+        return false;
+    }
+
+    if (m_options.useCache()) {
+        if (dependency.getMode() == "na") {
+            if (!fs::exists(outputDirectory)) {
+                return true;
+            }
+            return false;
+        }
+        if (!fs::exists(libDirectory)) {
+            return true;
+        }
+        else {
+            return false;
+        }
+        if (!m_cache.contains(source)) {
+            return true;
+        }
+        return false;
+    }
+
+    if (dependency.getMode() != "na") {
+        if (!fs::exists(libDirectory)) {
+            return true;
+        }
+        return false;
+    }
+
+    if (fs::exists(outputDirectory)) {
+        return false;
+    }
+    return true;
+}
 
 void DependencyManager::retrieveDependency(Dependency &  dependency)
 {
@@ -402,7 +446,8 @@ void DependencyManager::retrieveDependency(Dependency &  dependency)
     shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(dependency, m_options);
     std::string source = fileRetriever->computeSourcePath(dependency);
     fs::path outputDirectory = fileRetriever->computeLocalDependencyRootDir(dependency);
-    if (!fs::exists(outputDirectory) && (!m_cache.contains(source) || !m_options.useCache())) {
+    fs::path libDirectory = fileRetriever->computeRootLibDir(dependency);
+    if (installDep(dependency, source, outputDirectory, libDirectory)) {
         try {
             std::cout<<"=> Installing "<<dependency.getRepositoryType()<<"::"<<source<<std::endl;
             try {
@@ -424,11 +469,11 @@ void DependencyManager::retrieveDependency(Dependency &  dependency)
         }
     }
     else {
-        if (!fs::exists(outputDirectory)) {
-        std::cout<<"=> Dependency "<<source<<" found in cache : already installed"<<std::endl;
+        if (m_cache.contains(source)) {
+            std::cout<<"===> "<<dependency.getRepositoryType()<<"::"<<dependency.getName()<<"-"<<dependency.getVersion()<<" found in cache : already installed"<<std::endl;
         }
         else {
-            std::cout<<"=> Dependency "<<source<<" already installed :"<<std::endl<<"===> exists in folder : "<<outputDirectory<<std::endl;
+            std::cout<<"===> "<<dependency.getRepositoryType()<<"::"<<dependency.getName()<<"-"<<dependency.getVersion()<<" already installed in folder : "<<outputDirectory<<std::endl;
         }
     }
     this->retrieveDependencies(outputDirectory/"packagedependencies.txt");

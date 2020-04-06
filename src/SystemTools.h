@@ -45,6 +45,7 @@ public:
 
 
 protected:
+    virtual std::string computeToolRef( const Dependency &  dependency);
     fs::path m_systemInstallerPath;
     fs::path m_sudoCmd;
     const CmdOptions & m_options;
@@ -82,7 +83,9 @@ public:
     void update() override;
     void install(const Dependency & dependency) override;
     bool installed(const Dependency & dependency) override;
-    std::string computeSourcePath( const Dependency &  dependency) override;
+
+protected:
+    std::string computeToolRef( const Dependency &  dependency) override;
 };
 
 

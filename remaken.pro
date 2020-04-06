@@ -129,6 +129,7 @@ win32 {
 INCLUDEPATH += libs/nlohmann-json/single_include libs/CLI11/include
 
 DISTFILES += \
+    packagedependencies.txt \
     samples/packagedependencies-github.txt \
     samples/packagedependencies-mixed.txt \
     resources/install_remaken_3rdparties.nsh \

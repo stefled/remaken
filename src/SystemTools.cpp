@@ -156,9 +156,14 @@ BaseSystemTool::BaseSystemTool(const CmdOptions & options, const std::string & i
 }
 
 
-std::string BaseSystemTool::computeSourcePath( const Dependency &  dependency)
+std::string BaseSystemTool::computeToolRef( const Dependency &  dependency)
 {
     return dependency.getPackageName();
+}
+
+std::string BaseSystemTool::computeSourcePath( const Dependency &  dependency)
+{
+    return computeToolRef(dependency);
 }
 
 std::string SystemTools::getToolIdentifier()
@@ -408,6 +413,7 @@ std::string ConanSystemTool::computeSourcePath(const Dependency &  dependency)
 {
     std::string sourceURL = computeConanRef(dependency);
     sourceURL += "|" + m_options.getBuildConfig();
+    sourceURL += "|" + dependency.getToolOptions();
     return sourceURL;
 }
 
@@ -418,7 +424,7 @@ void VCPKGSystemTool::update()
 
 void VCPKGSystemTool::install(const Dependency & dependency)
 {
-    std::string source = this->computeSourcePath(dependency);
+    std::string source = this->computeToolRef(dependency);
     int result = bp::system(m_systemInstallerPath, "install", source.c_str());
     if (result != 0) {
         throw std::runtime_error("Error installing vcpkg dependency : " + source);
@@ -430,7 +436,7 @@ bool VCPKGSystemTool::installed(const Dependency & dependency)
     return false;
 }
 
-std::string VCPKGSystemTool::computeSourcePath( const Dependency &  dependency)
+std::string VCPKGSystemTool::computeToolRef( const Dependency &  dependency)
 {
     std::string mode = dependency.getMode();
     std::string os =  m_options.getOS();
@@ -464,7 +470,7 @@ void AptSystemTool::update()
 
 void AptSystemTool::install(const Dependency & dependency)
 {
-    std::string source = computeSourcePath(dependency);
+    std::string source = computeToolRef(dependency);
 
     int result = bp::system(sudo(), m_systemInstallerPath, "install","-y", source.c_str());
 
@@ -476,7 +482,7 @@ void AptSystemTool::install(const Dependency & dependency)
 bool AptSystemTool::installed(const Dependency & dependency)
 {
     fs::path dpkg = bp::search_path("dpkg-query");
-    std::string source = computeSourcePath(dependency);
+    std::string source = computeToolRef(dependency);
     int result = bp::system(dpkg, "-W","-f='${Status}'", source.c_str(),"|","grep -q \"ok installed\"");
     return result == 0;
 }
@@ -496,7 +502,7 @@ void BrewSystemTool::install(const Dependency & dependency)
     if (installed(dependency)) {//TODO : version comparison and checking with range approach
         return;
     }
-    std::string source = computeSourcePath(dependency);
+    std::string source = computeToolRef(dependency);
     int result = bp::system(m_systemInstallerPath, "install", source.c_str());
     if (result != 0) {
         throw std::runtime_error("Error installing brew dependency : " + source);
@@ -505,7 +511,7 @@ void BrewSystemTool::install(const Dependency & dependency)
 
 bool BrewSystemTool::installed(const Dependency & dependency)
 {
-    std::string source = computeSourcePath(dependency);
+    std::string source = computeToolRef(dependency);
     int result = bp::system(m_systemInstallerPath, "ls","--versions", source.c_str());
     return (result == 0);
 }
@@ -522,7 +528,7 @@ void YumSystemTool::update()
 
 void YumSystemTool::install(const Dependency & dependency)
 {
-    std::string source = computeSourcePath(dependency);
+    std::string source = computeToolRef(dependency);
     int result = bp::system(sudo(), m_systemInstallerPath, "install","-y", source.c_str());
     if (result != 0) {
         throw std::runtime_error("Error installing yum dependency : " + source);
@@ -532,7 +538,7 @@ void YumSystemTool::install(const Dependency & dependency)
 bool YumSystemTool::installed(const Dependency & dependency)
 {
     fs::path rpm = bp::search_path("rpm");
-    std::string source = computeSourcePath(dependency);
+    std::string source = computeToolRef(dependency);
     int result = bp::system(rpm, "-q",source.c_str());
     return result == 0;
 }
@@ -549,7 +555,7 @@ void PacManSystemTool::update()
 
 void PacManSystemTool::install(const Dependency & dependency)
 {
-    std::string source = computeSourcePath(dependency);
+    std::string source = computeToolRef(dependency);
     int result = bp::system(sudo(), m_systemInstallerPath, "-S","--noconfirm", source.c_str());
     if (result != 0) {
         throw std::runtime_error("Error installing pacman dependency : " + source);
@@ -571,7 +577,7 @@ void PkgToolSystemTool::update()
 
 void PkgToolSystemTool::install(const Dependency & dependency)
 {
-    std::string source = computeSourcePath(dependency);
+    std::string source = computeToolRef(dependency);
     int result = bp::system(sudo(), m_systemInstallerPath, "install", "-y", source.c_str());
     if (result != 0) {
         throw std::runtime_error("Error installing vcpkg dependency : " + source);
@@ -580,7 +586,7 @@ void PkgToolSystemTool::install(const Dependency & dependency)
 
 bool PkgToolSystemTool::installed(const Dependency & dependency)
 {
-    std::string source = computeSourcePath(dependency);
+    std::string source = computeToolRef(dependency);
     int result = bp::system(m_systemInstallerPath, "info", source.c_str());
     return result == 0;
 }
@@ -596,7 +602,7 @@ void PkgUtilSystemTool::update()
 
 void PkgUtilSystemTool::install(const Dependency & dependency)
 {
-    std::string source = computeSourcePath(dependency);
+    std::string source = computeToolRef(dependency);
     int result = bp::system(sudo(), m_systemInstallerPath, "--install","--yes", source.c_str());
     if (result != 0) {
         throw std::runtime_error("Error installing pacman dependency : " + source);
@@ -619,7 +625,7 @@ void ChocoSystemTool::update()
 
 void ChocoSystemTool::install(const Dependency & dependency)
 {
-    std::string source = computeSourcePath(dependency);
+    std::string source = computeToolRef(dependency);
     int result = bp::system(m_systemInstallerPath, "install","--yes", source.c_str());
     if (result != 0) {
         throw std::runtime_error("Error installing choco dependency : " + source);
@@ -641,7 +647,7 @@ void ScoopSystemTool::update()
 
 void ScoopSystemTool::install(const Dependency & dependency)
 {
-    std::string source = computeSourcePath(dependency);
+    std::string source = computeToolRef(dependency);
     int result = bp::system(m_systemInstallerPath, "install","--yes", source.c_str());
     if (result != 0) {
         throw std::runtime_error("Error installing scoop dependency : " + source);
@@ -663,7 +669,7 @@ void ZypperSystemTool::update()
 
 void ZypperSystemTool::install(const Dependency & dependency)
 {
-    std::string source = computeSourcePath(dependency);
+    std::string source = computeToolRef(dependency);
     int result = bp::system(sudo(), m_systemInstallerPath, "--non-interactive","in", source.c_str());
     if (result != 0) {
         throw std::runtime_error("Error installing zypper dependency : " + source);
@@ -673,7 +679,7 @@ void ZypperSystemTool::install(const Dependency & dependency)
 bool ZypperSystemTool::installed(const Dependency & dependency)
 {
     fs::path rpm = bp::search_path("rpm");
-    std::string source = computeSourcePath(dependency);
+    std::string source = computeToolRef(dependency);
     int result = bp::system(rpm, "-q",source.c_str());
     return result == 0;
 }
