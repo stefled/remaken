@@ -123,7 +123,7 @@ win32 {
     }
     LIBS += -lshell32 -lgdi32 -lComdlg32
     # openssl libs dependencies
-    LIBS += -luser32 -ladvapi32
+    LIBS += -luser32 -ladvapi32 -lCrypt32
 }
 
 INCLUDEPATH += libs/nlohmann-json/single_include libs/CLI11/include
