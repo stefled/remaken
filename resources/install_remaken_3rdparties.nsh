@@ -17,6 +17,7 @@ Section
 	FileClose $9 
 SectionEnd	
 
+var python_install_dir
 SectionGroup /e "Chocolatey" CHOCO_TOOLS
 	Section "-hidden InstallChoco"	INSTALL_CHOCO
 		IfFileExists "$0\ProgramData\Chocolatey\choco.exe" choco_exists
@@ -33,16 +34,29 @@ SectionGroup /e "Chocolatey" CHOCO_TOOLS
 		sevenz_exists:
 	SectionEnd
 	Section "Conan (with python/pip)" CONAN 
-		IfFileExists $1\Python37\python.exe python_exists
-				ExecWait '$1\ProgramData\Chocolatey\choco install -yr --force --acceptlicense  --no-progress python3 --params $\"/InstallDir:$1\Python37$\"'
+		StrCpy $python_install_dir $1\Python37
+		ReadRegStr $0 HKLM "SOFTWARE\Python\PythonCore\3.7\InstallPath" ""
+		${IfNot} ${Errors}
+			StrCpy $python_install_dir $0
+			; remove last '\'
+			StrCpy $2 "$0" "" -1 ; this gets the last char
+			StrCmp $2 "\" 0 +2 ; check if last char is '\'
+			StrCpy $python_install_dir "$0" -1 ; last char was '\', remove it
+			ReadRegStr $0 HKLM "SOFTWARE\Python\PythonCore\3.7\InstallPath" "ExecutablePath"
+		${EndIf}
+		;install/update python only if exe not found
+		IfFileExists $0 python_exists
+			ExecWait '$1\ProgramData\Chocolatey\choco install -yr --force --acceptlicense --no-progress python3 --version=3.7.3 --params $\"/InstallDir:$python_install_dir$\"'
 		python_exists:
 
-				;IfFileExists $1\Python3\Scripts\pip.exe pip_exists
-				ExecWait '$1\Python37\python -m pip install --upgrade pip'
+		;always install/update pip
+		;IfFileExists $1\Python3\Scripts\pip.exe pip_exists
+			ExecWait '$0 -m pip install --upgrade pip'
 		;pip_exists:
 		
-				;IfFileExists $1\Python3\Scripts\conan.exe conan_exists
-				ExecWait '$1\Python37\Scripts\pip install --upgrade conan'
+		;always install/update conan
+		;IfFileExists $1\Python3\Scripts\conan.exe conan_exists
+			ExecWait '$python_install_dir\Scripts\pip install --upgrade conan'
 		;conan_exists:
 	SectionEnd	
 	Section "pkg-config" CHOCO_TOOLS_PKG_CONFIG
