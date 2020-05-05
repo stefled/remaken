@@ -118,6 +118,8 @@ CmdOptions::CmdOptions()
 
     CLI::App * initCommand = m_cliApp.add_subcommand("init","initialize remaken root folder and retrieve qmake rules");
 
+    CLI::App * versionCommand = m_cliApp.add_subcommand("version","display remaken version");
+
     CLI::App * installCommand = m_cliApp.add_subcommand("install","install dependencies for a package from its packagedependencies file(s)");
     installCommand->add_option("--alternate-remote-type,-l", m_altRepoType, "alternate remote type: github, artifactory, nexus, path");
     installCommand->add_option("--alternate-remote-url,-u", m_altRepoUrl, "alternate remote url to use when the declared remote fails to provide a dependency");

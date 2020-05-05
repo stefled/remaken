@@ -16,6 +16,6 @@ int VersionCommand::execute()
 
 std::string VersionCommand::getVersion() const
 {
-    std::string version;
+    std::string version = MYVERSIONSTRING;
     return version;
 }

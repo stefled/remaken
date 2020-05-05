@@ -6,6 +6,7 @@ CONFIG += console
 CONFIG -= qt
 
 DEFINES += MYVERSION=$${VERSION}
+DEFINES += MYVERSIONSTRING=\\\"$${VERSION}\\\"
 
 CONFIG(debug,debug|release) {
     DEFINES += _DEBUG=1
