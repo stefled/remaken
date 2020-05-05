@@ -34,7 +34,7 @@ SectionGroup /e "Chocolatey" CHOCO_TOOLS
 		sevenz_exists:
 	SectionEnd
 	Section "Conan (with python/pip)" CONAN 
-		StrCpy $python_install_dir $1\Python37
+		StrCpy $python_install_dir $1\Python37	; default dir
 		ReadRegStr $0 HKLM "SOFTWARE\Python\PythonCore\3.7\InstallPath" ""
 		${IfNot} ${Errors}
 			StrCpy $python_install_dir $0
@@ -60,8 +60,11 @@ SectionGroup /e "Chocolatey" CHOCO_TOOLS
 		;conan_exists:
 	SectionEnd	
 	Section "pkg-config" CHOCO_TOOLS_PKG_CONFIG
-		ExecWait '$1\ProgramData\Chocolatey\choco install -yr --acceptlicense  --no-progress pkgconfiglite'
+		ExecWait '$1\ProgramData\Chocolatey\choco install -yr --acceptlicense --no-progress pkgconfiglite'
 	SectionEnd
+	Section "CMake" CHOCO_TOOLS_CMAKE
+		ExecWait '$1\ProgramData\Chocolatey\choco install -yr --acceptlicense --no-progress CMake'
+	SectionEnd	
 		
 	Section "-hidden Install_redist"
 		SetRegView 64
@@ -103,6 +106,7 @@ FunctionEnd
   !insertmacro MUI_DESCRIPTION_TEXT ${CHOCO_TOOLS_7ZIP} "Remaken use 7zip as system file compression/extraction tool"
   !insertmacro MUI_DESCRIPTION_TEXT ${CONAN} "Remaken can use Conan dependencies (Conan will be installed with Python and Pip also installed)"
   !insertmacro MUI_DESCRIPTION_TEXT ${CHOCO_TOOLS_PKG_CONFIG} "Remaken provides its own C++ packaging structure, based on pkg-config description files (pkg-config will be installed with Choco)"
+  !insertmacro MUI_DESCRIPTION_TEXT ${CHOCO_TOOLS_CMAKE} "Conan can uses CMake for build packages (CMake will be installed with Choco)"
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 !endif
 
