@@ -103,3 +103,12 @@ deploy:
   draft: false
   on:
     branch: master
+
+- provider: GitHub
+release: ${APPVEYOR_BUILD_WORKER_IMAGE}/remaken-${APPVEYOR_REPO_TAG_NAME}
+auth_token:
+  secure: WUZuOKLtErzvGojYwISnWio7doATSkiTNVWQaO1iz9ozEJQDPMIQKbF4Hzn8SkLU
+artifact: remaken
+draft: false
+on:
+  APPVEYOR_REPO_TAG: true
