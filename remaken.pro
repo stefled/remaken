@@ -99,7 +99,7 @@ unix {
 }
 
 linux {
-    LIBS += -ldl
+    LIBS += -ldl -lpthread
     QMAKE_CXXFLAGS += -std=c++17 -D_GLIBCXX_USE_CXX11_ABI=1
     LIBS += -L/usr/local/lib -lZipper-static -lz
     INCLUDEPATH += /usr/local/include
