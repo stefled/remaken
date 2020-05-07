@@ -1,11 +1,12 @@
 TARGET = remaken
-VERSION=1.6.1
+VERSION=1.6.2
 
 CONFIG += c++1z
 CONFIG += console
 CONFIG -= qt
 
 DEFINES += MYVERSION=$${VERSION}
+DEFINES += MYVERSIONSTRING=\\\"$${VERSION}\\\"
 
 CONFIG(debug,debug|release) {
     DEFINES += _DEBUG=1
@@ -98,7 +99,7 @@ unix {
 }
 
 linux {
-    LIBS += -ldl
+    LIBS += -ldl -lpthread
     QMAKE_CXXFLAGS += -std=c++17 -D_GLIBCXX_USE_CXX11_ABI=1
     LIBS += -L/usr/local/lib -lZipper-static -lz
     INCLUDEPATH += /usr/local/include
@@ -123,7 +124,7 @@ win32 {
     }
     LIBS += -lshell32 -lgdi32 -lComdlg32
     # openssl libs dependencies
-    LIBS += -luser32 -ladvapi32
+    LIBS += -luser32 -ladvapi32 -lCrypt32
 }
 
 INCLUDEPATH += libs/nlohmann-json/single_include libs/CLI11/include

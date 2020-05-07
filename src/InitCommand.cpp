@@ -42,7 +42,7 @@ int InitCommand::execute()
 
     auto linkStatus = boost::filesystem::symlink_status(qmakeRootPath);
     if (!fs::exists(remakenProfilesPath)) {
-        fs::create_directory(remakenProfilesPath);
+        fs::create_directories(remakenProfilesPath);
     }
     if (linkStatus.type() != fs::file_not_found || fs::exists(qmakeRootPath)) {
         BOOST_LOG_TRIVIAL(info)<<"qmake rules already installed ! skipping...";
