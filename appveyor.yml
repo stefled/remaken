@@ -1,11 +1,12 @@
-version: 1.5.{build}
+version: 1.6.{build}
 branches:
   only:
-  - develop
-skip_tags: true
+    - develop
+    - master
+    
 image:
-- Ubuntu1804
-- macOS-Mojave
+  - Ubuntu1804
+  - macOS-Mojave
 environment:
   QMAKE_ASSET_URL: https://github.com/b-com-software-basis/builddefs-qmake/releases/download/
 
