@@ -19,10 +19,10 @@ int unzipTool::uncompressArtefact(const fs::path & compressedDependency, const f
     fs::detail::utf8_codecvt_facet utf8;
     int result = -1;
     if (m_quiet) {
-        result = bp::system(m_zipToolPath,  "-q", compressedDependency.generic_string(utf8).c_str(), "-d", destinationRootFolder.generic_string(utf8).c_str());
+        result = bp::system(m_zipToolPath,  "-q", "-u", compressedDependency.generic_string(utf8).c_str(), "-d", destinationRootFolder.generic_string(utf8).c_str());
     }
     else  {
-        result = bp::system(m_zipToolPath, compressedDependency.generic_string(utf8).c_str(), "-d", destinationRootFolder.generic_string(utf8).c_str());
+        result = bp::system(m_zipToolPath, "-u", compressedDependency.generic_string(utf8).c_str(), "-d", destinationRootFolder.generic_string(utf8).c_str());
     }
     return result;
 }
