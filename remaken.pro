@@ -1,11 +1,12 @@
 TARGET = remaken
-VERSION=1.5.2
+VERSION=1.6.3
 
 CONFIG += c++1z
 CONFIG += console
 CONFIG -= qt
 
 DEFINES += MYVERSION=$${VERSION}
+DEFINES += MYVERSIONSTRING=\\\"$${VERSION}\\\"
 
 CONFIG(debug,debug|release) {
     DEFINES += _DEBUG=1
@@ -25,7 +26,7 @@ include(_BundleConfig.pri)
 win32:CONFIG -= static
 win32:CONFIG += shared
 QMAKE_TARGET.arch = x86_64 #must be defined prior to include
-DEPENDENCIESCONFIG = staticlib
+DEPENDENCIESCONFIG = staticlib conanindex
 CONFIG += app_setup
 #NOTE : CONFIG as staticlib or sharedlib,  DEPENDENCIESCONFIG as staticlib or sharedlib, QMAKE_TARGET.arch and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibconfig.pri inclusion
 include (builddefs/qmake/templateappconfig.pri)
@@ -39,6 +40,7 @@ HEADERS += \
     src/Constants.h \
     src/Cache.h \
     src/AbstractCommand.h \
+    src/InitCommand.h \
     src/InstallCommand.h \
     src/PackageCommand.h \
     src/PathBuilder.h \
@@ -66,6 +68,7 @@ SOURCES += \
     src/BundleXpcfCommand.cpp \
     src/CleanCommand.cpp \
     src/PackageCommand.cpp \
+    src/InitCommand.cpp \
     src/PathBuilder.cpp \
     src/ZipTool.cpp \
     src/main.cpp \
@@ -98,7 +101,7 @@ unix {
 }
 
 linux {
-    LIBS += -ldl
+    LIBS += -ldl -lpthread
     QMAKE_CXXFLAGS += -std=c++17 -D_GLIBCXX_USE_CXX11_ABI=1
     LIBS += -L/usr/local/lib -lZipper-static -lz
     INCLUDEPATH += /usr/local/include
@@ -123,12 +126,13 @@ win32 {
     }
     LIBS += -lshell32 -lgdi32 -lComdlg32
     # openssl libs dependencies
-    LIBS += -luser32 -ladvapi32
+    LIBS += -luser32 -ladvapi32 -lCrypt32
 }
 
 INCLUDEPATH += libs/nlohmann-json/single_include libs/CLI11/include
 
 DISTFILES += \
+    packagedependencies.txt \
     samples/packagedependencies-github.txt \
     samples/packagedependencies-mixed.txt \
     resources/install_remaken_3rdparties.nsh \

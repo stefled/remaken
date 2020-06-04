@@ -98,7 +98,7 @@ CmdOptions::CmdOptions()
     m_os = computeOS();
     m_cliApp.add_option("--operating-system,-o", m_os, "Operating system: mac, win, unix, ios, android", true);
     m_architecture = "x86_64";
-    m_cliApp.add_option("--architecture,-a",m_architecture, "Architecture: x86_64, i386, arm, arm64",true);
+    m_cliApp.add_option("--architecture,-a",m_architecture, "Architecture: x86_64, i386, arm, arm64, armv6, armv7, armv7hf, armv8",true);
     m_verbose = false;
     m_cliApp.add_flag("--verbose,-v", m_verbose, "verbose mode");
     m_dependenciesFile = "packagedependencies.txt";
@@ -115,6 +115,10 @@ CmdOptions::CmdOptions()
     bundleXpcfCommand->add_option("file", m_dependenciesFile, "XPCF xml module declaration file")->required();
 
     CLI::App * cleanCommand = m_cliApp.add_subcommand("clean","WARNING : remove every remaken installed packages");
+
+    CLI::App * initCommand = m_cliApp.add_subcommand("init","initialize remaken root folder and retrieve qmake rules");
+
+    CLI::App * versionCommand = m_cliApp.add_subcommand("version","display remaken version");
 
     CLI::App * installCommand = m_cliApp.add_subcommand("install","install dependencies for a package from its packagedependencies file(s)");
     installCommand->add_option("--alternate-remote-type,-l", m_altRepoType, "alternate remote type: github, artifactory, nexus, path");
@@ -166,7 +170,7 @@ CmdOptions::CmdOptions()
 
 
 static const map<std::string,std::vector<std::string>> validationMap ={{"action",{"install","parse","version","bundle", "bundleXpcf"}},
-                                                                       {"--architecture",{"x86_64","i386","arm","arm64"}},
+                                                                       {"--architecture",{"x86_64","i386","arm","arm64","armv6","armv7","armv7hf","armv8"}},
                                                                        {"--config",{"release","debug"}},
                                                                        {"--mode",{"shared","static"}},
                                                                        {"--type",{"github","artifactory","nexus","path"}},
@@ -174,6 +178,16 @@ static const map<std::string,std::vector<std::string>> validationMap ={{"action"
                                                                        {"--operating-system",{"mac","win","unix","android","ios","linux"}},
                                                                        {"--cpp-std",{"11","14","17","20"}}
                                                                       };
+
+void CmdOptions::initBuildConfig()
+{
+    m_buildConfig = getOS();
+    m_buildConfig += "-" + getBuildToolchain();
+    m_buildConfig += "|" + getArchitecture();
+    m_buildConfig += "|" + getCppVersion();
+    m_buildConfig += "|" + getMode();
+    m_buildConfig += "|" + getConfig();
+}
 
 void CmdOptions::validateOptions()
 {
@@ -229,6 +243,7 @@ CmdOptions::OptionResult CmdOptions::parseArguments(int argc, char** argv)
         cout << "Error : apiKey argument must be specified for artifactory repositories !"<<endl;
         return OptionResult::RESULT_ERROR;
     }
+    initBuildConfig();
     return OptionResult::RESULT_SUCCESS;
 }
 

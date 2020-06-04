@@ -20,26 +20,21 @@
  * @date 2019-11-15
  */
 
-#ifndef HTTPFILERETRIEVER_H
-#define HTTPFILERETRIEVER_H
-#include <string>
-#include "Constants.h"
-#include "CmdOptions.h"
-#include "AbstractFileRetriever.h"
-#include <boost/beast/http.hpp>
+#ifndef INITCOMMAND_H
+#define INITCOMMAND_H
 
-class HttpFileRetriever : public AbstractFileRetriever
+#include "AbstractCommand.h"
+#include "CmdOptions.h"
+
+class InitCommand : public AbstractCommand
 {
 public:
-    HttpFileRetriever(const CmdOptions & options);
-    virtual ~HttpFileRetriever() override = default;
-    fs::path retrieveArtefact(const Dependency & dependency) override final;
-    fs::path retrieveArtefact(const std::string & url);
+    InitCommand(const CmdOptions & options);
+    int execute() override;
+    static constexpr const char * NAME="clean";
 
-protected:
-    virtual boost::beast::http::status downloadArtefact (const std::string & source,const fs::path & dest, std::string & newLocation);
-
-    static const int m_version = 11;
+private:
+    const CmdOptions & m_options;
 };
 
-#endif // HTTPFILERETRIEVER_H
+#endif // INITCOMMAND_H
