@@ -124,6 +124,8 @@ CmdOptions::CmdOptions()
     installCommand->add_option("--alternate-remote-type,-l", m_altRepoType, "alternate remote type: github, artifactory, nexus, path");
     installCommand->add_option("--alternate-remote-url,-u", m_altRepoUrl, "alternate remote url to use when the declared remote fails to provide a dependency");
     installCommand->add_option("--apiKey,-k", m_apiKey, "Artifactory api key");
+    m_override = false;
+    installCommand->add_flag("--override,-e", m_override, "override existing files while (re)-installing packages");
     installCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files", true);
 
     m_ignoreCache = false;

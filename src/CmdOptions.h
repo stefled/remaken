@@ -129,6 +129,9 @@ public:
         return m_cleanAll;
     }
 
+    bool override() const {
+        return m_override;
+    }
 
     const std::string & getBuildConfig() const {
         return m_buildConfig;
@@ -162,6 +165,7 @@ private:
     bool m_verbose;
     bool m_isXpcfBundle = false;
     bool m_cleanAll = true;
+    bool m_override = false;
     CLI::App m_cliApp{"remaken"};
 };
 
