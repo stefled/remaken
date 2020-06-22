@@ -31,7 +31,7 @@ namespace fs = boost::filesystem;
 class ZipTool
 {
 public:
-    ZipTool( const std::string & tool, bool quiet = true);
+    ZipTool( const std::string & tool,  bool quiet = true, bool override= false);
     virtual ~ZipTool() = default;
     virtual int uncompressArtefact(const fs::path & compressedDependency, const fs::path & destinationRootFolder) = 0;
     static std::shared_ptr<ZipTool> createZipTool(const CmdOptions & options);
@@ -39,6 +39,7 @@ public:
 protected:
     fs::path m_zipToolPath;
     bool m_quiet;
+    bool m_override;
 };
 
 #endif // ZIPTOOL_H
