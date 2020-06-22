@@ -43,6 +43,7 @@ HEADERS += \
     src/InitCommand.h \
     src/InstallCommand.h \
     src/PathBuilder.h \
+    src/ProfileCommand.h \
     src/VersionCommand.h \
     src/FileHandlerFactory.h \
     src/CredentialsFileRetriever.h \
@@ -68,6 +69,7 @@ SOURCES += \
     src/CleanCommand.cpp \
     src/InitCommand.cpp \
     src/PathBuilder.cpp \
+    src/ProfileCommand.cpp \
     src/ZipTool.cpp \
     src/main.cpp \
     src/Dependency.cpp \

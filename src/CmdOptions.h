@@ -138,6 +138,14 @@ public:
     }
 
 
+    const std::string & getProfileSubcommand() const {
+        return m_profileSubcommand;
+    }
+
+
+    void writeConfigurationFile() const;
+    void displayConfigurationSettings() const;
+
 private:
     void validateOptions();
     void initBuildConfig();
@@ -160,12 +168,14 @@ private:
     std::string m_altRepoType;
     std::string m_moduleSubfolder;
     std::string m_buildConfig;
+    std::string m_profileSubcommand;
     fs::path m_moduleSubfolderPath;
     bool m_ignoreCache;
     bool m_verbose;
     bool m_isXpcfBundle = false;
     bool m_cleanAll = true;
     bool m_override = false;
+    bool m_defaultProfileOptions = false;
     CLI::App m_cliApp{"remaken"};
 };
 

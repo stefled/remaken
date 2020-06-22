@@ -11,7 +11,7 @@ Cache::Cache(const CmdOptions & options)
 Cache::~Cache()
 {
     std::lock_guard<std::mutex> lock(m_mutex);
-    write(m_cachedUrls);
+    flush();
 }
 
 bool Cache::contains(string url)
@@ -31,6 +31,11 @@ void Cache::add(string url)
     if (find(m_cachedUrls.begin(),m_cachedUrls.end(),url) == m_cachedUrls.end()){
         m_cachedUrls.push_back(url);
     }
+}
+
+void Cache::flush()
+{
+    write(m_cachedUrls);
 }
 
 

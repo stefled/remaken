@@ -98,7 +98,7 @@ CmdOptions::CmdOptions()
     m_os = computeOS();
     m_cliApp.add_option("--operating-system,-o", m_os, "Operating system: mac, win, unix, ios, android", true);
     m_architecture = "x86_64";
-    m_cliApp.add_option("--architecture,-a",m_architecture, "Architecture: x86_64, i386, arm, arm64, armv6, armv7, armv7hf, armv8",true);
+    m_cliApp.add_option("--architecture,-a",m_architecture, "Architecture: x86_64, i386, arm, arm64, arm64-v8a, armeabi-v7a, armv6, armv7, armv7hf, armv8",true);
     m_verbose = false;
     m_cliApp.add_flag("--verbose,-v", m_verbose, "verbose mode");
     m_dependenciesFile = "packagedependencies.txt";
@@ -115,6 +115,13 @@ CmdOptions::CmdOptions()
     bundleXpcfCommand->add_option("file", m_dependenciesFile, "XPCF xml module declaration file")->required();
 
     CLI::App * cleanCommand = m_cliApp.add_subcommand("clean","WARNING : remove every remaken installed packages");
+
+    CLI::App * profileCommand = m_cliApp.add_subcommand("profile","manage remaken profiles configuration");
+    CLI::App * initProfileCommand = profileCommand->add_subcommand("init","create remaken default profile from current options");
+    CLI::App * displayProfileCommand = profileCommand->add_subcommand("display","display remaken current profile (display current options and profile options)");
+    m_defaultProfileOptions = false;
+    displayProfileCommand->add_flag("--with-default,-w", m_defaultProfileOptions, "display all profile options : default and provided");
+    initProfileCommand ->add_flag("--with-default,-w", m_defaultProfileOptions, "create remaken profile with all profile options : default and provided");
 
     CLI::App * initCommand = m_cliApp.add_subcommand("init","initialize remaken root folder and retrieve qmake rules");
 
@@ -143,7 +150,7 @@ CmdOptions::CmdOptions()
 
 
 static const map<std::string,std::vector<std::string>> validationMap ={{"action",{"install","parse","version","bundle", "bundleXpcf"}},
-                                                                       {"--architecture",{"x86_64","i386","arm","arm64","armv6","armv7","armv7hf","armv8"}},
+                                                                       {"--architecture",{"x86_64","i386","arm","arm64","arm64-v8a","armeabi-v7a","armv6","armv7","armv7hf","armv8"}},
                                                                        {"--config",{"release","debug"}},
                                                                        {"--mode",{"shared","static"}},
                                                                        {"--type",{"github","artifactory","nexus","path"}},
@@ -182,6 +189,14 @@ void CmdOptions::validateOptions()
     if (sub->get_name() == "bundleXpcf") {
         m_isXpcfBundle = true;
     }
+
+    if (sub->get_name() == "profile") {
+        if (sub->get_subcommands().size() == 0) {
+            string message("Command profile ");
+            message += " was used without subcommand" ;
+            throw std::runtime_error(message);
+        }
+     }
     fs::path zipToolPath = bp::search_path(m_zipTool); //or get it from somewhere else.
     if (zipToolPath.empty()) {
         throw std::runtime_error("Error : " + m_zipTool + " command not found on the system. Please install it first.");
@@ -194,6 +209,10 @@ CmdOptions::OptionResult CmdOptions::parseArguments(int argc, char** argv)
         fs::detail::utf8_codecvt_facet utf8;
         m_cliApp.parse(argc, argv);
         validateOptions();
+        auto sub = m_cliApp.get_subcommands().at(0);
+        if (sub->get_name() == "profile") {
+            m_profileSubcommand = sub->get_subcommands().at(0)->get_name();
+        }
         if (m_cliApp.get_subcommands().size() == 1) {
             m_action = m_cliApp.get_subcommands().at(0)->get_name();
         }
@@ -218,6 +237,24 @@ CmdOptions::OptionResult CmdOptions::parseArguments(int argc, char** argv)
     }
     initBuildConfig();
     return OptionResult::RESULT_SUCCESS;
+}
+
+void CmdOptions::writeConfigurationFile() const
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    fs::path remakenRootPath = PathBuilder::getHomePath() / Constants::REMAKEN_FOLDER;
+    fs::path remakenProfilesPath = remakenRootPath / Constants::REMAKEN_PROFILES_FOLDER;
+    fs::path remakenConfigPath = remakenRootPath/"config";
+    ofstream fos;
+    fos.open(remakenConfigPath.generic_string(utf8),ios::out|ios::trunc);
+    fos<<m_cliApp.config_to_str(m_defaultProfileOptions,true);
+    fos.close();
+}
+
+
+void CmdOptions::displayConfigurationSettings() const
+{
+    std::cout<<m_cliApp.config_to_str(m_defaultProfileOptions,true);
 }
 
 void CmdOptions::printUsage()

@@ -20,35 +20,21 @@
  * @date 2019-11-15
  */
 
-#ifndef CACHE_H
-#define CACHE_H
+#ifndef PROFILECOMMAND_H
+#define PROFILECOMMAND_H
 
-#include "Constants.h"
+#include "AbstractCommand.h"
 #include "CmdOptions.h"
-#include <list>
-#include <atomic>
-#include <mutex>
-#include <boost/filesystem.hpp>
 
-namespace fs = boost::filesystem;
-
-class Cache
+class ProfileCommand : public AbstractCommand
 {
 public:
-    Cache(const CmdOptions & options);
-    ~Cache();
-    bool contains(std::string url);
-    void add(std::string url);
-    void remove(std::string url);
-    void flush();
+    ProfileCommand(const CmdOptions & options);
+    int execute() override;
+    static constexpr const char * NAME="clean";
 
 private:
-    void write(std::list<std::string> data);
-    void load();
-    fs::path m_cacheFile;
-    std::list<std::string> m_cachedUrls;
-    std::atomic<bool> m_loaded = false;
-    std::mutex m_mutex;
+    const CmdOptions & m_options;
 };
 
-#endif // CACHE_H
+#endif // PROFILECOMMAND_H
