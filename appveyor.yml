@@ -103,7 +103,7 @@ deploy:
   artifact: remaken
   draft: false
   on:
-    branch: master
+    branch: develop
 
 - provider: GitHub
   release: ${APPVEYOR_BUILD_WORKER_IMAGE}/remaken-${APPVEYOR_REPO_TAG_NAME}
@@ -112,4 +112,6 @@ deploy:
   artifact: remaken
   draft: false
   on:
+    branch: master
+    tag: $(APPVEYOR_REPO_TAG_NAME)
     APPVEYOR_REPO_TAG: true
