@@ -51,7 +51,13 @@ int InitCommand::execute()
     if (!fs::exists(remakenRulesPath)) {
         fs::create_directories(remakenRulesPath);
     }
-    std::string source="https://github.com/b-com-software-basis/builddefs-qmake/releases/download/builddefs-qmake-latest/builddefs-qmake-latest.zip";
+    std::string source="https://github.com/b-com-software-basis/builddefs-qmake/releases/download/";
+    std::string release = m_options.getQmakeRulesTag();
+    if (release == "latest") {
+        release = "builddefs-qmake-latest";
+    }
+    source += release;
+    source += "/builddefs-qmake-package.zip";
     fs::path artefactFolder = installArtefact(m_options,source,remakenRulesPath);
 
     if (fs::exists(artefactFolder)) {

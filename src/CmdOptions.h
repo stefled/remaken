@@ -142,6 +142,9 @@ public:
         return m_profileSubcommand;
     }
 
+    const std::string & getQmakeRulesTag() const {
+        return m_qmakeRulesTag;
+    }
 
     void writeConfigurationFile() const;
     void displayConfigurationSettings() const;
@@ -169,6 +172,7 @@ private:
     std::string m_moduleSubfolder;
     std::string m_buildConfig;
     std::string m_profileSubcommand;
+    std::string m_qmakeRulesTag;
     fs::path m_moduleSubfolderPath;
     bool m_ignoreCache;
     bool m_verbose;
