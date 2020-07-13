@@ -111,8 +111,8 @@ deploy:
     secure: WUZuOKLtErzvGojYwISnWio7doATSkiTNVWQaO1iz9ozEJQDPMIQKbF4Hzn8SkLU
   artifact: remaken
   draft: false
+  force_update: true
   tag: $(APPVEYOR_REPO_TAG_NAME)
   on:
     branch: master
-
     APPVEYOR_REPO_TAG: true
