@@ -18,6 +18,7 @@ for:
     environment:
       QMAKE_SPEC: linux-g++
       CONAN_LIBSTDCPP: libstdc++11
+      BINARY_BUILD_FOLDER: .
     init:
     - sh: >-
         set -e
@@ -45,11 +46,11 @@ for:
     environment:
       QMAKE_SPEC: macx-clang
       CONAN_LIBSTDCPP: libc++
+      BINARY_BUILD_FOLDER: ./remaken.app/Contents/MacOS
     init:
     - sh: >-
         set -e
-
-       
+    
 clone_script:
 - sh: >-
     git clone --recurse-submodules -q --branch=$APPVEYOR_REPO_BRANCH https://github.com/$APPVEYOR_REPO_NAME.git $APPVEYOR_BUILD_FOLDER
@@ -91,7 +92,7 @@ build_script:
     cd $HOME/projects/build-zipper && cmake $HOME/projects/zipper/. && make && sudo make install && cd -
 
 
-    cd $APPVEYOR_BUILD_FOLDER/build-remaken-release && $QMAKE_ROOT/qmake $APPVEYOR_BUILD_FOLDER/remaken.pro -spec $QMAKE_SPEC CONFIG+=x86_64 && /usr/bin/make qmake_all  && make -j8 && cp remaken remaken-${APPVEYOR_BUILD_WORKER_IMAGE} && cd -
+    cd $APPVEYOR_BUILD_FOLDER/build-remaken-release && $QMAKE_ROOT/qmake $APPVEYOR_BUILD_FOLDER/remaken.pro -spec $QMAKE_SPEC CONFIG+=x86_64 && /usr/bin/make qmake_all  && make -j8 && cp ${BINARY_BUILD_FOLDER}/remaken remaken-${APPVEYOR_BUILD_WORKER_IMAGE} && cd -
 artifacts:
 - path: build-remaken-release/remaken-${APPVEYOR_BUILD_WORKER_IMAGE}
   name: remaken
