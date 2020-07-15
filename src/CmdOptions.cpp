@@ -124,6 +124,8 @@ CmdOptions::CmdOptions()
     initProfileCommand ->add_flag("--with-default,-w", m_defaultProfileOptions, "create remaken profile with all profile options : default and provided");
 
     CLI::App * initCommand = m_cliApp.add_subcommand("init","initialize remaken root folder and retrieve qmake rules");
+    m_qmakeRulesTag = Constants::QMAKE_RULES_DEFAULT_TAG;
+    initCommand->add_option("--tag", m_qmakeRulesTag, "the qmake rules tag version to install - either provide a tag or the keyword 'latest' to install latest qmake rules",true);
 
     CLI::App * versionCommand = m_cliApp.add_subcommand("version","display remaken version");
 
