@@ -91,13 +91,13 @@ build_script:
     cd $HOME/projects/build-zipper && cmake $HOME/projects/zipper/. && make && sudo make install && cd -
 
 
-    cd $APPVEYOR_BUILD_FOLDER/build-remaken-release && $QMAKE_ROOT/qmake $APPVEYOR_BUILD_FOLDER/remaken.pro -spec $QMAKE_SPEC CONFIG+=x86_64 && /usr/bin/make qmake_all  && make -j8 && cd -
+    cd $APPVEYOR_BUILD_FOLDER/build-remaken-release && $QMAKE_ROOT/qmake $APPVEYOR_BUILD_FOLDER/remaken.pro -spec $QMAKE_SPEC CONFIG+=x86_64 && /usr/bin/make qmake_all  && make -j8 && cp remaken remaken-${APPVEYOR_BUILD_WORKER_IMAGE} && cd -
 artifacts:
-- path: build-remaken-release/remaken
+- path: build-remaken-release/remaken-${APPVEYOR_BUILD_WORKER_IMAGE}
   name: remaken
 deploy:
 - provider: GitHub
-  release: ${APPVEYOR_BUILD_WORKER_IMAGE}/remaken-latest
+  release: remaken-latest
   auth_token:
     secure: WUZuOKLtErzvGojYwISnWio7doATSkiTNVWQaO1iz9ozEJQDPMIQKbF4Hzn8SkLU
   artifact: remaken
@@ -106,7 +106,7 @@ deploy:
     branch: develop
 
 - provider: GitHub
-  release: ${APPVEYOR_BUILD_WORKER_IMAGE}/remaken-${APPVEYOR_REPO_TAG_NAME}
+  release: remaken-${APPVEYOR_REPO_TAG_NAME}
   auth_token:
     secure: WUZuOKLtErzvGojYwISnWio7doATSkiTNVWQaO1iz9ozEJQDPMIQKbF4Hzn8SkLU
   artifact: remaken
