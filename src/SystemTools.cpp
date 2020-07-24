@@ -301,13 +301,8 @@ void ConanSystemTool::bundle(const Dependency & dependency)
         }
     }
     if (dependency.getMode() == "na") {
-        if (dependency.getBaseRepository().empty()) {
-            result = bp::system(m_systemInstallerPath, "install", bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if", destination, bp::args(optionsArgs), "-g", "json", source.c_str());
-        }
-        else {
-            result = bp::system(m_systemInstallerPath, "install", bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if", destination, bp::args(optionsArgs), "-g", "json", "-r", dependency.getBaseRepository().c_str(), source.c_str());
-        }
-    }
+        result = bp::system(m_systemInstallerPath, "install", bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if", destination, bp::args(optionsArgs), "-g", "json", source.c_str());
+}
     else {
         std::string buildMode = dependency.getName() + ":";
         if (dependency.getMode() == "static") {
@@ -316,12 +311,7 @@ void ConanSystemTool::bundle(const Dependency & dependency)
         else {
             buildMode += "shared=True";
         }
-        if (dependency.getBaseRepository().empty()) {
-            result = bp::system(m_systemInstallerPath, "install", "-o", buildMode.c_str(), bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if", destination, bp::args(optionsArgs), "-g", "json", source.c_str());
-        }
-        else {
-            result = bp::system(m_systemInstallerPath, "install", "-o", buildMode.c_str(), bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if", destination, bp::args(optionsArgs), "-g", "json", "-r", dependency.getBaseRepository().c_str(), source.c_str());
-        }
+        result = bp::system(m_systemInstallerPath, "install", "-o", buildMode.c_str(), bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if", destination, bp::args(optionsArgs), "-g", "json", source.c_str());
     }
     if (result != 0) {
         throw std::runtime_error("Error bundling conan dependency : " + source);
@@ -370,25 +360,14 @@ void ConanSystemTool::install(const Dependency & dependency)
     cppStd += m_options.getCppVersion();
     int result = -1;
     if (dependency.getMode() == "na") {
-        if (dependency.getBaseRepository().empty()) {
-            result = bp::system(m_systemInstallerPath, "install", bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), bp::args(optionsArgs),"--build=missing", source.c_str());
-        }
-        else {
-            result = bp::system(m_systemInstallerPath, "install", bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), bp::args(optionsArgs),"--build=missing", "-r", dependency.getBaseRepository().c_str(), source.c_str());
-        }
+        result = bp::system(m_systemInstallerPath, "install", bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), bp::args(optionsArgs),"--build=missing", source.c_str());
     }
     else {
         std::string buildMode = "shared=True";
         if (dependency.getMode() == "static") {
             buildMode = "shared=False";
         }
-
-        if (dependency.getBaseRepository().empty()) {
-            result = bp::system(m_systemInstallerPath, "install", "-o", buildMode.c_str(), bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), bp::args(optionsArgs),"--build=missing", source.c_str());
-        }
-        else {
-            result = bp::system(m_systemInstallerPath, "install", "-o", buildMode.c_str(), bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), bp::args(optionsArgs),"--build=missing", "-r", dependency.getBaseRepository().c_str(), source.c_str());
-        }
+        result = bp::system(m_systemInstallerPath, "install", "-o", buildMode.c_str(), bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), bp::args(optionsArgs),"--build=missing", source.c_str());
     }
     if (result != 0) {
         throw std::runtime_error("Error installing conan dependency : " + source);
