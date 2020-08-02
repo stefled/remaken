@@ -96,12 +96,14 @@ build_script:
 artifacts:
 - path: build-remaken-release/remaken-${APPVEYOR_BUILD_WORKER_IMAGE}
   name: remaken
+- path: $APPVEYOR_BUILD_FOLDER/scripts/remaken_packager.sh
+  name: remaken_packager
 deploy:
 - provider: GitHub
   release: remaken-latest
   auth_token:
     secure: WUZuOKLtErzvGojYwISnWio7doATSkiTNVWQaO1iz9ozEJQDPMIQKbF4Hzn8SkLU
-  artifact: remaken
+  artifact: remaken, remaken_packager
   draft: false
   on:
     branch: develop
@@ -110,7 +112,7 @@ deploy:
   release: remaken-${APPVEYOR_REPO_TAG_NAME}
   auth_token:
     secure: WUZuOKLtErzvGojYwISnWio7doATSkiTNVWQaO1iz9ozEJQDPMIQKbF4Hzn8SkLU
-  artifact: remaken
+  artifact: remaken, remaken_packager
   draft: false
   force_update: true
   tag: $(APPVEYOR_REPO_TAG_NAME)
