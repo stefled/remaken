@@ -96,7 +96,7 @@ build_script:
 artifacts:
 - path: build-remaken-release/remaken-${APPVEYOR_BUILD_WORKER_IMAGE}
   name: remaken
-- path: $APPVEYOR_BUILD_FOLDER/scripts/remaken_packager.sh
+- path: scripts/remaken_packager.sh
   name: remaken_packager
 deploy:
 - provider: GitHub
