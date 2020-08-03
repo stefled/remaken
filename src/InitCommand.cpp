@@ -58,6 +58,7 @@ int InitCommand::execute()
     }
     source += release;
     source += "/builddefs-qmake-package.zip";
+    BOOST_LOG_TRIVIAL(info)<<"Installing qmake rules version "<<release;
     fs::path artefactFolder = installArtefact(m_options,source,remakenRulesPath);
 
     if (fs::exists(artefactFolder)) {
