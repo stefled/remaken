@@ -104,6 +104,14 @@ fs::path HttpFileRetriever::retrieveArtefact(const std::string & source)
     fs::path output = this->m_workingDirectory / boost::uuids::to_string(uuid);
     std::string newUrl;
     http::status status = downloadArtefact(source,output,newUrl);
+    if (status == http::status::not_found) {
+        std::string updatedSource = m_options.getOS()+ "-" + m_options.getBuildToolchain() + "_" + source;
+         status = downloadArtefact(source,output,newUrl);
+         if (status == http::status::not_found) {
+             updatedSource = m_options.getOS()+ "_" + source;
+             status = downloadArtefact(source,output,newUrl);
+         }
+    }
     while (convertStatus(status) == HttpStatus::MOVED) {
         std::string newSource = newUrl;
         status = downloadArtefact(newSource,output,newUrl);

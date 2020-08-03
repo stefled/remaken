@@ -26,7 +26,7 @@ include(_BundleConfig.pri)
 win32:CONFIG -= static
 win32:CONFIG += shared
 QMAKE_TARGET.arch = x86_64 #must be defined prior to include
-DEPENDENCIESCONFIG = staticlib conanindex
+DEPENDENCIESCONFIG = staticlib
 CONFIG += app_setup
 #NOTE : CONFIG as staticlib or sharedlib,  DEPENDENCIESCONFIG as staticlib or sharedlib, QMAKE_TARGET.arch and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibconfig.pri inclusion
 include (builddefs/qmake/templateappconfig.pri)
@@ -44,6 +44,7 @@ HEADERS += \
     src/InstallCommand.h \
     src/PackageCommand.h \
     src/PathBuilder.h \
+    src/ProfileCommand.h \
     src/VersionCommand.h \
     src/FileHandlerFactory.h \
     src/CredentialsFileRetriever.h \
@@ -70,6 +71,7 @@ SOURCES += \
     src/PackageCommand.cpp \
     src/InitCommand.cpp \
     src/PathBuilder.cpp \
+    src/ProfileCommand.cpp \
     src/ZipTool.cpp \
     src/main.cpp \
     src/Dependency.cpp \

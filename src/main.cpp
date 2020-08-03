@@ -9,6 +9,7 @@
 #include "CleanCommand.h"
 #include "BundleXpcfCommand.h"
 #include "VersionCommand.h"
+#include "ProfileCommand.h"
 #include <memory>
 
 using namespace std;
@@ -29,6 +30,7 @@ int main(int argc, char** argv)
         dispatcher["package"] = make_shared<PackageCommand>(opts);
         dispatcher["bundle"] = make_shared<BundleCommand>(opts);
         dispatcher["bundleXpcf"] = make_shared<BundleXpcfCommand>(opts);
+        dispatcher["profile"] = make_shared<ProfileCommand>(opts);
         dispatcher["version"] = make_shared<VersionCommand>();
         if (mapContains(dispatcher,opts.getAction())) {
             dispatcher.at(opts.getAction())->execute();
