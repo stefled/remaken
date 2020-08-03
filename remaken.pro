@@ -1,5 +1,5 @@
 TARGET = remaken
-VERSION=1.6.4
+VERSION=1.7.0
 
 CONFIG += c++1z
 CONFIG += console
@@ -26,7 +26,7 @@ include(_BundleConfig.pri)
 win32:CONFIG -= static
 win32:CONFIG += shared
 QMAKE_TARGET.arch = x86_64 #must be defined prior to include
-DEPENDENCIESCONFIG = staticlib conanindex
+DEPENDENCIESCONFIG = staticlib
 CONFIG += app_setup
 #NOTE : CONFIG as staticlib or sharedlib,  DEPENDENCIESCONFIG as staticlib or sharedlib, QMAKE_TARGET.arch and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibconfig.pri inclusion
 include (builddefs/qmake/templateappconfig.pri)
