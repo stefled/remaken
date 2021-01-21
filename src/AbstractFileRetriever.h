@@ -35,6 +35,7 @@ public:
     virtual fs::path installArtefact(const Dependency & dependency) override;
     virtual fs::path bundleArtefact(const Dependency & dependency) override;
     virtual std::string computeSourcePath( const Dependency &  dependency) override;
+    virtual fs::path computeRootBinDir( const Dependency & dependency) override;
     virtual fs::path computeRootLibDir( const Dependency & dependency) override;
     virtual fs::path computeLocalDependencyRootDir( const Dependency &  dependency) override;
     virtual fs::path computeRemakenRootDir( const Dependency &  dependency) override;

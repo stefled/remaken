@@ -396,8 +396,20 @@ std::vector<Dependency> DependencyManager::parse(const fs::path &  dependenciesP
 }
 
 bool DependencyManager::installDep(Dependency &  dependency, const std::string & source,
-                                   const fs::path & outputDirectory, const fs::path & libDirectory)
+                                   const fs::path & outputDirectory, const fs::path & libDirectory, const fs::path & binDirectory)
 {
+    // backward compatibility values
+    bool withBinDir = false;
+    bool withLibDir = true;
+    bool withHeaders = true;
+
+    if (fs::exists(outputDirectory/Constants::PKGINFO_FOLDER)) {
+        // use existing package informations
+        withBinDir = fs::exists(outputDirectory/Constants::PKGINFO_FOLDER/".bin");
+        withLibDir = fs::exists(outputDirectory/Constants::PKGINFO_FOLDER/".lib");
+        withHeaders = fs::exists(outputDirectory/Constants::PKGINFO_FOLDER/".headers");
+    }
+
     if (dependency.getType() != Dependency::Type::REMAKEN) {
         if (m_options.useCache()) {
             if (!m_cache.contains(source)) {
@@ -409,13 +421,13 @@ bool DependencyManager::installDep(Dependency &  dependency, const std::string &
     }
 
     if (m_options.useCache()) {
-        if (dependency.getMode() == "na") {
+        if (dependency.getMode() == "na" || (withHeaders && !withBinDir && !withLibDir)) {
             if (!fs::exists(outputDirectory)) {
                 return true;
             }
             return false;
         }
-        if (!fs::exists(libDirectory)) {
+        if (withLibDir && !fs::exists(libDirectory) || withBinDir && !fs::exists(binDirectory)) {
             return true;
         }
         else {
@@ -428,7 +440,7 @@ bool DependencyManager::installDep(Dependency &  dependency, const std::string &
     }
 
     if (dependency.getMode() != "na") {
-        if (!fs::exists(libDirectory)) {
+        if (withLibDir && !fs::exists(libDirectory) || withBinDir && !fs::exists(binDirectory)) {
             return true;
         }
         return false;
@@ -447,7 +459,8 @@ void DependencyManager::retrieveDependency(Dependency &  dependency)
     std::string source = fileRetriever->computeSourcePath(dependency);
     fs::path outputDirectory = fileRetriever->computeLocalDependencyRootDir(dependency);
     fs::path libDirectory = fileRetriever->computeRootLibDir(dependency);
-    if (installDep(dependency, source, outputDirectory, libDirectory)) {
+    fs::path binDirectory = fileRetriever->computeRootBinDir(dependency);
+    if (installDep(dependency, source, outputDirectory, libDirectory, binDirectory) || m_options.force()) {
         try {
             std::cout<<"=> Installing "<<dependency.getRepositoryType()<<"::"<<source<<std::endl;
             try {
@@ -455,9 +468,21 @@ void DependencyManager::retrieveDependency(Dependency &  dependency)
             }
             catch (std::runtime_error & e) { // try alternate repository
                 shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(m_options,true);
-                dependency.changeBaseRepository(m_options.getAlternateRepoUrl());
-                source = fileRetriever->computeSourcePath(dependency);
-                outputDirectory = fileRetriever->installArtefact(dependency);
+                if (!fileRetriever) { // no alternate repository found
+                   BOOST_LOG_TRIVIAL(error)<<"Unable to find '"<<dependency.getPackageName()<<":"<<dependency.getVersion()<<"' on "<<dependency.getRepositoryType()<<"('"<<dependency.getBaseRepository()<<"')";
+                   throw std::runtime_error(e.what());
+                }
+                else {
+                    dependency.changeBaseRepository(m_options.getAlternateRepoUrl());
+                    source = fileRetriever->computeSourcePath(dependency);
+                    try {
+                        outputDirectory = fileRetriever->installArtefact(dependency);
+                    }
+                    catch (std::runtime_error & e) {
+                        BOOST_LOG_TRIVIAL(error)<<"Unable to find '"<<dependency.getPackageName()<<":"<<dependency.getVersion()<<"' on "<<dependency.getRepositoryType()<<"('"<<dependency.getBaseRepository()<<"')";
+                        throw std::runtime_error(e.what());
+                    }
+               }
             }
             std::cout<<"===> "<<dependency.getName()<<" installed in "<<outputDirectory<<std::endl;
             if (m_options.useCache()) {

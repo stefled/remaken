@@ -114,7 +114,7 @@ macx {
     QMAKE_CXXFLAGS += -fasm-blocks -x objective-c++ -std=c++17
     #LIBS += -L/usr/lib -lz -lssl -lcrypto -L/usr/local/lib -lZipper-static
     #Zipper dependency : https://github.com/sebastiandev/zipper
-    LIBS += -L/usr/local/lib  -lz -lZipper-static -lboost_system
+    LIBS += -L/usr/local/lib  -lboost_system
     INCLUDEPATH += /usr/local/include
 }
 

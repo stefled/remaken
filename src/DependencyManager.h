@@ -57,7 +57,7 @@ private:
     void retrieveDependency(Dependency &  dependency);
     std::vector<fs::path> getChildrenDependencies(const fs::path & outputDirectory);
     bool installDep(Dependency &  dependency, const std::string & source,
-                    const fs::path & outputDirectory, const fs::path & libDirectory);
+                    const fs::path & outputDirectory, const fs::path & libDirectory, const fs::path & binDirectory);
     std::map<std::string, fs::path> m_modulesPathMap;
     std::map<std::string, std::string> m_modulesUUiDMap;
     const CmdOptions & m_options;

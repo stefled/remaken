@@ -36,6 +36,7 @@ public:
     virtual fs::path bundleArtefact(const Dependency & dependency) = 0;
     virtual fs::path retrieveArtefact(const Dependency & dependency) = 0;
     virtual std::string computeSourcePath( const Dependency &  dependency) = 0;
+    virtual fs::path computeRootBinDir( const Dependency & dependency) = 0;
     virtual fs::path computeRootLibDir( const Dependency & dependency) = 0;
     virtual fs::path computeLocalDependencyRootDir( const Dependency & dependency) = 0;
     virtual fs::path computeRemakenRootDir( const Dependency & dependency) = 0;

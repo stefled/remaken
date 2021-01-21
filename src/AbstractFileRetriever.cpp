@@ -74,6 +74,14 @@ fs::path AbstractFileRetriever::computeRootLibDir( const Dependency & dependency
     return libPath;
 }
 
+fs::path AbstractFileRetriever::computeRootBinDir( const Dependency & dependency)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    fs::path binPath = computeLocalDependencyRootDir(dependency);
+    binPath = binPath / "bin" / m_options.getArchitecture() / dependency.getMode() / m_options.getConfig();
+    return binPath;
+}
+
 fs::path AbstractFileRetriever::installArtefact(const Dependency & dependency)
 {
     fs::detail::utf8_codecvt_facet utf8;

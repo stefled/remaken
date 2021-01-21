@@ -133,6 +133,10 @@ public:
         return m_override;
     }
 
+    bool force() const {
+        return m_force;
+    }
+
     const std::string & getBuildConfig() const {
         return m_buildConfig;
     }
@@ -150,6 +154,7 @@ public:
     void displayConfigurationSettings() const;
 
 private:
+    std::string getOptionString(const std::string & optionName);
     void validateOptions();
     void initBuildConfig();
     std::string m_action;
@@ -179,6 +184,7 @@ private:
     bool m_verbose;
     bool m_isXpcfBundle = false;
     bool m_cleanAll = true;
+    bool m_force = false;
     bool m_override = false;
     bool m_defaultProfileOptions = false;
     CLI::App m_cliApp{"remaken"};
