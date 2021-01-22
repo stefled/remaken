@@ -34,6 +34,7 @@ public:
     ZipTool( const std::string & tool,  bool quiet = true, bool override= false);
     virtual ~ZipTool() = default;
     virtual int uncompressArtefact(const fs::path & compressedDependency, const fs::path & destinationRootFolder) = 0;
+    virtual int compressArtefact(const fs::path & folderToCompress) = 0;
     static std::shared_ptr<ZipTool> createZipTool(const CmdOptions & options);
      static std::string getZipToolIdentifier();
 protected:

@@ -7,6 +7,7 @@
 #include "ZipTool.h"
 #include <boost/process.hpp>
 #include <boost/predef.h>
+#include <boost/dll.hpp>
 #include "PathBuilder.h"
 namespace bp = boost::process;
 using namespace std;
@@ -173,18 +174,18 @@ CmdOptions::CmdOptions()
     installCommand->add_option("--ziptool,-z", m_zipTool, "unzipper tool name : unzip, compact ...", true);
 
     CLI::App * packageCommand = m_cliApp.add_subcommand("package","package a build result in remaken format");
-    packageCommand->add_option("--sourcedir,-s", m_packageOptions["sourcedir"], "product root directory (where libs and includes are located)", true)->required();
-    packageCommand->add_option("--includedir,-i", m_packageOptions["sourcedir"], " relative path to include folder to export (defaults to the sourcedir provided with -s)\n");
-    packageCommand->add_option("--libdir,-l", m_packageOptions["sourcedir"], " relative path to the library folder to export (defaults to the sourcedir provided with -s)\n");
-    packageCommand->add_option("--redistfile,-f", m_packageOptions["sourcedir"], " relative path and filename of a redistribution file to use (such as redist.txt intel ipp's file). Only listed libraries in this file will be packaged\n");
-    packageCommand->add_option("--destination,-d", m_destinationRoot, "Destination directory")->required();
-    packageCommand->add_option("--packagename,-p", m_packageOptions["sourcedir"], " package name\n");
-    packageCommand->add_option("--packageversion,-k", m_packageOptions["sourcedir"], " package version\n");
-    packageCommand->add_option("--ignore-mode,-n", m_packageOptions["sourcedir"], " forces the pkg-config generated file to ignore the mode when providing -L flags\n");
+    packageCommand->add_option("--sourcedir,-s", m_packageOptions["sourcedir"], "product root directory (where libs and includes are located)", true);//->required();
+    packageCommand->add_option("--includedir,-i", m_packageOptions["includedir"], " relative path to include folder to export (defaults to the sourcedir provided with -s)\n");
+    packageCommand->add_option("--libdir,-l", m_packageOptions["libdir"], " relative path to the library folder to export (defaults to the sourcedir provided with -s)\n");
+    packageCommand->add_option("--redistfile,-f", m_packageOptions["redistfile"], " relative path and filename of a redistribution file to use (such as redist.txt intel ipp's file). Only listed libraries in this file will be packaged\n");
+    packageCommand->add_option("--destination,-d", m_destinationRoot, "Destination directory");//->required();
+    packageCommand->add_option("--packagename,-p", m_packageOptions["packagename"], " package name\n");
+    packageCommand->add_option("--packageversion,-k", m_packageOptions["packageversion"], " package version\n");
+    packageCommand->add_option("--ignore-mode,-n", m_packageOptions["ignoreMode"], " forces the pkg-config generated file to ignore the mode when providing -L flags\n");
     m_mode = "shared";
     packageCommand->add_option("--mode,-m", m_mode, "Mode: " + getOptionString("--mode"), true);
-    packageCommand->add_option("--withsuffix,-w", m_packageOptions["sourcedir"], " specify the suffix used by the thirdparty when building with mode mode\n");
-    packageCommand->add_option("--useOriginalPCfiles,-u", m_packageOptions["sourcedir"], " specify to search and use original pkgconfig files from the thirdparty, instead of generating them\n");
+    packageCommand->add_option("--withsuffix,-w", m_packageOptions["withsuffix"], " specify the suffix used by the thirdparty when building with mode mode\n");
+    packageCommand->add_option("--useOriginalPCfiles,-u", m_packageOptions["useOriginalPCfiles"], " specify to search and use original pkgconfig files from the thirdparty, instead of generating them\n");
 
     /*print "    -s, --sourcedir                  => product root directory (where libs and includes are located)\n");
     print "    -o, --osname                     => specify the operating system targeted by the product build. It is one of [win|mac|linux]. (defaults to the current OS environment)\n";
@@ -200,6 +201,13 @@ CmdOptions::CmdOptions()
     print "    -w, --withsuffix suffix          => specify the suffix used by the thirdparty when building with mode mode\n";
     print "    -u, --useOriginalPCfiles         => specify to search and use original pkgconfig files from the thirdparty, instead of generating them\n";
    */
+    CLI::App * compressCommand = packageCommand->add_subcommand("compress","compress packages within a folder");
+    compressCommand->fallthrough(false);
+    fs::path currentPath(boost::dll::program_location().generic_string(utf8));
+    m_packageCompressOptions["rootdir"] = currentPath.c_str();
+    compressCommand->add_option("--rootdir,-s", m_packageCompressOptions["rootdir"], "folder path to root build toolchain folder or to parent package root folder (where the packages are located located)", true);
+    compressCommand->add_option("--packagename,-p", m_packageCompressOptions["packagename"], " package name\n");
+    compressCommand->add_option("--packageversion,-k", m_packageOptions["packageversion"], " package version\n");
 
     CLI::App * parseCommand = m_cliApp.add_subcommand("parse","check dependency file validity");
     parseCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files", true);
@@ -247,6 +255,9 @@ void CmdOptions::validateOptions()
     if (zipToolPath.empty()) {
         throw std::runtime_error("Error : " + m_zipTool + " command not found on the system. Please install it first.");
     }
+    if (m_os != computeOS()) { // cross compilation
+
+    }
 }
 
 CmdOptions::OptionResult CmdOptions::parseArguments(int argc, char** argv)
@@ -257,7 +268,17 @@ CmdOptions::OptionResult CmdOptions::parseArguments(int argc, char** argv)
         validateOptions();
         auto sub = m_cliApp.get_subcommands().at(0);
         if (sub->get_name() == "profile") {
-            m_profileSubcommand = sub->get_subcommands().at(0)->get_name();
+            m_subcommand = sub->get_subcommands().at(0)->get_name();
+        }
+        if (sub->get_name() == "package") {
+            m_subcommand = sub->get_subcommands().at(0)->get_name();
+            if (!m_subcommand.empty()) {
+                m_zipTool = "7z";
+                if (m_subcommand != "compress") {
+                    cout << "Error : package subcommand must be 'compress'. "<<m_subcommand<<" is an invalid subcommand !"<<endl;
+                    return OptionResult::RESULT_ERROR;
+                }
+            }
         }
         if (m_cliApp.get_subcommands().size() == 1) {
             m_action = m_cliApp.get_subcommands().at(0)->get_name();

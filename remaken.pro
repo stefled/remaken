@@ -110,11 +110,14 @@ linux {
 }
 
 macx {
+    DEFINES += _MACOS_TARGET_
     QMAKE_MAC_SDK= macosx
+    QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.15
     QMAKE_CXXFLAGS += -fasm-blocks -x objective-c++ -std=c++17
     #LIBS += -L/usr/lib -lz -lssl -lcrypto -L/usr/local/lib -lZipper-static
     #Zipper dependency : https://github.com/sebastiandev/zipper
-    LIBS += -L/usr/local/lib  -lboost_system
+    LIBS += -L/usr/local/lib -lboost_system -lstdc++
+    QMAKE_LFLAGS += -mmacosx-version-min=10.15 -v -lstdc++
     INCLUDEPATH += /usr/local/include
 }
 

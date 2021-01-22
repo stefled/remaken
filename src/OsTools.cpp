@@ -52,6 +52,15 @@ static const std::map<const std::string_view,const  std::string_view> os2sharedS
     {"linux",".so"}
 };
 
+static const std::map<const std::string_view,const  std::string_view> os2staticSuffix = {
+    {"mac",".a"},
+    {"win",".lib"},
+    {"unix",".a"},
+    {"android",".a"},
+    {"ios",".a"},
+    {"linux",".a"}
+};
+
 const std::string_view & OsTools::sharedSuffix(const std::string_view & osStr)
 {
     if (os2sharedSuffix.find(osStr) == os2sharedSuffix.end()) {
@@ -61,13 +70,18 @@ const std::string_view & OsTools::sharedSuffix(const std::string_view & osStr)
 }
 
 
-void OsTools::copySharedLibraries(const fs::path & sourceRootFolder, const CmdOptions & options)
+const std::string_view & OsTools::staticSuffix(const std::string_view & osStr)
+{
+    if (os2staticSuffix.find(osStr) == os2staticSuffix.end()) {
+        return os2staticSuffix.at("unix");
+    }
+    return os2staticSuffix.at(osStr);
+}
+
+
+void OsTools::copyLibraries(const fs::path & sourceRootFolder, const fs::path & destinationFolderPath, const std::string_view & suffix)
 {
     fs::detail::utf8_codecvt_facet utf8;
-    fs::path destinationFolderPath = options.getDestinationRoot();
-    if (options.isXpcfBundle()) {
-        destinationFolderPath /= options.getModulesSubfolder();
-    }
     for (fs::directory_entry& x : fs::directory_iterator(sourceRootFolder)) {
         fs::path filepath = x.path();
         auto linkStatus = fs::symlink_status(x.path());
@@ -80,13 +94,35 @@ void OsTools::copySharedLibraries(const fs::path & sourceRootFolder, const CmdOp
         else if (is_regular_file(filepath)) {
             fs::path currentPath = filepath;
             fs::path fileSuffix;
-            while (currentPath.has_extension() && fileSuffix.string(utf8) != sharedSuffix(options.getOS())) {
+            while (currentPath.has_extension() && fileSuffix.string(utf8) != suffix) {
                 fileSuffix = currentPath.extension();
                 currentPath = currentPath.stem();
             }
-            if (fileSuffix.string(utf8) == sharedSuffix(options.getOS())) {
+            if (fileSuffix.string(utf8) == suffix) {
                 fs::copy_file(filepath , destinationFolderPath/filepath.filename(), fs::copy_option::overwrite_if_exists);
             }
         }
     }
+}
+
+
+void OsTools::copyLibraries(const fs::path & sourceRootFolder, const CmdOptions & options, std::function<const std::string_view &(const std::string_view &)> suffixFunction)
+{
+    fs::path destinationFolderPath = options.getDestinationRoot();
+    if (options.isXpcfBundle()) {
+        destinationFolderPath /= options.getModulesSubfolder();
+    }
+    copyLibraries(sourceRootFolder, destinationFolderPath, suffixFunction(options.getOS()));
+}
+
+
+void OsTools::copySharedLibraries(const fs::path & sourceRootFolder, const CmdOptions & options)
+{
+    copyLibraries(sourceRootFolder, options, &sharedSuffix);
+}
+
+
+void OsTools::copyStaticLibraries(const fs::path & sourceRootFolder, const CmdOptions & options)
+{
+    copyLibraries(sourceRootFolder, options, &staticSuffix);
 }

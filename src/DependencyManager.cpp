@@ -3,6 +3,7 @@
 #include "FileHandlerFactory.h"
 #include <list>
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
+#include <boost/dll.hpp>
 //#include <zipper/unzipper.h>
 #include <future>
 #include "SystemTools.h"
@@ -44,7 +45,7 @@ DependencyManager::DependencyManager(const CmdOptions & options):m_options(optio
 fs::path DependencyManager::buildDependencyPath()
 {
     fs::detail::utf8_codecvt_facet utf8;
-    fs::path currentPath(fs::current_path().generic_string(utf8));
+    fs::path currentPath(boost::dll::program_location().generic_string(utf8));
 
     fs::path dependenciesFile (m_options.getDependenciesFile(),utf8);
 

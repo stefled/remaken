@@ -12,6 +12,7 @@ public:
     unzipTool(bool quiet,bool override):ZipTool("unzip", quiet, override) {}
     ~unzipTool() override = default;
     int uncompressArtefact(const fs::path & compressedDependency, const fs::path & destinationRootFolder) override;
+    int compressArtefact(const fs::path & folderToCompress) override { return -1; };
 };
 
 int unzipTool::uncompressArtefact(const fs::path & compressedDependency, const fs::path & destinationRootFolder)
@@ -38,6 +39,7 @@ public:
     sevenZTool(bool quiet, bool override = true):ZipTool("7z", quiet, override) {}
     ~sevenZTool() override = default;
     int uncompressArtefact(const fs::path & compressedDependency, const fs::path & destinationRootFolder) override;
+    int compressArtefact(const fs::path & folderToCompress) override;
 };
 
 int sevenZTool::uncompressArtefact(const fs::path & compressedDependency, const fs::path & destinationRootFolder)
@@ -51,6 +53,19 @@ int sevenZTool::uncompressArtefact(const fs::path & compressedDependency, const 
     }
     else  {
         result = bp::system(m_zipToolPath,"x", compressedDependency.generic_string(utf8).c_str(), outputDirOption, "-y", "-bb3");
+    }
+    return result;
+}
+
+int sevenZTool::compressArtefact(const fs::path & folderToCompress)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    int result = -1;
+    if (m_quiet) {
+        result = bp::system(m_zipToolPath,"a", folderToCompress.generic_string(utf8).c_str(),  bp::std_out > bp::null);
+    }
+    else  {
+        result = bp::system(m_zipToolPath,"a", folderToCompress.generic_string(utf8).c_str(),  "-bb3");
     }
     return result;
 }

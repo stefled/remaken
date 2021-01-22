@@ -140,14 +140,17 @@ public:
     const std::string & getBuildConfig() const {
         return m_buildConfig;
     }
-
-
-    const std::string & getProfileSubcommand() const {
-        return m_profileSubcommand;
+    
+    const std::string & getSubcommand() const {
+        return m_subcommand;
     }
 
     const std::string & getQmakeRulesTag() const {
         return m_qmakeRulesTag;
+    }
+
+    const std::map<std::string,std::string> & getCompressCommandOptions() const {
+        return m_packageCompressOptions;
     }
 
     void writeConfigurationFile() const;
@@ -176,8 +179,9 @@ private:
     std::string m_altRepoType;
     std::string m_moduleSubfolder;
     std::map<std::string,std::string> m_packageOptions;
+    std::map<std::string,std::string> m_packageCompressOptions;
     std::string m_buildConfig;
-    std::string m_profileSubcommand;
+    std::string m_subcommand;
     std::string m_qmakeRulesTag;
     fs::path m_moduleSubfolderPath;
     bool m_ignoreCache;

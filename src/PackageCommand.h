@@ -34,6 +34,8 @@ public:
     static constexpr const char * NAME="package";
 
 private:
+    int compress();
+    void compressFolder(fs::path folderPath);
     const CmdOptions & m_options;
 };
 
