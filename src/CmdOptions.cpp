@@ -186,7 +186,7 @@ CmdOptions::CmdOptions()
     packageCommand->add_option("--mode,-m", m_mode, "Mode: " + getOptionString("--mode"), true);
     packageCommand->add_option("--withsuffix,-w", m_packageOptions["withsuffix"], " specify the suffix used by the thirdparty when building with mode mode\n");
     packageCommand->add_option("--useOriginalPCfiles,-u", m_packageOptions["useOriginalPCfiles"], " specify to search and use original pkgconfig files from the thirdparty, instead of generating them\n");
-
+    packageCommand->fallthrough(false);
     /*print "    -s, --sourcedir                  => product root directory (where libs and includes are located)\n");
     print "    -o, --osname                     => specify the operating system targeted by the product build. It is one of [win|mac|linux]. (defaults to the current OS environment)\n";
     print "    -i, --includedir                 => relative path to include folder to export (defaults to the sourcedir provided with -s)\n";

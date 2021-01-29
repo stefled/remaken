@@ -11,6 +11,11 @@ void PackageCommand::compressFolder(fs::path folderPath)
     auto zipTool = ZipTool::createZipTool(m_options);
 
 }
+// whatever package type i.e. lib, bin or headers
+// copy *.pc, pkgdeps*.txt
+// copy or create .pkginfo with adequate .lib, .bin or .headers
+// copy pkgname-version_remakeninfo.txt
+// copy every folder from post install package root folder
 
 int PackageCommand::compress()
 {

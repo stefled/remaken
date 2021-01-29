@@ -61,7 +61,7 @@ For each project, a packagedependencies.txt file can be created in the root proj
 
 Each line follows the pattern :
 
-framework#channel | version | [condition]#library name | identifier@repository\_type | repository\_url | link\_mode | options
+```framework#channel | version | [condition]#library name | identifier@repository\_type | repository\_url | link\_mode | options```
 
 where repository_type is a value in:
 
@@ -102,6 +102,11 @@ when identifier is not specified :
 - @repository_type is mandatory
 
 when channel is not specified, it defaults to stable for conan dependencies.
+
+Note:
+To comment a line (and thus ignore a dependency) start the line with ```//``` (spaces and tabs before the ```//``` are ignored).
+
+
 
 NOT IMPLEMENTED :
 For artifactory, nexus and github repositories, channel is a named scope describing a common combination of compile options from the remaken packaging manifests. The combination of values become a named scope. (TODO : manage named scopes)

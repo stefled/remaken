@@ -384,10 +384,21 @@ std::vector<Dependency> DependencyManager::parse(const fs::path &  dependenciesP
             string curStr;
             getline(fis,curStr);
             if (!curStr.empty()) {
-                Dependency dep(curStr, m_options.getMode());
-                if (isGenericSystemDependency(dep)||isSpecificSystemToolDependency(dep)||!isSystemDependency(dep)) {
-                    // only add "generic" system or tool@system or other deps
-                    libraries.insert(std::make_pair(dep.getName(), std::move(dep)));
+                std::string commentRegexStr = "^[ \t]*//";
+                std::regex commentRegex(commentRegexStr, std::regex_constants::extended);
+                std::smatch sm;
+                // parsing finds first leaf template instanciation, replace leaf templates with groups identifiers then search for "new"(up level) leaf templates
+                // until there is no more leaf
+                if (!std::regex_search(curStr, sm, commentRegex, std::regex_constants::match_flag_type::match_any)) {
+                    // Dependency line is not commented: parsing the dependency
+                    Dependency dep(curStr, m_options.getMode());
+                    if (isGenericSystemDependency(dep)||isSpecificSystemToolDependency(dep)||!isSystemDependency(dep)) {
+                        // only add "generic" system or tool@system or other deps
+                        libraries.insert(std::make_pair(dep.getName(), std::move(dep)));
+                    }
+                }
+                else {
+                    BOOST_LOG_TRIVIAL(info)<<"[IGNORED]: Dependency line '"<<curStr<<"' is commented !";
                 }
             }
         }
@@ -470,8 +481,8 @@ void DependencyManager::retrieveDependency(Dependency &  dependency)
             catch (std::runtime_error & e) { // try alternate repository
                 shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(m_options,true);
                 if (!fileRetriever) { // no alternate repository found
-                   BOOST_LOG_TRIVIAL(error)<<"Unable to find '"<<dependency.getPackageName()<<":"<<dependency.getVersion()<<"' on "<<dependency.getRepositoryType()<<"('"<<dependency.getBaseRepository()<<"')";
-                   throw std::runtime_error(e.what());
+                    BOOST_LOG_TRIVIAL(error)<<"Unable to find '"<<dependency.getPackageName()<<":"<<dependency.getVersion()<<"' on "<<dependency.getRepositoryType()<<"('"<<dependency.getBaseRepository()<<"')";
+                    throw std::runtime_error(e.what());
                 }
                 else {
                     dependency.changeBaseRepository(m_options.getAlternateRepoUrl());
@@ -483,7 +494,7 @@ void DependencyManager::retrieveDependency(Dependency &  dependency)
                         BOOST_LOG_TRIVIAL(error)<<"Unable to find '"<<dependency.getPackageName()<<":"<<dependency.getVersion()<<"' on "<<dependency.getRepositoryType()<<"('"<<dependency.getBaseRepository()<<"')";
                         throw std::runtime_error(e.what());
                     }
-               }
+                }
             }
             std::cout<<"===> "<<dependency.getName()<<" installed in "<<outputDirectory<<std::endl;
             if (m_options.useCache()) {
