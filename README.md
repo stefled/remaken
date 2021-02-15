@@ -61,25 +61,12 @@ For each project, a packagedependencies.txt file can be created in the root proj
 
 Each line follows the pattern :
 
-```framework#channel | version | [condition]#library name | identifier@repository\_type | repository\_url | link\_mode | options```
-
-where repository_type is a value in:
+```framework#channel | version | [condition]#library name | identifier@repository_type | repository_url | link_mode | options```
 
 
-- artifactory
-- nexus
-- github
-- vcpkg
-- conan
-- system
-- path : local or network filesystem root path hosting the dependencies
-
-link_mode is an optional value in :
-
-- static
-- shared
-- default (inherits the project's link mode)
-- na (not applicable)
+| ```framework#channel``` | ```version``` | ```[condition]#library name``` | ```repository_type``` | ```repository_url``` | ```link_mode``` | ```options```|
+|---|---|---|---|---|---|---|
+|---|---|---| a value in: [ artifactory, nexus, github, vcpkg, conan, system, path : local or network filesystem root path hosting the dependencies ]|---|optional value in : [ static, shared, default (inherits the project's link mode), na (not applicable) ]|---|
 
 When link_mode is not provided :
 

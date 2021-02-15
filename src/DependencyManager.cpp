@@ -310,43 +310,40 @@ void DependencyManager::bundleDependency(const Dependency & dependency)
     shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(dependency, m_options);
     fs::path outputDirectory = fileRetriever->bundleArtefact(dependency);
     if (!outputDirectory.empty() && dependency.getType() == Dependency::Type::REMAKEN) {
-        std::vector<fs::path> childrenDependencies = getChildrenDependencies(outputDirectory);
-        for (fs::path childDependency : childrenDependencies) {
-            if (fs::exists(childDependency)) {
-                this->bundleDependencies(childDependency);
-            }
-        }
+        this->bundleDependencies(outputDirectory/"packagedependencies.txt");
     }
 }
 
 void DependencyManager::bundleDependencies(const fs::path &  dependenciesFile)
 {
-    if (fs::exists(dependenciesFile)){
-        std::vector<Dependency> dependencies = parse(dependenciesFile);
-        for (auto dependency : dependencies) {
-            if (dependency.getType() == Dependency::Type::REMAKEN) {
+    std::vector<fs::path> dependenciesFileList = getChildrenDependencies(dependenciesFile.parent_path());
+    for (fs::path depsFile : dependenciesFileList) {
+        if (fs::exists(depsFile)) {
+            std::vector<Dependency> dependencies = parse(depsFile);
+            for (auto dependency : dependencies) {
                 if (!dependency.validate()) {
                     throw std::runtime_error("Error parsing dependency file : invalid format ");
                 }
-#ifdef BOOST_OS_WINDOWS_AVAILABLE
+    #ifdef BOOST_OS_WINDOWS_AVAILABLE
+                // Needs extensive tests to see if bundling needs privilege escalation
                 if (isSystemNeededElevation(dependency) && !OsTools::isElevated()) {
                     throw std::runtime_error("Remaken needs elevated privileges to install system Windows " + SystemTools::getToolIdentifier() + " dependencies");
                 }
-#endif
+    #endif
             }
-        }
-        std::vector<std::shared_ptr<std::thread>> thread_group;
-        for (Dependency const & dependency : dependencies) {
-            if (dependency.getType() == Dependency::Type::REMAKEN || dependency.getType() == Dependency::Type::CONAN) {
-#ifdef REMAKEN_USE_THREADS
-                thread_group.push_back(std::make_shared<std::thread>(&DependencyManager::bundleDependency,this, dependency));
-#else
-                bundleDependency(dependency);
-#endif
+            std::vector<std::shared_ptr<std::thread>> thread_group;
+            for (Dependency const & dependency : dependencies) {
+                if (dependency.getType() == Dependency::Type::REMAKEN || dependency.getType() == Dependency::Type::CONAN) {
+    #ifdef REMAKEN_USE_THREADS
+                    thread_group.push_back(std::make_shared<std::thread>(&DependencyManager::bundleDependency,this, dependency));
+    #else
+                    bundleDependency(dependency);
+    #endif
+                }
             }
-        }
-        for (auto threadPtr : thread_group) {
-            threadPtr->join();
+            for (auto threadPtr : thread_group) {
+                threadPtr->join();
+            }
         }
     }
 }

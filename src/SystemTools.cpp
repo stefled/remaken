@@ -302,7 +302,7 @@ void ConanSystemTool::bundle(const Dependency & dependency)
     }
     if (dependency.getMode() == "na") {
         result = bp::system(m_systemInstallerPath, "install", bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if", destination, bp::args(optionsArgs), "-g", "json", source.c_str());
-}
+    }
     else {
         std::string buildMode = dependency.getName() + ":";
         if (dependency.getMode() == "static") {
@@ -330,7 +330,6 @@ void ConanSystemTool::bundle(const Dependency & dependency)
                     OsTools::copySharedLibraries(libPath, m_options);
                 }
             }
-
         }
     }
 }
