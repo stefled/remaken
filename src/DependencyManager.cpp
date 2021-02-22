@@ -45,7 +45,7 @@ DependencyManager::DependencyManager(const CmdOptions & options):m_options(optio
 fs::path DependencyManager::buildDependencyPath()
 {
     fs::detail::utf8_codecvt_facet utf8;
-    fs::path currentPath(boost::dll::program_location().generic_string(utf8));
+    fs::path currentPath(boost::filesystem::initial_path().generic_string(utf8));
 
     fs::path dependenciesFile (m_options.getDependenciesFile(),utf8);
 
