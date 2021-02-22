@@ -203,10 +203,10 @@ CmdOptions::CmdOptions()
    */
     CLI::App * compressCommand = packageCommand->add_subcommand("compress","compress packages within a folder");
     compressCommand->fallthrough(false);
-    m_packageCompressOptions["rootdir"] = boost::dll::program_location().generic_string(utf8);
+    m_packageCompressOptions["rootdir"] = boost::filesystem::initial_path().generic_string(utf8);
     compressCommand->add_option("--rootdir,-s", m_packageCompressOptions["rootdir"], "folder path to root build toolchain folder or to parent package root folder (where the packages are located located)", true);
     compressCommand->add_option("--packagename,-p", m_packageCompressOptions["packagename"], " package name\n");
-    compressCommand->add_option("--packageversion,-k", m_packageOptions["packageversion"], " package version\n");
+    compressCommand->add_option("--packageversion,-k", m_packageCompressOptions["packageversion"], " package version\n");
 
     CLI::App * parseCommand = m_cliApp.add_subcommand("parse","check dependency file validity");
     parseCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files", true);

@@ -386,7 +386,7 @@ std::vector<Dependency> DependencyManager::parse(const fs::path &  dependenciesP
                 std::smatch sm;
                 // parsing finds first leaf template instanciation, replace leaf templates with groups identifiers then search for "new"(up level) leaf templates
                 // until there is no more leaf
-                if (!std::regex_search(curStr, sm, commentRegex, std::regex_constants::match_flag_type::match_any)) {
+                if (!std::regex_search(curStr, sm, commentRegex, std::regex_constants::match_any)) {
                     // Dependency line is not commented: parsing the dependency
                     Dependency dep(curStr, m_options.getMode());
                     if (isGenericSystemDependency(dep)||isSpecificSystemToolDependency(dep)||!isSystemDependency(dep)) {

@@ -1,6 +1,7 @@
 #include "PackageCommand.h"
 #include "DependencyManager.h"
 #include "ZipTool.h"
+#include "OsTools.h"
 
 PackageCommand::PackageCommand(const CmdOptions & options):AbstractCommand(PackageCommand::NAME),m_options(options)
 {
@@ -40,6 +41,25 @@ int PackageCommand::compress()
                         fs::path pkgVersion = pkgVersionFolder.path().filename();
                         if (!fs::exists(pkgVersionFolder.path()/"lib") || !fs::is_directory(pkgVersionFolder.path()/"lib")) {// package without libs
                             //fs::create_directories();
+                            //use mode and config from options at first
+                            fs::path tmpFolder = toolChainPrefix;
+                            tmpFolder += "_";
+                            tmpFolder += m_options.getArchitecture();
+                            tmpFolder += "_";
+                            tmpFolder += m_options.getMode();
+                            tmpFolder += "_";
+                            tmpFolder += m_options.getConfig();
+                            tmpFolder /= pkgName;
+                            tmpFolder /= pkgVersion;
+                            std::cout<<tmpFolder.c_str()<<std::endl;
+
+                            fs::create_directories(tmpFolder/Constants::PKGINFO_FOLDER);
+                            try {
+                                fs::copy(pkgVersionFolder.path()/"interfaces", tmpFolder/"interfaces", fs::copy_options::recursive);
+                            }
+                            catch (std::exception& e) { // Not using fs::filesystem_error since std::bad_alloc can throw too.
+                                // Handle exception or use error code overload of fs::copy.
+                            }
                         }
                         else {// package with libs
                             for (fs::directory_entry& platformFolder : fs::directory_iterator(pkgVersionFolder.path()/"lib")) {
@@ -65,9 +85,11 @@ int PackageCommand::compress()
                                                     tmpFolder /= pkgVersion;
                                                     std::cout<<tmpFolder.c_str()<<std::endl;
 
-                                                    fs::create_directories(tmpFolder);
+                                                    fs::create_directories(tmpFolder/Constants::PKGINFO_FOLDER);
                                                     try {
                                                         fs::copy(pkgVersionFolder.path()/"interfaces", tmpFolder/"interfaces", fs::copy_options::recursive);
+                                                        //OsTools::copyLibraries(configFolder.path(),tmpFolder/,OsTools::sharedSuffix(m_options.getOS()));
+                                                        //OsTools::copyLibraries(configFolder.path(),tmpFolder/,OsTools::staticSuffix(m_options.getOS()));
                                                     }
                                                     catch (std::exception& e) { // Not using fs::filesystem_error since std::bad_alloc can throw too.
                                                         // Handle exception or use error code overload of fs::copy.

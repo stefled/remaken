@@ -88,8 +88,9 @@ fs::path AbstractFileRetriever::installArtefact(const Dependency & dependency)
     fs::path compressedDependency = retrieveArtefact(dependency);
     //zipper::Unzipper unzipper(compressedDependency.generic_string(utf8));
     fs::path outputDirectory = this->computeRemakenRootDir(dependency);
-    fs::path osSubFolder(m_options.getOS() + "-" + m_options.getBuildToolchain() , utf8);
-    outputDirectory /= osSubFolder;
+    if (dependency.hasIdentifier()) {
+        outputDirectory /= dependency.getIdentifier();
+    }
     if (!fs::exists(outputDirectory)) {
         fs::create_directories(outputDirectory);
     }
@@ -129,22 +130,20 @@ fs::path AbstractFileRetriever::bundleArtefact(const Dependency & dependency)
 fs::path AbstractFileRetriever::computeLocalDependencyRootDir( const Dependency &  dependency) // not the root output dir
 {
     fs::detail::utf8_codecvt_facet utf8;
-    fs::path libPath = computeRemakenRootDir(dependency);
-    fs::path osSubFolder(m_options.getOS() + "-" + m_options.getBuildToolchain() , utf8);
+    fs::path depFullPath = computeRemakenRootDir(dependency);
     fs::path depSubPath(dependency.getPackageName() , utf8);
     depSubPath /= dependency.getVersion();
-
-    if (fs::exists(libPath/osSubFolder/depSubPath)) {
-        libPath /= osSubFolder;
+    if (dependency.hasIdentifier()) {
+        depFullPath /= dependency.getIdentifier();
     }
-    libPath /= depSubPath;
-    return libPath;
+    depFullPath /= depSubPath;
+    return depFullPath;
 }
 
 fs::path AbstractFileRetriever::computeRemakenRootDir( const Dependency &  dependency) // not the root output dir
 {
-    if (dependency.hasIdentifier()) {
-        return m_options.getRemakenRoot() / dependency.getIdentifier();
-    }
-    return m_options.getRemakenRoot();
+    fs::detail::utf8_codecvt_facet utf8;
+    fs::path osSubFolder(m_options.getOS() + "-" + m_options.getBuildToolchain() , utf8);
+    fs::path remakenRootDir = m_options.getRemakenRoot()/osSubFolder;
+    return remakenRootDir;
 }
