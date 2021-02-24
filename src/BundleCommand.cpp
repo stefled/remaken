@@ -1,5 +1,5 @@
 #include "BundleCommand.h"
-#include "DependencyManager.h"
+#include "BundleManager.h"
 
 BundleCommand::BundleCommand(const CmdOptions & options):AbstractCommand(BundleCommand::NAME),m_options(options)
 {
@@ -7,6 +7,6 @@ BundleCommand::BundleCommand(const CmdOptions & options):AbstractCommand(BundleC
 
 int BundleCommand::execute()
 {
-    auto mgr = DependencyManager{m_options};
+    auto mgr = BundleManager{m_options};
     return mgr.bundle();
 }

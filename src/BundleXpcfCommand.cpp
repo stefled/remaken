@@ -1,5 +1,5 @@
 #include "BundleXpcfCommand.h"
-#include "DependencyManager.h"
+#include "BundleManager.h"
 
 BundleXpcfCommand::BundleXpcfCommand(const CmdOptions & options):AbstractCommand(BundleXpcfCommand::NAME),m_options(options)
 {
@@ -7,6 +7,6 @@ BundleXpcfCommand::BundleXpcfCommand(const CmdOptions & options):AbstractCommand
 
 int BundleXpcfCommand::execute()
 {
-    auto mgr = DependencyManager{m_options};
+    auto mgr = BundleManager{m_options};
     return mgr.bundleXpcf();
 }

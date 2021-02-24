@@ -16,12 +16,11 @@
  * @author Loïc Touraine
  *
  * @file
- * @brief description of file
- * @date 2019-11-15
+ * @date 2021-02-24
  */
 
-#ifndef DEPENDENCYMANAGER_H
-#define DEPENDENCYMANAGER_H
+#ifndef BUNDLEMANAGER_H
+#define BUNDLEMANAGER_H
 
 #include <string>
 #include <vector>
@@ -34,27 +33,26 @@
 
 namespace fs = boost::filesystem;
 
-class DependencyManager
+class BundleManager
 {
 public:
-    DependencyManager(const CmdOptions & options);
+    BundleManager(const CmdOptions & options);
     fs::path buildDependencyPath();
-    int info();
-    int retrieve();
-    int parse();
-    int clean();
-    static std::vector<fs::path> getChildrenDependencies(const fs::path & outputDirectory, const std::string & osPlatform);
-    static std::vector<Dependency> parse(const fs::path & dependenciesPath, const std::string & linkMode);
+    int bundle();
+    int bundleXpcf();
 
 private:
-    void retrieveDependencies(const fs::path & dependenciesFiles);
-    void retrieveDependency(Dependency &  dependency);
-    bool installDep(Dependency &  dependency, const std::string & source,
-                    const fs::path & outputDirectory, const fs::path & libDirectory, const fs::path & binDirectory);
-    void readInfos(const fs::path &  dependenciesFile);
+    void updateModuleNode(tinyxml2::XMLElement * xmlModuleElt);
+    int updateXpcfModulesPath(const fs::path & configurationFilePath);
+    void declareModule(tinyxml2::XMLElement * xmlModuleElt);
+    int parseXpcfModulesConfiguration(const fs::path & configurationFilePath);
+
+    void bundleDependencies(const fs::path & dependenciesFiles);
+    void bundleDependency(const Dependency & dep);
+
+    std::map<std::string, fs::path> m_modulesPathMap;
+    std::map<std::string, std::string> m_modulesUUiDMap;
     const CmdOptions & m_options;
-    uint32_t m_indentLevel = 0;
-    Cache m_cache;
 
 };
 

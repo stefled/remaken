@@ -57,7 +57,7 @@ std::string computeToolChain()
 }
 
 
-static const map<std::string,std::vector<std::string>> validationMap ={{"action",{"install","parse","version","bundle", "bundleXpcf"}},
+static const map<std::string,std::vector<std::string>> validationMap ={{"action",{"info","init","install","parse","version","bundle","bundleXpcf"}},
                                                                        {"--architecture",{"x86_64","i386","arm","arm64","arm64-v8a","armeabi-v7a","armv6","armv7","armv7hf","armv8"}},
                                                                        {"--config",{"release","debug"}},
                                                                        {"--mode",{"shared","static"}},
@@ -141,6 +141,10 @@ CmdOptions::CmdOptions()
     bundleXpcfCommand->add_option("file", m_dependenciesFile, "XPCF xml module declaration file")->required();
 
     CLI::App * cleanCommand = m_cliApp.add_subcommand("clean", "WARNING : remove every remaken installed packages");
+
+    CLI::App * infoCommand = m_cliApp.add_subcommand("info", "Read package dependencies informations");
+    infoCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files", true);
+
 
     CLI::App * profileCommand = m_cliApp.add_subcommand("profile", "manage remaken profiles configuration");
     CLI::App * initProfileCommand = profileCommand->add_subcommand("init", "create remaken default profile from current options");

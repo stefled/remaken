@@ -1,6 +1,7 @@
 #include <iostream>
 #include "Constants.h"
 #include "CmdOptions.h"
+#include "InfoCommand.h"
 #include "InitCommand.h"
 #include "InstallCommand.h"
 #include "ParseCommand.h"
@@ -25,6 +26,7 @@ int main(int argc, char** argv)
         }
         dispatcher["clean"] = make_shared<CleanCommand>(opts);
         dispatcher["init"] = make_shared<InitCommand>(opts);
+        dispatcher["info"] = make_shared<InfoCommand>(opts);
         dispatcher["install"] = make_shared<InstallCommand>(opts);
         dispatcher["parse"] = make_shared<ParseCommand>(opts);
         dispatcher["package"] = make_shared<PackageCommand>(opts);
@@ -32,7 +34,7 @@ int main(int argc, char** argv)
         dispatcher["bundleXpcf"] = make_shared<BundleXpcfCommand>(opts);
         dispatcher["profile"] = make_shared<ProfileCommand>(opts);
         dispatcher["version"] = make_shared<VersionCommand>();
-        if (mapContains(dispatcher,opts.getAction())) {
+        if (mapContains(dispatcher, opts.getAction())) {
             dispatcher.at(opts.getAction())->execute();
         }
         else {

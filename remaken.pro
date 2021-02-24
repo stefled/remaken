@@ -32,6 +32,7 @@ CONFIG += app_setup
 include (builddefs/qmake/templateappconfig.pri)
 
 HEADERS += \
+    src/BundleManager.h \
     src/BundleXpcfCommand.h \
     src/CleanCommand.h \
     src/Dependency.h \
@@ -40,6 +41,7 @@ HEADERS += \
     src/Constants.h \
     src/Cache.h \
     src/AbstractCommand.h \
+    src/InfoCommand.h \
     src/InitCommand.h \
     src/InstallCommand.h \
     src/PackageCommand.h \
@@ -66,8 +68,10 @@ HEADERS += \
     src/tinyxmlhelper.h
 
 SOURCES += \
+    src/BundleManager.cpp \
     src/BundleXpcfCommand.cpp \
     src/CleanCommand.cpp \
+    src/InfoCommand.cpp \
     src/PackageCommand.cpp \
     src/InitCommand.cpp \
     src/PathBuilder.cpp \

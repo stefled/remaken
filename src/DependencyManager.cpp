@@ -76,7 +76,7 @@ int DependencyManager::parse()
     bool bValid = true;
     bool bNeedElevation = false;
     fs::path depPath = buildDependencyPath();
-    std::vector<Dependency> dependencies = parse(depPath);
+    std::vector<Dependency> dependencies = parse(depPath, m_options.getMode());
     for (auto dep : dependencies) {
         if (!dep.validate()) {
             bValid = false;
@@ -98,25 +98,6 @@ int DependencyManager::parse()
     }
 #endif
     BOOST_LOG_TRIVIAL(info)<<"File "<<depPath<<" successfully parsed";
-    return 0;
-}
-
-int DependencyManager::bundle()
-{
-    try {
-        if (!fs::exists(m_options.getDestinationRoot())) {
-            fs::create_directory(m_options.getDestinationRoot());
-        }
-        bundleDependencies(buildDependencyPath());
-    }
-    catch (const std::runtime_error & e) {
-        BOOST_LOG_TRIVIAL(error)<<e.what();
-        return -1;
-    }
-
-#ifndef BOOST_OS_WINDOWS_AVAILABLE
-    BOOST_LOG_TRIVIAL(warning)<<"bundle command under implementation : rpath not reinterpreted after copy";
-#endif
     return 0;
 }
 
@@ -149,204 +130,60 @@ int DependencyManager::clean()
     return 0;
 }
 
-fs::path findPackageRoot(fs::path moduleLibPath)
-{
-    fs::detail::utf8_codecvt_facet utf8;
-    std::string versionRegex = "[0-9]+\.[0-9]+\.[0-9]+";
-    fs::path currentFilename = moduleLibPath.filename();
-    bool bFoundVersion = false;
-    std::smatch sm;
-    while (!bFoundVersion) {
-        std::regex tmplRegex(versionRegex, std::regex_constants::extended);
-        std::string currentFilenameStr = currentFilename.string(utf8);
-        if (std::regex_search(currentFilenameStr, sm, tmplRegex, std::regex_constants::match_any)) {
-            std::string matchStr = sm.str(0);
-            BOOST_LOG_TRIVIAL(warning)<<"Found "<< matchStr<<" version for modulepath "<<moduleLibPath;
-            std::cout<<"Found "<< matchStr<<" version "<<std::endl;
-            return moduleLibPath;
-        }
-        else {
-            moduleLibPath = moduleLibPath.parent_path();
-            currentFilename = moduleLibPath.filename();
-        }
+const std::string indentStr = "    ";
+
+std::string indent(uint32_t indentLevel) {
+    std::string ind;
+    for (uint32_t i = 0; i<indentLevel; i++) {
+        ind += indentStr;
     }
-    // no path found : return empty path
-    return fs::path();
+    return ind;
 }
 
-int DependencyManager::bundleXpcf()
+void displayInfo(const Dependency& d, uint32_t indentLevel)
+{
+
+    std::cout<<indent(indentLevel)<<"`-- "<<d.getName()<<":"<<d.getVersion()<<"  "<<d.getRepositoryType()<<" ("<<d.getIdentifier()<<")"<<std::endl;
+}
+
+void DependencyManager::readInfos(const fs::path &  dependenciesFile)
+{
+    m_indentLevel ++;
+    std::vector<fs::path> dependenciesFileList = getChildrenDependencies(dependenciesFile.parent_path(), m_options.getOS());
+    for (fs::path depsFile : dependenciesFileList) {
+        if (fs::exists(depsFile)) {
+            std::vector<Dependency> dependencies = parse(depsFile, m_options.getMode());
+            for (auto dep : dependencies) {
+                if (!dep.validate()) {
+                    throw std::runtime_error("Error parsing dependency file : invalid format ");
+                     m_indentLevel --;
+                }
+            }
+            for (Dependency & dependency : dependencies) {
+                displayInfo(dependency, m_indentLevel);
+                fs::detail::utf8_codecvt_facet utf8;
+                shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(dependency, m_options);
+                fs::path outputDirectory = fileRetriever->computeLocalDependencyRootDir(dependency);
+                readInfos(outputDirectory/"packagedependencies.txt");
+            }
+        }
+    }
+    m_indentLevel --;
+}
+
+
+int DependencyManager::info()
 {
     try {
-        if (!fs::exists(m_options.getDestinationRoot()/m_options.getModulesSubfolder())) {
-            fs::create_directories(m_options.getDestinationRoot()/m_options.getModulesSubfolder());
-        }
-        fs::path xpcfConfigFilePath = buildDependencyPath();
-        if ( xpcfConfigFilePath.extension() != ".xml") {
-            return -1;
-        }
-        fs::copy_file(xpcfConfigFilePath , m_options.getDestinationRoot()/xpcfConfigFilePath.filename(), fs::copy_option::overwrite_if_exists);
-
-        parseXpcfModulesConfiguration(xpcfConfigFilePath);
-        updateXpcfModulesPath(m_options.getDestinationRoot()/xpcfConfigFilePath.filename());
-        for (auto & [name,modulePath] : m_modulesPathMap) {
-            OsTools::copySharedLibraries(modulePath,m_options);
-        }
-
-        for (auto & [name,modulePath] : m_modulesPathMap) {
-            OsTools::copySharedLibraries(modulePath,m_options);
-            fs::path packageRootPath = findPackageRoot(modulePath);
-            if (!fs::exists(packageRootPath)) {
-                BOOST_LOG_TRIVIAL(warning)<<"Unable to find root package path "<<packageRootPath<<" for module "<<name;
-            }
-            if (fs::exists(packageRootPath/"packagedependencies.txt")) {
-                bundleDependencies(packageRootPath/"packagedependencies.txt");
-            }
-            else {
-                BOOST_LOG_TRIVIAL(warning)<<"Unable to find packagedependencies.txt file in package path"<<packageRootPath<<" for module "<<name;
-            }
-
-        }
+        readInfos(buildDependencyPath());
     }
     catch (const std::runtime_error & e) {
         BOOST_LOG_TRIVIAL(error)<<e.what();
         return -1;
     }
-#ifndef BOOST_OS_WINDOWS_AVAILABLE
-    BOOST_LOG_TRIVIAL(warning)<<"bundleXpcf command under implementation : rpath not reinterpreted after copy";
-#endif
     return 0;
 }
 
-void DependencyManager::updateModuleNode(tinyxml2::XMLElement * xmlModuleElt)
-{
-    fs::detail::utf8_codecvt_facet utf8;
-    xmlModuleElt->SetAttribute("path",m_options.getModulesSubfolder().string(utf8).c_str());
-}
-
-int DependencyManager::updateXpcfModulesPath(const fs::path & configurationFilePath)
-{
-    fs::detail::utf8_codecvt_facet utf8;
-    int result = -1;
-    tinyxml2::XMLDocument xmlDoc;
-    enum tinyxml2::XMLError loadOkay = xmlDoc.LoadFile(configurationFilePath.string(utf8).c_str());
-    if (loadOkay == 0) {
-        try {
-            //TODO : check each element exists before using it !
-            // a check should be performed upon announced module uuid and inner module uuid
-            // check xml node is xpcf-registry first !
-            tinyxml2::XMLElement * rootElt = xmlDoc.RootElement();
-            string rootName = rootElt->Value();
-            if (rootName != "xpcf-registry" && rootName != "xpcf-configuration") {
-                return -1;
-            }
-            result = 0;
-
-            processXmlNode(rootElt, "module", std::bind(&DependencyManager::updateModuleNode, this, _1));
-            xmlDoc.SaveFile(configurationFilePath.string(utf8).c_str());
-        }
-        catch (const std::runtime_error & e) {
-            return -1;
-        }
-    }
-    return result;
-}
-
-void DependencyManager::declareModule(tinyxml2::XMLElement * xmlModuleElt)
-{
-    std::string moduleName = xmlModuleElt->Attribute("name");
-    std::string moduleDescription = "";
-    if (xmlModuleElt->Attribute("description") != nullptr) {
-        moduleDescription = xmlModuleElt->Attribute("description");
-    }
-    std::string moduleUuid =  xmlModuleElt->Attribute("uuid");
-    fs::path modulePath = PathBuilder::buildModuleFolderPath(xmlModuleElt->Attribute("path"), m_options.getConfig());
-    if (! mapContains(m_modulesUUiDMap, moduleName)) {
-        m_modulesUUiDMap[moduleName] = moduleUuid;
-    }
-    else {
-        std::string previousModuleUUID = m_modulesUUiDMap.at(moduleName);
-        if (moduleUuid != previousModuleUUID) {
-            BOOST_LOG_TRIVIAL(warning)<<"Already found a module named "<<moduleName<<" with a different UUID: first UUID found ="<<previousModuleUUID<<" last UUID = "<<moduleUuid;
-        }
-    }
-
-    if (! mapContains(m_modulesPathMap, moduleName)) {
-        m_modulesPathMap[moduleName] = modulePath;
-    }
-}
-
-
-int DependencyManager::parseXpcfModulesConfiguration(const fs::path & configurationFilePath)
-{
-    int result = -1;
-    tinyxml2::XMLDocument doc;
-    m_modulesPathMap.clear();
-    enum tinyxml2::XMLError loadOkay = doc.LoadFile(configurationFilePath.string().c_str());
-    if (loadOkay == 0) {
-        try {
-            //TODO : check each element exists before using it !
-            // a check should be performed upon announced module uuid and inner module uuid
-            // check xml node is xpcf-registry first !
-            tinyxml2::XMLElement * rootElt = doc.RootElement();
-            string rootName = rootElt->Value();
-            if (rootName != "xpcf-registry" && rootName != "xpcf-configuration") {
-                return -1;
-            }
-            result = 0;
-
-            processXmlNode(rootElt, "module", std::bind(&DependencyManager::declareModule, this, _1));
-        }
-        catch (const std::runtime_error & e) {
-            return -1;
-        }
-    }
-    return result;
-}
-
-
-void DependencyManager::bundleDependency(const Dependency & dependency)
-{
-    fs::detail::utf8_codecvt_facet utf8;
-    shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(dependency, m_options);
-    fs::path outputDirectory = fileRetriever->bundleArtefact(dependency);
-    if (!outputDirectory.empty() && dependency.getType() == Dependency::Type::REMAKEN) {
-        this->bundleDependencies(outputDirectory/"packagedependencies.txt");
-    }
-}
-
-void DependencyManager::bundleDependencies(const fs::path &  dependenciesFile)
-{
-    std::vector<fs::path> dependenciesFileList = getChildrenDependencies(dependenciesFile.parent_path());
-    for (fs::path depsFile : dependenciesFileList) {
-        if (fs::exists(depsFile)) {
-            std::vector<Dependency> dependencies = parse(depsFile);
-            for (auto dependency : dependencies) {
-                if (!dependency.validate()) {
-                    throw std::runtime_error("Error parsing dependency file : invalid format ");
-                }
-    #ifdef BOOST_OS_WINDOWS_AVAILABLE
-                // Needs extensive tests to see if bundling needs privilege escalation
-                if (isSystemNeededElevation(dependency) && !OsTools::isElevated()) {
-                    throw std::runtime_error("Remaken needs elevated privileges to install system Windows " + SystemTools::getToolIdentifier() + " dependencies");
-                }
-    #endif
-            }
-            std::vector<std::shared_ptr<std::thread>> thread_group;
-            for (Dependency const & dependency : dependencies) {
-                if (dependency.getType() == Dependency::Type::REMAKEN || dependency.getType() == Dependency::Type::CONAN) {
-    #ifdef REMAKEN_USE_THREADS
-                    thread_group.push_back(std::make_shared<std::thread>(&DependencyManager::bundleDependency,this, dependency));
-    #else
-                    bundleDependency(dependency);
-    #endif
-                }
-            }
-            for (auto threadPtr : thread_group) {
-                threadPtr->join();
-            }
-        }
-    }
-}
 
 std::vector<Dependency> removeRedundantDependencies(const std::multimap<std::string,Dependency> & dependencies)
 {
@@ -372,7 +209,7 @@ std::vector<Dependency> removeRedundantDependencies(const std::multimap<std::str
     return depVector;
 }
 
-std::vector<Dependency> DependencyManager::parse(const fs::path &  dependenciesPath)
+std::vector<Dependency> DependencyManager::parse(const fs::path &  dependenciesPath, const std::string & linkMode)
 {
     std::multimap<std::string,Dependency> libraries;
     if (fs::exists(dependenciesPath)) {
@@ -388,7 +225,7 @@ std::vector<Dependency> DependencyManager::parse(const fs::path &  dependenciesP
                 // until there is no more leaf
                 if (!std::regex_search(curStr, sm, commentRegex, std::regex_constants::match_any)) {
                     // Dependency line is not commented: parsing the dependency
-                    Dependency dep(curStr, m_options.getMode());
+                    Dependency dep(curStr, linkMode);
                     if (isGenericSystemDependency(dep)||isSpecificSystemToolDependency(dep)||!isSystemDependency(dep)) {
                         // only add "generic" system or tool@system or other deps
                         libraries.insert(std::make_pair(dep.getName(), std::move(dep)));
@@ -515,10 +352,10 @@ void DependencyManager::retrieveDependency(Dependency &  dependency)
 
 void DependencyManager::retrieveDependencies(const fs::path &  dependenciesFile)
 {
-    std::vector<fs::path> dependenciesFileList = getChildrenDependencies(dependenciesFile.parent_path());
+    std::vector<fs::path> dependenciesFileList = getChildrenDependencies(dependenciesFile.parent_path(), m_options.getOS());
     for (fs::path depsFile : dependenciesFileList) {
         if (fs::exists(depsFile)) {
-            std::vector<Dependency> dependencies = parse(depsFile);
+            std::vector<Dependency> dependencies = parse(depsFile, m_options.getMode());
             for (auto dep : dependencies) {
                 if (!dep.validate()) {
                     throw std::runtime_error("Error parsing dependency file : invalid format ");
@@ -544,10 +381,10 @@ void DependencyManager::retrieveDependencies(const fs::path &  dependenciesFile)
     }
 }
 
-std::vector<fs::path> DependencyManager::getChildrenDependencies(const fs::path &  outputDirectory)
+std::vector<fs::path> DependencyManager::getChildrenDependencies(const fs::path &  outputDirectory, const std::string & osPlatform)
 {
     auto childrenDependencies = list<std::string>{"packagedependencies.txt"};
-    childrenDependencies.push_back("packagedependencies-"+ m_options.getOS() + ".txt");
+    childrenDependencies.push_back("packagedependencies-"+ osPlatform + ".txt");
     std::vector<fs::path> subDepsPath;
     for (std::string childDependency : childrenDependencies) {
         fs::path chidrenPackageDependenciesPath = outputDirectory / childDependency;
