@@ -232,12 +232,13 @@ void BundleManager::bundleDependencies(const fs::path &  dependenciesFile)
                 if (!dependency.validate()) {
                     throw std::runtime_error("Error parsing dependency file : invalid format ");
                 }
-    #ifdef BOOST_OS_WINDOWS_AVAILABLE
+    // TODO check if system elevation is needed for choco install package
+    /*#ifdef BOOST_OS_WINDOWS_AVAILABLE
                 // Needs extensive tests to see if bundling needs privilege escalation
                 if (isSystemNeededElevation(dependency) && !OsTools::isElevated()) {
                     throw std::runtime_error("Remaken needs elevated privileges to install system Windows " + SystemTools::getToolIdentifier() + " dependencies");
                 }
-    #endif
+    #endif*/
             }
             std::vector<std::shared_ptr<std::thread>> thread_group;
             for (Dependency const & dependency : dependencies) {
