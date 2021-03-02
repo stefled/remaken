@@ -44,7 +44,7 @@ DependencyManager::DependencyManager(const CmdOptions & options):m_options(optio
 fs::path DependencyManager::buildDependencyPath()
 {
     fs::detail::utf8_codecvt_facet utf8;
-    fs::path currentPath(fs::current_path().generic_string(utf8));
+    fs::path currentPath(boost::filesystem::initial_path().generic_string(utf8));
 
     fs::path dependenciesFile (m_options.getDependenciesFile(),utf8);
 
@@ -75,7 +75,7 @@ int DependencyManager::parse()
     bool bValid = true;
     bool bNeedElevation = false;
     fs::path depPath = buildDependencyPath();
-    std::vector<Dependency> dependencies = parse(depPath);
+    std::vector<Dependency> dependencies = parse(depPath, m_options.getMode());
     for (auto dep : dependencies) {
         if (!dep.validate()) {
             bValid = false;
@@ -140,6 +140,61 @@ int DependencyManager::clean()
         if (yesno_prompt("are you sure ?")) {
             fs::remove_all(m_options.getRemakenRoot());
         }
+    }
+    catch (const std::runtime_error & e) {
+        BOOST_LOG_TRIVIAL(error)<<e.what();
+        return -1;
+    }
+    return 0;
+}
+
+const std::string indentStr = "    ";
+
+std::string indent(uint32_t indentLevel) {
+    std::string ind;
+    for (uint32_t i = 0; i<indentLevel; i++) {
+        ind += indentStr;
+    }
+    return ind;
+}
+
+void displayInfo(const Dependency& d, uint32_t indentLevel)
+{
+    
+    std::cout<<indent(indentLevel)<<"`-- "<<d.getName()<<":"<<d.getVersion()<<"  "<<d.getRepositoryType()<<" ("<<d.getIdentifier()<<")"<<std::endl;
+}
+
+void DependencyManager::readInfos(const fs::path &  dependenciesFile)
+{
+    m_indentLevel ++;
+    std::vector<fs::path> dependenciesFileList = getChildrenDependencies(dependenciesFile.parent_path(), m_options.getOS());
+    for (fs::path depsFile : dependenciesFileList) {
+        if (fs::exists(depsFile)) {
+            std::vector<Dependency> dependencies = parse(depsFile, m_options.getMode());
+            for (auto dep : dependencies) {
+                if (!dep.validate()) {
+                    throw std::runtime_error("Error parsing dependency file : invalid format ");
+                    m_indentLevel --;
+                }
+            }
+            for (Dependency & dependency : dependencies) {
+                displayInfo(dependency, m_indentLevel);
+                fs::detail::utf8_codecvt_facet utf8;
+                shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(dependency, m_options);
+                fs::path outputDirectory = fileRetriever->computeLocalDependencyRootDir(dependency);
+                readInfos(outputDirectory/"packagedependencies.txt");
+            }
+        }
+    }
+    m_indentLevel --;
+}
+
+
+int DependencyManager::info()
+{
+    try {
+        fs::path dependencyPath = buildDependencyPath();
+        readInfos(dependencyPath);
     }
     catch (const std::runtime_error & e) {
         BOOST_LOG_TRIVIAL(error)<<e.what();
@@ -309,7 +364,7 @@ void DependencyManager::bundleDependency(const Dependency & dependency)
     shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(dependency, m_options);
     fs::path outputDirectory = fileRetriever->bundleArtefact(dependency);
     if (!outputDirectory.empty() && dependency.getType() == Dependency::Type::REMAKEN) {
-        std::vector<fs::path> childrenDependencies = getChildrenDependencies(outputDirectory);
+        std::vector<fs::path> childrenDependencies = getChildrenDependencies(outputDirectory, m_options.getOS());
         for (fs::path childDependency : childrenDependencies) {
             if (fs::exists(childDependency)) {
                 this->bundleDependencies(childDependency);
@@ -321,7 +376,7 @@ void DependencyManager::bundleDependency(const Dependency & dependency)
 void DependencyManager::bundleDependencies(const fs::path &  dependenciesFile)
 {
     if (fs::exists(dependenciesFile)){
-        std::vector<Dependency> dependencies = parse(dependenciesFile);
+        std::vector<Dependency> dependencies = parse(dependenciesFile, m_options.getMode());
         for (auto dependency : dependencies) {
             if (dependency.getType() == Dependency::Type::REMAKEN) {
                 if (!dependency.validate()) {
@@ -374,7 +429,7 @@ std::vector<Dependency> removeRedundantDependencies(const std::multimap<std::str
     return depVector;
 }
 
-std::vector<Dependency> DependencyManager::parse(const fs::path &  dependenciesPath)
+std::vector<Dependency> DependencyManager::parse(const fs::path &  dependenciesPath, const std::string & linkMode)
 {
     std::multimap<std::string,Dependency> libraries;
     if (fs::exists(dependenciesPath)) {
@@ -383,10 +438,20 @@ std::vector<Dependency> DependencyManager::parse(const fs::path &  dependenciesP
             string curStr;
             getline(fis,curStr);
             if (!curStr.empty()) {
-                Dependency dep(curStr, m_options.getMode());
-                if (isGenericSystemDependency(dep)||isSpecificSystemToolDependency(dep)||!isSystemDependency(dep)) {
-                    // only add "generic" system or tool@system or other deps
-                    libraries.insert(std::make_pair(dep.getName(), std::move(dep)));
+                std::string commentRegexStr = "^[ \t]*//";
+                std::regex commentRegex(commentRegexStr, std::regex_constants::extended);
+                std::smatch sm;
+                // parsing finds commented lines
+                if (!std::regex_search(curStr, sm, commentRegex, std::regex_constants::match_any)) {
+                    // Dependency line is not commented: parsing the dependency
+                    Dependency dep(curStr, linkMode);
+                    if (isGenericSystemDependency(dep)||isSpecificSystemToolDependency(dep)||!isSystemDependency(dep)) {
+                        // only add "generic" system or tool@system or other deps
+                        libraries.insert(std::make_pair(dep.getName(), std::move(dep)));
+                    }
+                }
+                else {
+                    std::cout<<"[IGNORED]: Dependency line '"<<curStr<<"' is commented !"<<std::endl;
                 }
             }
         }
@@ -447,7 +512,7 @@ void DependencyManager::retrieveDependency(Dependency &  dependency)
     std::string source = fileRetriever->computeSourcePath(dependency);
     fs::path outputDirectory = fileRetriever->computeLocalDependencyRootDir(dependency);
     fs::path libDirectory = fileRetriever->computeRootLibDir(dependency);
-    if (installDep(dependency, source, outputDirectory, libDirectory)) {
+    if (installDep(dependency, source, outputDirectory, libDirectory) || m_options.force()) {
         try {
             std::cout<<"=> Installing "<<dependency.getRepositoryType()<<"::"<<source<<std::endl;
             try {
@@ -455,9 +520,21 @@ void DependencyManager::retrieveDependency(Dependency &  dependency)
             }
             catch (std::runtime_error & e) { // try alternate repository
                 shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(m_options,true);
-                dependency.changeBaseRepository(m_options.getAlternateRepoUrl());
-                source = fileRetriever->computeSourcePath(dependency);
-                outputDirectory = fileRetriever->installArtefact(dependency);
+                if (!fileRetriever) { // no alternate repository found
+                    BOOST_LOG_TRIVIAL(error)<<"Unable to find '"<<dependency.getPackageName()<<":"<<dependency.getVersion()<<"' on "<<dependency.getRepositoryType()<<"('"<<dependency.getBaseRepository()<<"')";
+                    throw std::runtime_error(e.what());
+                }
+                else {
+                    dependency.changeBaseRepository(m_options.getAlternateRepoUrl());
+                    source = fileRetriever->computeSourcePath(dependency);
+                    try {
+                        outputDirectory = fileRetriever->installArtefact(dependency);
+                    }
+                    catch (std::runtime_error & e) {
+                        BOOST_LOG_TRIVIAL(error)<<"Unable to find '"<<dependency.getPackageName()<<":"<<dependency.getVersion()<<"' on "<<dependency.getRepositoryType()<<"('"<<dependency.getBaseRepository()<<"')";
+                        throw std::runtime_error(e.what());
+                    }
+                }
             }
             std::cout<<"===> "<<dependency.getName()<<" installed in "<<outputDirectory<<std::endl;
             if (m_options.useCache()) {
@@ -481,10 +558,10 @@ void DependencyManager::retrieveDependency(Dependency &  dependency)
 
 void DependencyManager::retrieveDependencies(const fs::path &  dependenciesFile)
 {
-    std::vector<fs::path> dependenciesFileList = getChildrenDependencies(dependenciesFile.parent_path());
+    std::vector<fs::path> dependenciesFileList = getChildrenDependencies(dependenciesFile.parent_path(), m_options.getOS());
     for (fs::path depsFile : dependenciesFileList) {
         if (fs::exists(depsFile)) {
-            std::vector<Dependency> dependencies = parse(depsFile);
+            std::vector<Dependency> dependencies = parse(depsFile, m_options.getMode());
             for (auto dep : dependencies) {
                 if (!dep.validate()) {
                     throw std::runtime_error("Error parsing dependency file : invalid format ");
@@ -510,10 +587,10 @@ void DependencyManager::retrieveDependencies(const fs::path &  dependenciesFile)
     }
 }
 
-std::vector<fs::path> DependencyManager::getChildrenDependencies(const fs::path &  outputDirectory)
+std::vector<fs::path> DependencyManager::getChildrenDependencies(const fs::path &  outputDirectory, const std::string & osPlatform)
 {
     auto childrenDependencies = list<std::string>{"packagedependencies.txt"};
-    childrenDependencies.push_back("packagedependencies-"+ m_options.getOS() + ".txt");
+    childrenDependencies.push_back("packagedependencies-"+ osPlatform + ".txt");
     std::vector<fs::path> subDepsPath;
     for (std::string childDependency : childrenDependencies) {
         fs::path chidrenPackageDependenciesPath = outputDirectory / childDependency;

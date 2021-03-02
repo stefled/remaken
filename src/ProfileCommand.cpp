@@ -12,7 +12,7 @@ ProfileCommand::ProfileCommand(const CmdOptions & options):AbstractCommand(Profi
 
 int ProfileCommand::execute()
 {
-    auto subCommand = m_options.getProfileSubcommand();
+    auto subCommand = m_options.getSubcommand();
     if (subCommand == "display") {
         m_options.displayConfigurationSettings();
         return 0;

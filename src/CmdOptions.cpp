@@ -56,6 +56,31 @@ std::string computeToolChain()
 }
 
 
+static const map<std::string,std::vector<std::string>> validationMap ={{"action",{"info","init","install","parse","version","bundle","bundleXpcf"}},
+                                                                       {"--architecture",{"x86_64","i386","arm","arm64","arm64-v8a","armeabi-v7a","armv6","armv7","armv7hf","armv8"}},
+                                                                       {"--config",{"release","debug"}},
+                                                                       {"--mode",{"shared","static"}},
+                                                                       {"--type",{"github","artifactory","nexus","path"}},
+                                                                       {"--alternate-remote-type",{"github","artifactory","nexus","path"}},
+                                                                       {"--operating-system",{"mac","win","unix","android","ios","linux"}},
+                                                                       {"--cpp-std",{"11","14","17","20"}}
+                                                                      };
+
+
+std::string CmdOptions::getOptionString(const std::string & optionName)
+{
+    std::string out = "";
+    if ( mapContains(validationMap,optionName) ) {
+        for ( auto & value: validationMap.at(optionName) ) {
+            if (!out.empty()) {
+                out += ", ";
+            }
+            out += value;
+        }
+    }
+    return out;
+}
+
 CmdOptions::CmdOptions()
 {
     fs::detail::utf8_codecvt_facet utf8;
@@ -87,20 +112,23 @@ CmdOptions::CmdOptions()
     m_cliApp.set_config("--configfile",configPath.generic_string(utf8),"remaken configuration file to read");
 
     m_config = "release";
-    m_cliApp.add_option("--config,-c", m_config, "Config: release, debug", true);
+    m_cliApp.add_option("--config,-c", m_config, "Config: " + getOptionString("--config"), true);
     m_cppVersion = "11";
-    m_cliApp.add_option("--cpp-std",m_cppVersion, "c++ standard version: 11, 14, 17, 20 ...", true);
+    m_cliApp.add_option("--cpp-std",m_cppVersion, "c++ standard version: " + getOptionString("--cpp-std"), true);
     m_remakenRoot = remakenRootPath.generic_string(utf8);
     m_cliApp.add_option("--remaken-root,-r", m_remakenRoot, "Remaken root directory", true);
     m_toolchain = computeToolChain();
     m_cliApp.add_option("--build-toolchain,-b", m_toolchain, "Build toolchain: clang, clang-version, "
                                                              "gcc-version, cl-version .. ex: cl-14.1", true);
     m_os = computeOS();
-    m_cliApp.add_option("--operating-system,-o", m_os, "Operating system: mac, win, unix, ios, android", true);
+    m_cliApp.add_option("--operating-system,-o", m_os, "Operating system: " + getOptionString("--operating-system"), true);
     m_architecture = "x86_64";
-    m_cliApp.add_option("--architecture,-a",m_architecture, "Architecture: x86_64, i386, arm, arm64, arm64-v8a, armeabi-v7a, armv6, armv7, armv7hf, armv8",true);
+    m_cliApp.add_option("--architecture,-a",m_architecture, "Architecture: " + getOptionString("--architecture"),true);
+    m_cliApp.add_flag("--force,-f", m_force, "force command execution : ignore cache entries, already installed files ...");
     m_verbose = false;
     m_cliApp.add_flag("--verbose,-v", m_verbose, "verbose mode");
+    m_override = false;
+    m_cliApp.add_flag("--override,-e", m_override, "override existing files while (re)-installing packages/rules...");
     m_dependenciesFile = "packagedependencies.txt";
 
     CLI::App * bundleCommand = m_cliApp.add_subcommand("bundle","copy shared libraries dependencies to a destination folder");
@@ -114,52 +142,44 @@ CmdOptions::CmdOptions()
                                                                                "copied with their dependencies", true);
     bundleXpcfCommand->add_option("file", m_dependenciesFile, "XPCF xml module declaration file")->required();
 
-    CLI::App * cleanCommand = m_cliApp.add_subcommand("clean","WARNING : remove every remaken installed packages");
+    CLI::App * cleanCommand = m_cliApp.add_subcommand("clean", "WARNING : remove every remaken installed packages");
 
-    CLI::App * profileCommand = m_cliApp.add_subcommand("profile","manage remaken profiles configuration");
-    CLI::App * initProfileCommand = profileCommand->add_subcommand("init","create remaken default profile from current options");
-    CLI::App * displayProfileCommand = profileCommand->add_subcommand("display","display remaken current profile (display current options and profile options)");
+    CLI::App * infoCommand = m_cliApp.add_subcommand("info", "Read package dependencies informations");
+    infoCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files", true);
+
+
+    CLI::App * profileCommand = m_cliApp.add_subcommand("profile", "manage remaken profiles configuration");
+    CLI::App * initProfileCommand = profileCommand->add_subcommand("init", "create remaken default profile from current options");
+    CLI::App * displayProfileCommand = profileCommand->add_subcommand("display", "display remaken current profile (display current options and profile options)");
     m_defaultProfileOptions = false;
     displayProfileCommand->add_flag("--with-default,-w", m_defaultProfileOptions, "display all profile options : default and provided");
     initProfileCommand ->add_flag("--with-default,-w", m_defaultProfileOptions, "create remaken profile with all profile options : default and provided");
 
-    CLI::App * initCommand = m_cliApp.add_subcommand("init","initialize remaken root folder and retrieve qmake rules");
+    CLI::App * initCommand = m_cliApp.add_subcommand("init", "initialize remaken root folder and retrieve qmake rules");
     m_qmakeRulesTag = Constants::QMAKE_RULES_DEFAULT_TAG;
     initCommand->add_option("--tag", m_qmakeRulesTag, "the qmake rules tag version to install - either provide a tag or the keyword 'latest' to install latest qmake rules",true);
 
-    CLI::App * versionCommand = m_cliApp.add_subcommand("version","display remaken version");
+    CLI::App * versionCommand = m_cliApp.add_subcommand("version", "display remaken version");
 
-    CLI::App * installCommand = m_cliApp.add_subcommand("install","install dependencies for a package from its packagedependencies file(s)");
-    installCommand->add_option("--alternate-remote-type,-l", m_altRepoType, "alternate remote type: github, artifactory, nexus, path");
+    CLI::App * installCommand = m_cliApp.add_subcommand("install", "install dependencies for a package from its packagedependencies file(s)");
+    installCommand->add_option("--alternate-remote-type,-l", m_altRepoType, "alternate remote type: " + getOptionString("--alternate-remote-type"));
     installCommand->add_option("--alternate-remote-url,-u", m_altRepoUrl, "alternate remote url to use when the declared remote fails to provide a dependency");
     installCommand->add_option("--apiKey,-k", m_apiKey, "Artifactory api key");
-    m_override = false;
-    installCommand->add_flag("--override,-e", m_override, "override existing files while (re)-installing packages");
+
     installCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files", true);
 
     m_ignoreCache = false;
     installCommand->add_flag("--ignore-cache,-i", m_ignoreCache, "ignore cache entries : dependencies update is forced");
     m_mode = "shared";
-    installCommand->add_option("--mode,-m", m_mode, "Mode: shared, static", true);
+    installCommand->add_option("--mode,-m", m_mode, "Mode: " + getOptionString("--mode"), true);
     m_repositoryType = "github";
-    installCommand->add_option("--type,-t", m_repositoryType, "Repository type: github, artifactory, nexus, path", true);
+    installCommand->add_option("--type,-t", m_repositoryType, "Repository type: " + getOptionString("--type"), true);
     m_zipTool = ZipTool::getZipToolIdentifier();
     installCommand->add_option("--ziptool,-z", m_zipTool, "unzipper tool name : unzip, compact ...", true);
 
     CLI::App * parseCommand = m_cliApp.add_subcommand("parse","check dependency file validity");
     parseCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files", true);
 }
-
-
-static const map<std::string,std::vector<std::string>> validationMap ={{"action",{"install","parse","version","bundle", "bundleXpcf"}},
-                                                                       {"--architecture",{"x86_64","i386","arm","arm64","arm64-v8a","armeabi-v7a","armv6","armv7","armv7hf","armv8"}},
-                                                                       {"--config",{"release","debug"}},
-                                                                       {"--mode",{"shared","static"}},
-                                                                       {"--type",{"github","artifactory","nexus","path"}},
-                                                                       {"--alternate-remote-type",{"github","artifactory","nexus","path"}},
-                                                                       {"--operating-system",{"mac","win","unix","android","ios","linux"}},
-                                                                       {"--cpp-std",{"11","14","17","20"}}
-                                                                      };
 
 void CmdOptions::initBuildConfig()
 {
@@ -213,7 +233,7 @@ CmdOptions::OptionResult CmdOptions::parseArguments(int argc, char** argv)
         validateOptions();
         auto sub = m_cliApp.get_subcommands().at(0);
         if (sub->get_name() == "profile") {
-            m_profileSubcommand = sub->get_subcommands().at(0)->get_name();
+            m_subcommand = sub->get_subcommands().at(0)->get_name();
         }
         if (m_cliApp.get_subcommands().size() == 1) {
             m_action = m_cliApp.get_subcommands().at(0)->get_name();

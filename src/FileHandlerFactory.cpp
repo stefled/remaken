@@ -31,6 +31,9 @@ std::shared_ptr<IFileRetriever> FileHandlerFactory::getFileHandler(const CmdOpti
     std::string repoType = options.getRepositoryType();
     if (useAlternateRepo) {
         repoType = options.getAlternateRepoType();
+        if (repoType.empty()) {
+            return nullptr;
+        }
     }
     if (repoType == "github") {
         return make_shared<HttpFileRetriever>(options);
