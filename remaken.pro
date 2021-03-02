@@ -1,5 +1,5 @@
 TARGET = remaken
-VERSION=1.7.1
+VERSION=1.7.2
 
 CONFIG += c++1z
 CONFIG += console
@@ -40,6 +40,7 @@ HEADERS += \
     src/Constants.h \
     src/Cache.h \
     src/AbstractCommand.h \
+    src/InfoCommand.h \
     src/InitCommand.h \
     src/InstallCommand.h \
     src/PathBuilder.h \
@@ -67,6 +68,7 @@ HEADERS += \
 SOURCES += \
     src/BundleXpcfCommand.cpp \
     src/CleanCommand.cpp \
+    src/InfoCommand.cpp \
     src/InitCommand.cpp \
     src/PathBuilder.cpp \
     src/ProfileCommand.cpp \
@@ -108,11 +110,14 @@ linux {
 }
 
 macx {
+    DEFINES += _MACOS_TARGET_
     QMAKE_MAC_SDK= macosx
+    QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.15
     QMAKE_CXXFLAGS += -fasm-blocks -x objective-c++ -std=c++17
     #LIBS += -L/usr/lib -lz -lssl -lcrypto -L/usr/local/lib -lZipper-static
     #Zipper dependency : https://github.com/sebastiandev/zipper
-    LIBS += -L/usr/local/lib  -lz -lZipper-static -lboost_system
+    LIBS += -L/usr/local/lib -lboost_system -lstdc++
+    QMAKE_LFLAGS += -mmacosx-version-min=10.15 -v -lstdc++
     INCLUDEPATH += /usr/local/include
 }
 

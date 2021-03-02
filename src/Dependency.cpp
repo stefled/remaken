@@ -116,6 +116,9 @@ Dependency::Dependency(const std::string & rawFormat, const std::string & mainMo
     if (results.size() >= 6){
         m_mode = stripEndlineChar(results[5]);
         boost::trim(m_mode);
+        if (m_mode!= "static" && m_mode!= "shared" && m_mode!= "na") {
+             m_mode = mainMode;
+        }
     }
     else {
         m_mode = mainMode;
@@ -124,8 +127,10 @@ Dependency::Dependency(const std::string & rawFormat, const std::string & mainMo
         }*/
     }
     if (results.size() == 7){
-        m_bHasOptions = true;
         m_toolOptions = stripEndlineChar(results[6]);
+        if (!m_toolOptions.empty()) {
+            m_bHasOptions = true;
+        }
     }
 }
 

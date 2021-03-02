@@ -133,13 +133,16 @@ public:
         return m_override;
     }
 
+    bool force() const {
+        return m_force;
+    }
+
     const std::string & getBuildConfig() const {
         return m_buildConfig;
     }
-
-
-    const std::string & getProfileSubcommand() const {
-        return m_profileSubcommand;
+    
+    const std::string & getSubcommand() const {
+        return m_subcommand;
     }
 
     const std::string & getQmakeRulesTag() const {
@@ -150,6 +153,7 @@ public:
     void displayConfigurationSettings() const;
 
 private:
+    std::string getOptionString(const std::string & optionName);
     void validateOptions();
     void initBuildConfig();
     std::string m_action;
@@ -171,13 +175,14 @@ private:
     std::string m_altRepoType;
     std::string m_moduleSubfolder;
     std::string m_buildConfig;
-    std::string m_profileSubcommand;
+    std::string m_subcommand;
     std::string m_qmakeRulesTag;
     fs::path m_moduleSubfolderPath;
     bool m_ignoreCache;
     bool m_verbose;
     bool m_isXpcfBundle = false;
     bool m_cleanAll = true;
+    bool m_force = false;
     bool m_override = false;
     bool m_defaultProfileOptions = false;
     CLI::App m_cliApp{"remaken"};
