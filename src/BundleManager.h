@@ -56,4 +56,4 @@ private:
 
 };
 
-#endif // DEPENDENCYMANAGER_H
+#endif

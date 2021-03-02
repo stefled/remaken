@@ -8,7 +8,9 @@
 #include <fstream>
 #include <iostream>
 #include "HttpHandlerFactory.h"
+#include <boost/process.hpp>
 
+namespace bp = boost::process;
 
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 namespace http = boost::beast::http;
@@ -97,6 +99,8 @@ inline HttpStatus convertStatus(const http::status & status)
     return httpStatusConverter.at(status);
 }
 
+#ifdef REMAKEN_USE_BEAST
+
 fs::path HttpFileRetriever::retrieveArtefact(const std::string & source)
 {
     // LOGGER.info(std::string.format("Download file %s", url));
@@ -122,6 +126,29 @@ fs::path HttpFileRetriever::retrieveArtefact(const std::string & source)
     }
     return output;
 }
+
+#else
+
+fs::path HttpFileRetriever::retrieveArtefact(const std::string & source)
+{
+    // LOGGER.info(std::string.format("Download file %s", url));
+    boost::uuids::uuid uuid = boost::uuids::random_generator()();
+    fs::path output = this->m_workingDirectory / boost::uuids::to_string(uuid);
+    //cpr::Response r = cpr::Get(cpr::Url{source});
+    boost::filesystem::path tool = bp::search_path("curl");
+    if (!tool.empty()) {
+        int result = bp::system(tool, "-L", "-f", source, "-o", output);
+        if (result != 0) {
+            std::cout << source<<std::endl;
+            throw std::runtime_error("Bad http response : curl error code : " + std::to_string(static_cast<int>(result)));
+        }
+    }
+    else {
+        throw std::runtime_error("Curl not installed : check your installation !!!");
+    }
+    return output;
+}
+#endif
 
 fs::path HttpFileRetriever::retrieveArtefact(const Dependency & dependency)
 {

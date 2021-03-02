@@ -36,4 +36,4 @@ private:
     const CmdOptions & m_options;
 };
 
-#endif // INITCOMMAND_H
+#endif

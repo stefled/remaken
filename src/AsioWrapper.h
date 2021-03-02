@@ -246,11 +246,24 @@ void AsioStreamWrapper<Q,R>::shutdown()
 {
     boost::system::error_code ec;
     m_comLayer.shutdown(ec);
+    int reason = ERR_GET_REASON(ec.value());
+    if (((ec.category() == boost::asio::error::get_ssl_category()) || (ec.category() == boost::asio::ssl::error::get_stream_category()))
+         && (reason == ssl::error::stream_truncated))
+    {
+      // Remote peer failed to send a close_notify message.
+      ec = {};
+//       m_comLayer.lowest_layer().close();
+    }
+
+    if(ec == boost::asio::error::operation_aborted)
+    {
+        ec = {};
+    }
     if(ec == boost::asio::error::eof)
     {
         // Rationale:
         // http://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error
-        ec.assign(0, ec.category());
+        ec = {};
     }
     if(ec)
         throw boost::system::system_error{ec};

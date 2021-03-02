@@ -125,8 +125,11 @@ CmdOptions::CmdOptions()
     m_cliApp.add_option("--operating-system,-o", m_os, "Operating system: " + getOptionString("--operating-system"), true);
     m_architecture = "x86_64";
     m_cliApp.add_option("--architecture,-a",m_architecture, "Architecture: " + getOptionString("--architecture"),true);
+    m_cliApp.add_flag("--force,-f", m_force, "force command execution : ignore cache entries, already installed files ...");
     m_verbose = false;
     m_cliApp.add_flag("--verbose,-v", m_verbose, "verbose mode");
+    m_override = false;
+    m_cliApp.add_flag("--override,-e", m_override, "override existing files while (re)-installing packages/rules...");
     m_dependenciesFile = "packagedependencies.txt";
 
     CLI::App * bundleCommand = m_cliApp.add_subcommand("bundle","copy shared libraries dependencies to a destination folder");
@@ -163,9 +166,6 @@ CmdOptions::CmdOptions()
     installCommand->add_option("--alternate-remote-type,-l", m_altRepoType, "alternate remote type: " + getOptionString("--alternate-remote-type"));
     installCommand->add_option("--alternate-remote-url,-u", m_altRepoUrl, "alternate remote url to use when the declared remote fails to provide a dependency");
     installCommand->add_option("--apiKey,-k", m_apiKey, "Artifactory api key");
-    m_override = false;
-    installCommand->add_flag("--override,-e", m_override, "override existing files while (re)-installing packages");
-    installCommand->add_flag("--force", m_force, "force reinstalling packages : ignore cache entries and reinstall every package");
     installCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files", true);
 
     m_ignoreCache = false;

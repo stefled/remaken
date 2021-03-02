@@ -221,8 +221,7 @@ std::vector<Dependency> DependencyManager::parse(const fs::path &  dependenciesP
                 std::string commentRegexStr = "^[ \t]*//";
                 std::regex commentRegex(commentRegexStr, std::regex_constants::extended);
                 std::smatch sm;
-                // parsing finds first leaf template instanciation, replace leaf templates with groups identifiers then search for "new"(up level) leaf templates
-                // until there is no more leaf
+                // parsing finds commented lines
                 if (!std::regex_search(curStr, sm, commentRegex, std::regex_constants::match_any)) {
                     // Dependency line is not commented: parsing the dependency
                     Dependency dep(curStr, linkMode);
@@ -232,7 +231,7 @@ std::vector<Dependency> DependencyManager::parse(const fs::path &  dependenciesP
                     }
                 }
                 else {
-                    BOOST_LOG_TRIVIAL(info)<<"[IGNORED]: Dependency line '"<<curStr<<"' is commented !";
+                    std::cout<<"[IGNORED]: Dependency line '"<<curStr<<"' is commented !"<<std::endl;
                 }
             }
         }
