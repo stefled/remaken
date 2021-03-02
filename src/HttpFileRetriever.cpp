@@ -143,6 +143,9 @@ fs::path HttpFileRetriever::retrieveArtefact(const std::string & source)
             throw std::runtime_error("Bad http response : curl error code : " + std::to_string(static_cast<int>(result)));
         }
     }
+    else {
+        throw std::runtime_error("Curl not installed : check your installation !!!");
+    }
     return output;
 }
 #endif

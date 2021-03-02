@@ -44,7 +44,10 @@ int InitCommand::execute()
     if (!fs::exists(remakenProfilesPath)) {
         fs::create_directories(remakenProfilesPath);
     }
-    if (linkStatus.type() != fs::file_not_found || fs::exists(qmakeRootPath)) {
+    if (m_options.force()) {
+        fs::remove(qmakeRootPath);
+    }
+    else if (linkStatus.type() != fs::file_not_found || fs::exists(qmakeRootPath)) {
         BOOST_LOG_TRIVIAL(info)<<"qmake rules already installed ! skipping...";
         return 0;
     }
@@ -58,7 +61,7 @@ int InitCommand::execute()
     }
     source += release;
     source += "/builddefs-qmake-package.zip";
-    BOOST_LOG_TRIVIAL(info)<<"Installing qmake rules version "<<release;
+    BOOST_LOG_TRIVIAL(info)<<"Installing qmake rules version ["<<release<<"]";
     fs::path artefactFolder = installArtefact(m_options,source,remakenRulesPath);
 
     if (fs::exists(artefactFolder)) {
