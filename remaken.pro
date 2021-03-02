@@ -41,6 +41,7 @@ HEADERS += \
     src/Constants.h \
     src/Cache.h \
     src/AbstractCommand.h \
+#    src/HttpAsyncDownloader.h \
     src/InfoCommand.h \
     src/InitCommand.h \
     src/InstallCommand.h \
@@ -71,6 +72,7 @@ SOURCES += \
     src/BundleManager.cpp \
     src/BundleXpcfCommand.cpp \
     src/CleanCommand.cpp \
+#    src/HttpAsyncDownloader.cpp \
     src/InfoCommand.cpp \
     src/PackageCommand.cpp \
     src/InitCommand.cpp \
