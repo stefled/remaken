@@ -124,8 +124,10 @@ Dependency::Dependency(const std::string & rawFormat, const std::string & mainMo
         }*/
     }
     if (results.size() == 7){
-        m_bHasOptions = true;
         m_toolOptions = stripEndlineChar(results[6]);
+        if (!m_toolOptions.empty()) {
+            m_bHasOptions = true;
+        }
     }
 }
 
