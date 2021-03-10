@@ -380,18 +380,18 @@ void DependencyManager::retrieveDependencies(const fs::path &  dependenciesFile)
     }
 }
 
-std::vector<fs::path> DependencyManager::getChildrenDependencies(const fs::path &  outputDirectory, const std::string & osPlatform)
+std::vector<fs::path> DependencyManager::getChildrenDependencies(const fs::path &  outputDirectory, const std::string & osPlatform, const std::string & filePrefix)
 {
-    auto childrenDependencies = list<std::string>{"packagedependencies.txt"};
-    childrenDependencies.push_back("packagedependencies-"+ osPlatform + ".txt");
-    std::vector<fs::path> subDepsPath;
-    for (std::string childDependency : childrenDependencies) {
-        fs::path chidrenPackageDependenciesPath = outputDirectory / childDependency;
+    auto platformFiles = list<std::string>{filePrefix + ".txt"};
+    platformFiles.push_back(filePrefix + "-"+ osPlatform + ".txt");
+    std::vector<fs::path> filePaths;
+    for (std::string file : platformFiles) {
+        fs::path chidrenPackageDependenciesPath = outputDirectory / file;
         if (fs::exists(chidrenPackageDependenciesPath)) {
-            subDepsPath.push_back(fs::absolute(chidrenPackageDependenciesPath));
+            filePaths.push_back(fs::absolute(chidrenPackageDependenciesPath));
         }
     }
-    return subDepsPath;
+    return filePaths;
 }
 
 

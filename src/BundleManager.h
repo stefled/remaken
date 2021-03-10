@@ -42,6 +42,7 @@ public:
     int bundleXpcf();
 
 private:
+    void parseIgnoreInstall(const fs::path &  dependenciesPath);
     void updateModuleNode(tinyxml2::XMLElement * xmlModuleElt);
     int updateXpcfModulesPath(const fs::path & configurationFilePath);
     void declareModule(tinyxml2::XMLElement * xmlModuleElt);
@@ -52,6 +53,7 @@ private:
 
     std::map<std::string, fs::path> m_modulesPathMap;
     std::map<std::string, std::string> m_modulesUUiDMap;
+    std::map<std::string,bool> m_ignoredPackages;
     const CmdOptions & m_options;
 
 };

@@ -133,6 +133,10 @@ public:
         return m_override;
     }
 
+    bool recurse() const {
+        return m_recurse;
+    }
+
     bool force() const {
         return m_force;
     }
@@ -186,6 +190,7 @@ private:
     fs::path m_moduleSubfolderPath;
     bool m_ignoreCache;
     bool m_verbose;
+    bool m_recurse;
     bool m_isXpcfBundle = false;
     bool m_cleanAll = true;
     bool m_force = false;

@@ -43,7 +43,7 @@ public:
     int retrieve();
     int parse();
     int clean();
-    static std::vector<fs::path> getChildrenDependencies(const fs::path & outputDirectory, const std::string & osPlatform);
+    static std::vector<fs::path> getChildrenDependencies(const fs::path & outputDirectory, const std::string & osPlatform, const std::string & filePrefix = "packagedependencies");
     static std::vector<Dependency> parse(const fs::path & dependenciesPath, const std::string & linkMode);
 
 private:

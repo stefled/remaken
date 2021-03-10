@@ -279,7 +279,8 @@ void ConanSystemTool::bundle(const Dependency & dependency)
 {
     std::string source = computeConanRef(dependency);
     std::string buildType = "build_type=Debug";
-    const fs::path & destination = m_options.getDestinationRoot();
+    fs::path destination = m_options.getDestinationRoot();
+    destination /= ".conan";
 
     if (m_options.getConfig() == "release") {
         buildType = "build_type=Release";
@@ -317,7 +318,10 @@ void ConanSystemTool::bundle(const Dependency & dependency)
         throw std::runtime_error("Error bundling conan dependency : " + source);
     }
     fs::detail::utf8_codecvt_facet utf8;
-    fs::path conanBuildInfoJson = destination/"conanbuildinfo.json";
+    std::string fileName = dependency.getPackageName() + "_conanbuildinfo.json";
+    fs::path conanBuildInfoJson = destination/fileName;
+    fs::copy_file(destination/"conanbuildinfo.json", conanBuildInfoJson, fs::copy_options::overwrite_existing);
+    fs::remove(destination/"conanbuildinfo.json");
     if (fs::exists(conanBuildInfoJson)) {
         std::ifstream ifs1{ conanBuildInfoJson.generic_string(utf8) };
         nj::json conanBuildData = nj::json::parse(ifs1);

@@ -4,6 +4,7 @@
 #include <list>
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 #include <boost/dll.hpp>
+#include <boost/algorithm/string.hpp>
 //#include <zipper/unzipper.h>
 #include <future>
 #include "SystemTools.h"
@@ -35,7 +36,37 @@ fs::path BundleManager::buildDependencyPath()
     if (!fs::exists(dependenciesFile)) {
         throw std::runtime_error("The file does not exists " + dependenciesFile.generic_string(utf8));
     }
+    parseIgnoreInstall(dependenciesFile);
     return dependenciesFile;
+}
+
+void BundleManager::parseIgnoreInstall(const fs::path &  filepath)
+{
+    std::vector<fs::path> ignoreFileList = DependencyManager::getChildrenDependencies(filepath.parent_path(), m_options.getOS(), "packageignoreinstall");
+    for (fs::path ignoreFile : ignoreFileList) {
+        if (fs::exists(ignoreFile)) {
+            ifstream fis(ignoreFile.generic_string(),ios::in);
+            while (!fis.eof()) {
+                string curStr;
+                getline(fis,curStr);
+                if (!curStr.empty()) {
+                    std::string commentRegexStr = "^[ \t]*//";
+                    std::regex commentRegex(commentRegexStr, std::regex_constants::extended);
+                    std::smatch sm;
+                    // parsing finds commented lines
+                    if (!std::regex_search(curStr, sm, commentRegex, std::regex_constants::match_any)) {
+                        // line is not commented: parsing the package name
+                        boost::trim(curStr);
+                        m_ignoredPackages[curStr] = true;
+                    }
+                    else {
+                        std::cout<<"[IGNORED]: line '"<<curStr<<"' is commented !"<<std::endl;
+                    }
+                }
+            }
+            fis.close();
+        }
+    }
 }
 
 int BundleManager::bundle()
@@ -217,7 +248,7 @@ void BundleManager::bundleDependency(const Dependency & dependency)
     fs::detail::utf8_codecvt_facet utf8;
     shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(dependency, m_options);
     fs::path outputDirectory = fileRetriever->bundleArtefact(dependency);
-    if (!outputDirectory.empty() && dependency.getType() == Dependency::Type::REMAKEN) {
+    if (!outputDirectory.empty() && dependency.getType() == Dependency::Type::REMAKEN && m_options.recurse()) {
         this->bundleDependencies(outputDirectory/"packagedependencies.txt");
     }
 }
@@ -232,26 +263,14 @@ void BundleManager::bundleDependencies(const fs::path &  dependenciesFile)
                 if (!dependency.validate()) {
                     throw std::runtime_error("Error parsing dependency file : invalid format ");
                 }
-    // TODO check if system elevation is needed for choco install package
-    /*#ifdef BOOST_OS_WINDOWS_AVAILABLE
-                // Needs extensive tests to see if bundling needs privilege escalation
-                if (isSystemNeededElevation(dependency) && !OsTools::isElevated()) {
-                    throw std::runtime_error("Remaken needs elevated privileges to install system Windows " + SystemTools::getToolIdentifier() + " dependencies");
-                }
-    #endif*/
             }
             std::vector<std::shared_ptr<std::thread>> thread_group;
             for (Dependency const & dependency : dependencies) {
                 if (dependency.getType() == Dependency::Type::REMAKEN || dependency.getType() == Dependency::Type::CONAN) {
-    #ifdef REMAKEN_USE_THREADS
-                    thread_group.push_back(std::make_shared<std::thread>(&BundleManager::bundleDependency,this, dependency));
-    #else
-                    bundleDependency(dependency);
-    #endif
+                    if (!mapContains(m_ignoredPackages, dependency.getPackageName())) {
+                        bundleDependency(dependency);
+                    }
                 }
-            }
-            for (auto threadPtr : thread_group) {
-                threadPtr->join();
             }
         }
     }

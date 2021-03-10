@@ -134,6 +134,8 @@ CmdOptions::CmdOptions()
 
     CLI::App * bundleCommand = m_cliApp.add_subcommand("bundle","copy shared libraries dependencies to a destination folder");
     bundleCommand->add_option("--destination,-d", m_destinationRoot, "Destination directory")->required();
+    m_recurse = false;
+    bundleCommand->add_flag("--recurse", m_recurse, "recursive mode : bundle dependencies recursively");
     bundleCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files", true);
 
     CLI::App * bundleXpcfCommand = m_cliApp.add_subcommand("bundleXpcf","copy xpcf modules and their dependencies from their declaration in a xpcf xml file");
