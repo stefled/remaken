@@ -15,7 +15,7 @@ GitTool::GitTool(bool override): m_override(override)
     }
 }
 
-int GitTool::clone(const std::string & url, bool recurseSubModule, const fs::path & destinationRootFolder)
+int GitTool::clone(const std::string & url, const fs::path & destinationRootFolder, bool recurseSubModule)
 {
     fs::detail::utf8_codecvt_facet utf8;
     int result = -1;

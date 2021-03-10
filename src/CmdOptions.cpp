@@ -161,6 +161,8 @@ CmdOptions::CmdOptions()
     CLI::App * initCommand = m_cliApp.add_subcommand("init", "initialize remaken root folder and retrieve qmake rules");
     m_qmakeRulesTag = Constants::QMAKE_RULES_DEFAULT_TAG;
     initCommand->add_option("--tag", m_qmakeRulesTag, "the qmake rules tag version to install - either provide a tag or the keyword 'latest' to install latest qmake rules",true);
+    CLI::App * initVcpkgCommand = initCommand->add_subcommand("vcpkg", "setup vcpkg repository");
+
 
     CLI::App * versionCommand = m_cliApp.add_subcommand("version", "display remaken version");
 
@@ -273,15 +275,30 @@ CmdOptions::OptionResult CmdOptions::parseArguments(int argc, char** argv)
         validateOptions();
         auto sub = m_cliApp.get_subcommands().at(0);
         if (sub->get_name() == "profile") {
-            m_subcommand = sub->get_subcommands().at(0)->get_name();
+            if (sub->get_subcommands().size() > 0) {
+                m_subcommand = sub->get_subcommands().at(0)->get_name();
+            }
         }
         if (sub->get_name() == "package") {
-            m_subcommand = sub->get_subcommands().at(0)->get_name();
-            if (!m_subcommand.empty()) {
-                m_zipTool = "7z";
-                if (m_subcommand != "compress") {
-                    cout << "Error : package subcommand must be 'compress'. "<<m_subcommand<<" is an invalid subcommand !"<<endl;
-                    return OptionResult::RESULT_ERROR;
+            if (sub->get_subcommands().size() > 0) {
+                m_subcommand = sub->get_subcommands().at(0)->get_name();
+                if (!m_subcommand.empty()) {
+                    m_zipTool = "7z";
+                    if (m_subcommand != "compress") {
+                        cout << "Error : package subcommand must be 'compress'. "<<m_subcommand<<" is an invalid subcommand !"<<endl;
+                        return OptionResult::RESULT_ERROR;
+                    }
+                }
+            }
+        }
+        if (sub->get_name() == "init") {
+            if (sub->get_subcommands().size() > 0) {
+                m_subcommand = sub->get_subcommands().at(0)->get_name();
+                if (!m_subcommand.empty()) {
+                    if (m_subcommand != "vcpkg") {
+                        cout << "Error : init subcommand must be 'vcpkg'. "<<m_subcommand<<" is an invalid subcommand !"<<endl;
+                        return OptionResult::RESULT_ERROR;
+                    }
                 }
             }
         }

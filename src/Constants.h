@@ -37,6 +37,7 @@ public:
     static constexpr const char * ARTIFACTORY_API_KEY = "artifactoryApiKey";
     static constexpr const char * QMAKE_RULES_DEFAULT_TAG = "4.6.3";
     static constexpr const char * PKGINFO_FOLDER = ".pkginfo";
+    static constexpr const char * VCPKG_REPOURL = "https://github.com/microsoft/vcpkg";
 };
 
 #include <boost/filesystem.hpp>

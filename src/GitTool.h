@@ -33,7 +33,7 @@ class GitTool
 public:
     GitTool(bool override= false);
     virtual ~GitTool() = default;
-    int clone(const std::string & url, bool recurseSubModule, const fs::path & destinationRootFolder);
+    int clone(const std::string & url, const fs::path & destinationRootFolder, bool recurseSubModule = false);
 
 protected:
     static std::string getGitToolIdentifier();

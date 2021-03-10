@@ -4,7 +4,12 @@
 #include "PathBuilder.h"
 #include "HttpFileRetriever.h"
 #include "OsTools.h"
+#include "GitTool.h"
 #include <boost/log/trivial.hpp>
+#include <boost/process.hpp>
+
+
+namespace bp = boost::process;
 
 InitCommand::InitCommand(const CmdOptions & options):AbstractCommand(InitCommand::NAME),m_options(options)
 {
@@ -32,9 +37,36 @@ fs::path installArtefact(const CmdOptions & options, const std::string & source,
     return fs::path();
 }
 
+int setupVCPKG(const fs::path & remakenRootPackagesPath)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    int result = -1;
+    GitTool tool;
+    BOOST_LOG_TRIVIAL(info)<<"Installing vcpkg to [ "<<remakenRootPackagesPath.generic_string(utf8)<<"/vcpkg ]";
+    result = tool.clone(Constants::VCPKG_REPOURL, remakenRootPackagesPath / "vcpkg");
+    if (result != 0) {
+        return result;
+    }
+    #ifdef BOOST_OS_WINDOWS_AVAILABLE
+        result = bp::system(remakenRootPackagesPath / "vcpkg" / "bootstrap-vcpkg.bat");
+    #else
+        result = bp::system(remakenRootPackagesPath / "vcpkg" / "bootstrap-vcpkg.sh");
+    #endif
+    return result;
+}
+
 int InitCommand::execute()
 {
     fs::detail::utf8_codecvt_facet utf8;
+
+    if (!fs::exists(m_options.getRemakenRoot())) {
+        fs::create_directories(m_options.getRemakenRoot());
+    }
+    auto subCommand = m_options.getSubcommand();
+    if (subCommand == "vcpkg") {
+        return setupVCPKG(m_options.getRemakenRoot());
+    }
+    // no subcommand, process init command
     fs::path remakenRootPath = PathBuilder::getHomePath() / Constants::REMAKEN_FOLDER;
     fs::path remakenRulesPath = remakenRootPath / "rules";
     fs::path remakenProfilesPath = remakenRootPath / Constants::REMAKEN_PROFILES_FOLDER;
