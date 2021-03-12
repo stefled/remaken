@@ -52,7 +52,7 @@ std::string GitTool::getGitToolIdentifier()
     return "git";
 #endif
 #ifdef BOOST_OS_WINDOWS_AVAILABLE
-    return "7z";
+    return "git";
 #endif
 #ifdef BOOST_OS_BSD_FREE_AVAILABLE
    return "git";
