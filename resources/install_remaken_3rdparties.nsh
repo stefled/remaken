@@ -54,6 +54,7 @@ FunctionEnd
 
 ; REMAKEN_PKG_ROOT first path defintion
 Var remaken_pkg_root_text
+Var xpcf_module_root_text
 
 Section "!Remaken"	REMAKEN_APP
 	EnVar::SetHKCU
@@ -63,6 +64,16 @@ SectionEnd
 Section "!un.Remaken"
 	EnVar::SetHKCU
 	EnVar::Delete "REMAKEN_PKG_ROOT"
+SectionEnd
+
+Section "XPCF_MODULE_ROOT"	XPCF_MODULE_ENVVAR
+	EnVar::SetHKCU
+	EnVar::AddValue "XPCF_MODULE_ROOT" "$xpcf_module_root_text"
+SectionEnd
+
+Section "un.XPCF_MODULE_ROOT"
+	EnVar::SetHKCU
+	EnVar::Delete "XPCF_MODULE_ROOT"
 SectionEnd
 
 Section
@@ -165,6 +176,11 @@ Function CustomizeOnInit
 	SetRegView 64
 	ReadRegStr $0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${SETUP_GUID}" "current_remaken_pkg_root"
 	StrCpy $remaken_pkg_root_text $0
+	
+	; manage custom XPCF_MODULE_ROOT
+	SetRegView 64
+	ReadRegStr $0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${SETUP_GUID}" "current_xpcf_module_root"
+	StrCpy $xpcf_module_root_text $0
 FunctionEnd
 !endif
 
@@ -174,6 +190,11 @@ Function un.CustomizeUnOnInit
 	SetRegView 64
 	ReadRegStr $0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${SETUP_GUID}" "current_remaken_pkg_root"
 	StrCpy $remaken_pkg_root_text $0
+	
+	; manage custom XPCF_MODULE_ROOT
+	SetRegView 64
+	ReadRegStr $0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${SETUP_GUID}" "current_xpcf_module_root"
+	StrCpy $xpcf_module_root_text $0
 FunctionEnd
 !endif
 
@@ -181,6 +202,7 @@ FunctionEnd
 ; Section descriptions
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
   !insertmacro MUI_DESCRIPTION_TEXT ${REMAKEN_APP} "Install Remaken Tool"
+  !insertmacro MUI_DESCRIPTION_TEXT ${XPCF_MODULE_ENVVAR} "Configure and create XPCF_MODULE_ROOT environment variable"
   !insertmacro MUI_DESCRIPTION_TEXT ${CHOCO_TOOLS} "Remaken use Chocolatey as system install tool"
   !insertmacro MUI_DESCRIPTION_TEXT ${CHOCO_TOOLS_7ZIP} "Remaken use 7zip as system file compression/extraction tool"
   !insertmacro MUI_DESCRIPTION_TEXT ${CHOCO_TOOLS_CURL} "Remaken use Curl as system file download tool"
@@ -197,6 +219,13 @@ Var BrowseButton
 Var NextButton
 Var Label
 Function custompage_remakenroot 
+	
+	#https://nsis.sourceforge.io/Show_custom_page_when_a_section_has_been_selected
+	SectionGetFlags ${XPCF_MODULE_ENVVAR} $R0 
+	IntOp $R0 $R0 & ${SF_SELECTED} 
+	IntCmp $R0 ${SF_SELECTED} show 
+ 	Abort 
+	show:	
 	
 	;if empty use $PROFILE else currentdir read in registry
 	StrCmp $remaken_pkg_root_text '' 0 lbl_currentdir
@@ -219,7 +248,7 @@ Function custompage_remakenroot
     
 	${NSD_CreateBrowseButton} 85% 56u 15% 12u "Browse"
     Pop $BrowseButton
-    ${NSD_OnClick} $BrowseButton OnBrowseForDir	
+    ${NSD_OnClick} $BrowseButton OnBrowseForDir_remakenroot
 	
 	${NSD_CreateLabel} 0u 74u 100% 12u "REMAKEN_PKG_ROOT env var is PKG_ROOT_PATH\.remaken"
 	
@@ -230,7 +259,7 @@ Function custompage_remakenroot
 	
 
 	GetDlgItem $NextButton $HWNDPARENT 1 ; next=1, cancel=2, back=315
-	${NSD_OnChange} $TextBox OnValidatePath
+	${NSD_OnChange} $TextBox OnValidatePath_remakenroot
 	
 	System::Call shlwapi::SHAutoComplete(p$TextBox,i${SHACF_FILESYSTEM})
 	
@@ -244,7 +273,7 @@ Function custompage_remakenroot_leave
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${SETUP_GUID}" "current_remaken_pkg_root" "$remaken_pkg_root_text"
 FunctionEnd
 
-Function OnBrowseForDir
+Function OnBrowseForDir_remakenroot
 	${NSD_GetText} $TextBox $remaken_pkg_root_text
     nsDialogs::SelectFolderDialog /NOUNLOAD "Directory" $remaken_pkg_root_text
     Pop $0
@@ -256,7 +285,7 @@ Function OnBrowseForDir
 FunctionEnd
 
 ; check valid path
-Function OnValidatePath	
+Function OnValidatePath_remakenroot
 	${NSD_GetText} $TextBox $remaken_pkg_root_text
 	StrCpy $R2 $remaken_pkg_root_text 1 2
 	StrCmp $R2 "\" PathOK
@@ -268,6 +297,69 @@ Function OnValidatePath
 	OnValidatePathEnd:
 FunctionEnd
 
+
+Function custompage_xpcfmoduleroot 
+	
+	;if empty use $PROFILE else currentdir read in registry
+	StrCmp $xpcf_module_root_text '' 0 lbl_xpcfcurrentdir
+	StrCpy $xpcf_module_root_text "$PROFILE\.remaken\packages\win-cl-14.1\"
+	lbl_xpcfcurrentdir:
+		
+	!insertmacro MUI_HEADER_TEXT "Define XPCF_MODULE_ROOT environment variable" ""
+    nsDialogs::Create 1018
+    Pop $0
+    ${NSD_CreateLabel} 0 0u 100% 12u "When not overrided in a previous install, it defaults to :"
+	${NSD_CreateLabel} 12u 12u 100% 12u "$PROFILE\.remaken\packages\win-cl_14.1"
+	${NSD_CreateLabel} 0u 28u 100% 12u "Current XPCF_MODULE_ROOT value is : $xpcf_module_root_text"
+	${NSD_CreateLabel} 0u 44u 100% 12u "Please select XPCF_MODULE_ROOT path :"
+		
+	Pop $0
+	${NSD_CreateDirRequest} 0 56u 84% 12u "$xpcf_module_root_text"
+    Pop $TextBox
+    ${NSD_SetText} $TextBox $xpcf_module_root_text
+    
+	${NSD_CreateBrowseButton} 85% 56u 15% 12u "Browse"
+    Pop $BrowseButton
+    ${NSD_OnClick} $BrowseButton OnBrowseFor_xpcfmoduleroot	
+	
+	GetDlgItem $NextButton $HWNDPARENT 1 ; next=1, cancel=2, back=315
+	${NSD_OnChange} $TextBox OnValidate_xpcfmoduleroot
+	
+	System::Call shlwapi::SHAutoComplete(p$TextBox,i${SHACF_FILESYSTEM})
+	
+	nsDialogs::Show
+	
+FunctionEnd
+
+Function custompage_xpcfmoduleroot_leave
+	${NSD_GetText} $TextBox $xpcf_module_root_text
+	SetRegView 64
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${SETUP_GUID}" "current_xpcf_module_root" "$xpcf_module_root_text"
+FunctionEnd
+
+Function OnBrowseFor_xpcfmoduleroot	
+	${NSD_GetText} $TextBox $xpcf_module_root_text
+    nsDialogs::SelectFolderDialog /NOUNLOAD "Directory" $xpcf_module_root_text
+    Pop $0
+    ${If} $0 == error
+    ${Else}
+        StrCpy $xpcf_module_root_text $0
+        ${NSD_SetText} $TextBox $xpcf_module_root_text
+    ${EndIf}
+FunctionEnd
+
+; check valid path
+Function OnValidate_xpcfmoduleroot	
+	${NSD_GetText} $TextBox $xpcf_module_root_text
+	StrCpy $R2 $xpcf_module_root_text 1 2
+	StrCmp $R2 "\" PathOK
+	EnableWindow $NextButton 0 ;disable next/install button
+	goto OnValidateXpcfPathEnd
+	
+	PathOK:
+		EnableWindow $NextButton 1 ;enable next/install button
+	OnValidateXpcfPathEnd:
+FunctionEnd
 
 !endif
 
