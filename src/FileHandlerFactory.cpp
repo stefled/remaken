@@ -3,8 +3,8 @@
 #include "ConanFileRetriever.h"
 #include "FSFileRetriever.h"
 #include "SystemFileRetriever.h"
-#include "VCPKGFileRetriever.h"
 #include "HttpFileRetriever.h"
+#include <chrono>
 
 std::atomic<FileHandlerFactory*> FileHandlerFactory::m_instance;
 std::mutex FileHandlerFactory::m_mutex;
@@ -62,11 +62,8 @@ std::shared_ptr<IFileRetriever> FileHandlerFactory::getFileHandler(const Depende
     if (dependency.getRepositoryType() == "conan") {
         return make_shared<ConanFileRetriever>(options);
     }
-    if (dependency.getRepositoryType() == "vcpkg") {
-        return make_shared<VCPKGFileRetriever>(options);
-    }
-    if (dependency.getRepositoryType() == "system") {
-        return make_shared<SystemFileRetriever>(options);
+    if (dependency.getRepositoryType() == "vcpkg" || dependency.getRepositoryType() == "system") {
+        return make_shared<SystemFileRetriever>(options, dependency);
     }
     return getFileHandler(options);
 }

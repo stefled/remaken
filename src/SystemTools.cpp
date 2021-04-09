@@ -53,6 +53,7 @@ public:
 
 
 private:
+    std::string computeToolRef( const Dependency &  dependency) override;
 };
 
 class YumSystemTool : public BaseSystemTool
@@ -214,61 +215,119 @@ std::string SystemTools::getToolIdentifier()
     return "";
 }
 
-std::shared_ptr<BaseSystemTool> SystemTools::createTool(const CmdOptions & options)
+std::map<std::string,std::vector<std::string>> supportedTools =
 {
-#ifdef BOOST_OS_ANDROID_AVAILABLE
-    return nullptr;// or conan as default? but implies to set conan options
-#endif
-#ifdef BOOST_OS_IOS_AVAILABLE
-    return nullptr;// or conan as default? but implies to set conan options
-#endif
+    {"linux",{"brew"}},
+    {"windows",{"scoop"}},
+};
+
+bool SystemTools::isToolSupported(const std::string & tool)
+{
+    const std::string & systemTool = getToolIdentifier();
+    if (tool == systemTool) {
+        return true;
+    }
+
 #ifdef BOOST_OS_LINUX_AVAILABLE
-    // need to figure out the location of apt, yum ...
-    boost::filesystem::path p = bp::search_path("apt-get");
-    if (!p.empty()) {
-        return std::make_shared<AptSystemTool>(options);
-    }
-
-    p = bp::search_path("yum");
-    if (!p.empty()) {
-        return std::make_shared<YumSystemTool>(options);
-    }
-
-    p = bp::search_path("pacman");
-    if (!p.empty()) {
-        return std::make_shared<PacManSystemTool>(options);
-    }
-
-    p = bp::search_path("zypper");
-    if (!p.empty()) {
-        return std::make_shared<ZypperSystemTool>(options);
+    for (auto & supportedTool : supportedTools.at("linux")) {
+        if (supportedTool == tool) {
+            return true;
+        }
     }
 #endif
 #ifdef BOOST_OS_SOLARIS_AVAILABLE
-    return std::make_shared<PkgUtilSystemTool>(options);
+    return "pkgutil";
 #endif
 #ifdef BOOST_OS_MACOS_AVAILABLE
-    return std::make_shared<BrewSystemTool>(options);
+    for (auto & supportedTool : supportedTools.at("mac")) {
+        if (supportedTool == tool) {
+            return true;
+        }
+    }
 #endif
 #ifdef BOOST_OS_WINDOWS_AVAILABLE
-    return std::make_shared<ChocoSystemTool>(options);
+    for (auto & supportedTool : supportedTools.at("windows")) {
+        if (supportedTool == tool) {
+            return true;
+        }
+    }
 #endif
+    return false;
+}
+
+std::shared_ptr<BaseSystemTool> SystemTools::createTool(const CmdOptions & options, std::optional<std::reference_wrapper<const Dependency>> dependencyOpt)
+{
+
+    if (dependencyOpt.has_value()) {
+        const Dependency & dependency = dependencyOpt.value().get();
+        std::string explicitToolName = dependency.getIdentifier();
+        if (explicitToolName == "system") {
+            // get tool identifier for current OS
+            explicitToolName = getToolIdentifier();
+        }
+        boost::filesystem::path p = bp::search_path(explicitToolName);
+        if (!p.empty()) {
+#ifdef BOOST_OS_ANDROID_AVAILABLE
+            return nullptr;// or conan as default? but implies to set conan options
+#endif
+#ifdef BOOST_OS_IOS_AVAILABLE
+            return nullptr;// or conan as default? but implies to set conan options
+#endif
+#ifdef BOOST_OS_LINUX_AVAILABLE
+            if (explicitToolName == "apt-get") {
+                return std::make_shared<AptSystemTool>(options);
+            }
+            if (explicitToolName == "yum") {
+                return std::make_shared<YumSystemTool>(options);
+            }
+            if (explicitToolName == "pacman") {
+                return std::make_shared<PacManSystemTool>(options);
+            }
+            if (explicitToolName == "zypper") {
+                return std::make_shared<ZypperSystemTool>(options);
+            }
+            if (explicitToolName == "pkgutil") {
+                return std::make_shared<PkgUtilSystemTool>(options);
+            }
+#endif
+#ifdef BOOST_OS_MACOS_AVAILABLE || BOOST_OS_LINUX_AVAILABLE
+            if (explicitToolName == "brew") {
+                return std::make_shared<BrewSystemTool>(options);
+            }
+#endif
+#ifdef BOOST_OS_WINDOWS_AVAILABLE
+            if (explicitToolName == "choco") {
+                return std::make_shared<ChocoSystemTool>(options);
+            }
+            if (explicitToolName == "scoop") {
+                return std::make_shared<ZypperSystemTool>(options);
+            }
+#endif
+
 #ifdef BOOST_OS_BSD_FREE_AVAILABLE
-    return std::make_shared<PkgToolSystemTool>(options);
+            if (explicitToolName == "pkg") {
+                return std::make_shared<PkgToolSystemTool>(options);
+            }
 #endif
+            if (explicitToolName == "vcpkg") {
+                return std::make_shared<VCPKGSystemTool>(options);
+            }
+        }
+        throw std::runtime_error("Error: unable to find " + explicitToolName + " tool for dependency [" +dependency.getPackageName() + ":" + dependency.getVersion() +  "]. Please check your configuration and environment.");
+    }
     return nullptr;
 }
 
 
 static const std::map<std::string,std::string> conanArchTranslationMap ={{"x86_64", "x86_64"},
-                                                                    {"i386", "x86"},
-                                                                    {"arm", "armv7"},
-                                                                    {"arm64", "armv8"},
-                                                                    {"armv6", "armv6"},
-                                                                    {"armv7", "armv7"},
-                                                                    {"armv7hf", "armv7hf"},
-                                                                    {"armv8", "armv8"}
-                                                                   };
+                                                                         {"i386", "x86"},
+                                                                         {"arm", "armv7"},
+                                                                         {"arm64", "armv8"},
+                                                                         {"armv6", "armv6"},
+                                                                         {"armv7", "armv7"},
+                                                                         {"armv7hf", "armv7hf"},
+                                                                         {"armv8", "armv8"}
+                                                                        };
 
 
 void ConanSystemTool::update()
@@ -277,7 +336,7 @@ void ConanSystemTool::update()
 
 void ConanSystemTool::bundle(const Dependency & dependency)
 {
-    std::string source = computeConanRef(dependency);
+    std::string source = computeToolRef(dependency);
     std::string buildType = "build_type=Debug";
     fs::path destination = m_options.getDestinationRoot();
     destination /= ".conan";
@@ -340,7 +399,7 @@ void ConanSystemTool::bundle(const Dependency & dependency)
 
 void ConanSystemTool::install(const Dependency & dependency)
 {
-    std::string source = computeConanRef(dependency);
+    std::string source = computeToolRef(dependency);
     std::string buildType = "build_type=Debug";
 
     if (m_options.getConfig() == "release") {
@@ -357,7 +416,7 @@ void ConanSystemTool::install(const Dependency & dependency)
         boost::split(options, dependency.getToolOptions(), [](char c){return c == '#';});
         for (const auto & option: options) {
             optionsArgs.push_back("-o " + option);
-       }
+        }
     }
     std::string cppStd="compiler.cppstd=";
     cppStd += m_options.getCppVersion();
@@ -382,7 +441,7 @@ bool ConanSystemTool::installed(const Dependency & dependency)
     return false;
 }
 
-std::string ConanSystemTool::computeConanRef(const Dependency &  dependency)
+std::string ConanSystemTool::computeToolRef(const Dependency &  dependency)
 {
     std::string sourceURL = dependency.getPackageName();
     sourceURL += "/" + dependency.getVersion();
@@ -397,12 +456,11 @@ std::string ConanSystemTool::computeConanRef(const Dependency &  dependency)
 
 std::string ConanSystemTool::computeSourcePath(const Dependency &  dependency)
 {
-    std::string sourceURL = computeConanRef(dependency);
+    std::string sourceURL = computeToolRef(dependency);
     sourceURL += "|" + m_options.getBuildConfig();
     sourceURL += "|" + dependency.getToolOptions();
     return sourceURL;
 }
-
 
 void VCPKGSystemTool::update()
 {
@@ -436,11 +494,30 @@ std::string VCPKGSystemTool::computeToolRef( const Dependency &  dependency)
     if (options2vcpkg.find(arch) == options2vcpkg.end()) {
         throw std::runtime_error("Error installing vcpkg dependency : unsupported architecture " + arch);
     }
+    std::vector<std::string> options;
+    std::string optionStr;
+
     os = options2vcpkg.at(os);
     arch = options2vcpkg.at(arch);
     std::string sourceURL = dependency.getPackageName();
+
+    if (dependency.hasOptions()) {
+        sourceURL += "[";
+        boost::split(options, dependency.getToolOptions(), [](char c){return c == '#';});
+        for (auto option: options) {
+            if (!optionStr.empty()) {
+                optionStr += ",";
+            }
+            boost::trim(option);
+            optionStr += option;
+        }
+        sourceURL += optionStr;
+        sourceURL += "]";
+    }
+
     sourceURL += ":" + arch;
     sourceURL += "-" + os;
+    sourceURL += "-" + mode;
     return sourceURL;
 }
 
@@ -473,7 +550,13 @@ bool AptSystemTool::installed(const Dependency & dependency)
     return result == 0;
 }
 
-
+std::string BrewSystemTool::computeToolRef(const Dependency &  dependency)
+{
+    std::string sourceURL = dependency.getPackageName();
+    // package@version is not supported for all packages - not reliable !
+    // sourceURL += "@" + dependency.getVersion();
+    return sourceURL;
+}
 
 void BrewSystemTool::update()
 {

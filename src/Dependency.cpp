@@ -1,4 +1,5 @@
 #include "Dependency.h"
+#include "SystemTools.h"
 #include "Constants.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/log/trivial.hpp>
@@ -12,7 +13,12 @@ const std::map<std::string,Dependency::Type> str2type = {
     {"path",Dependency::Type::REMAKEN},
     {"conan",Dependency::Type::CONAN},
     {"system",Dependency::Type::SYSTEM},
-    {"vcpkg",Dependency::Type::VCPKG}
+    {"vcpkg",Dependency::Type::VCPKG},
+    {"brew",Dependency::Type::BREW},
+    {"choco",Dependency::Type::SYSTEM},
+    {"scoop",Dependency::Type::SCOOP},
+    {"apt-get",Dependency::Type::SYSTEM},
+    {"yum",Dependency::Type::SYSTEM}
 };
 
 Dependency::Type deduceType(const std::string typeStr)
@@ -53,22 +59,72 @@ std::ostream& operator<< (std::ostream& stream, const Dependency& dep)
     return stream;
 }
 
+std::string Dependency::toString() const
+{
+    std::string str = getPackageName() + "|" + getVersion() + "|" + getName() + "|" + getIdentifier() + "@" + getRepositoryType() + "|" + getBaseRepository() + "|" + getMode() + "|" + getToolOptions();
+    return str;
+}
+
+bool Dependency::isSystemDependency() const
+{
+    return (m_repositoryType == "system");
+}
+
+bool Dependency::isSpecificSystemToolDependency() const
+{
+    return isSystemDependency() && ! isGenericSystemDependency() && (m_identifier != SystemTools::getToolIdentifier()) && (SystemTools::isToolSupported(m_identifier));
+}
+
+bool Dependency::isGenericSystemDependency() const
+{
+    return isSystemDependency() && ((m_identifier == "system") || (m_identifier == SystemTools::getToolIdentifier()));
+}
+
+bool Dependency::needsPriviledgeElevation() const
+{
+#ifdef BOOST_OS_WINDOWS_AVAILABLE
+
+    return (isSystemDependency(dep) && SystemTools::getToolIdentifier() == "choco");
+#endif
+    return false;
+}
+
+std::string Dependency::parseConditions(const std::string & token)
+{
+    std::vector<std::string> conditions;
+    std::string firstPart;
+    boost::split(conditions, token, [](char c){return c == '%';});
+    firstPart = conditions[0];
+    if (conditions.size() >= 2) {
+        m_bHasConditions = true;
+        for (uint32_t i = 1 ; i< conditions.size() ; i++) {
+            m_buildConditions.push_back(conditions[i]);
+        }
+    }
+    return firstPart;
+}
+
 
 Dependency::Dependency(const std::string & rawFormat, const std::string & mainMode):m_packageChannel("stable"),m_repositoryType("github")
 {
-    std::vector<std::string> results, pkgInformations, repositoryInformations;
+    std::vector<std::string> results, pkgInformations, repositoryInformations, conditions;
     boost::split(results, rawFormat, [](char c){return c == '|';});
     boost::split(pkgInformations, results[0], [](char c){return c == '#';});
     boost::split(repositoryInformations, results[3], [](char c){return c == '@';});
-    m_packageName = pkgInformations[0];
-    boost::trim(m_packageName);
+
+
     if (pkgInformations.size() >= 2) {
-        m_packageChannel = pkgInformations[1];
+        m_packageName = pkgInformations[0];
+        m_packageChannel = parseConditions(pkgInformations[1]);
         boost::trim(m_packageChannel);
+    }
+    else {
+        m_packageName = parseConditions(pkgInformations[0]);
+        boost::trim(m_packageName);
     }
     m_version = results[1];
     boost::trim(m_version);
-    m_name = results[2];
+    m_name = parseConditions(results[2]);
     boost::trim(m_name);
     m_identifier = repositoryInformations[0];
     boost::trim(m_identifier);

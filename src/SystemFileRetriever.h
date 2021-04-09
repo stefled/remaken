@@ -27,11 +27,12 @@
 #include "CmdOptions.h"
 #include "AbstractFileRetriever.h"
 #include "SystemTools.h"
+#include <optional>
 
 class SystemFileRetriever : public AbstractFileRetriever
 {
 public:
-    SystemFileRetriever(const CmdOptions & options);
+    SystemFileRetriever(const CmdOptions & options, std::optional<std::reference_wrapper<const Dependency>> dependencyOpt=std::nullopt);
     ~SystemFileRetriever() override = default;
 
     fs::path installArtefact(const Dependency & dependency) override;

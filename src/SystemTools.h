@@ -25,10 +25,10 @@
 
 #include "Constants.h"
 #include "CmdOptions.h"
+#include "Dependency.h"
 #include <list>
 #include <boost/log/trivial.hpp>
 
-#include "Dependency.h"
 class BaseSystemTool
 {
 public:
@@ -57,7 +57,8 @@ public:
     SystemTools(const CmdOptions & options) = delete;
     ~SystemTools() = delete;
     static std::string getToolIdentifier();
-    static std::shared_ptr<BaseSystemTool> createTool(const CmdOptions & options);
+    static bool isToolSupported(const std::string & tool);
+    static std::shared_ptr<BaseSystemTool> createTool(const CmdOptions & options, std::optional<std::reference_wrapper<const Dependency>> dependencyOpt=std::nullopt);
 };
 
 class ConanSystemTool : public BaseSystemTool
@@ -72,13 +73,14 @@ public:
     std::string computeSourcePath( const Dependency &  dependency) override;
 
 private:
-    std::string computeConanRef(const Dependency & dependency);
+    std::string computeToolRef( const Dependency &  dependency) override;
 };
 
 class VCPKGSystemTool : public BaseSystemTool
 {
 public:
-    VCPKGSystemTool(const CmdOptions & options):BaseSystemTool(options, "vcpkg") {}
+    fs::detail::utf8_codecvt_facet utf8;
+    VCPKGSystemTool(const CmdOptions & options):BaseSystemTool(options, options.getRemakenRoot().generic_string(utf8) + "/vcpkg/vcpkg") {}
     ~VCPKGSystemTool() override = default;
     void update() override;
     void install(const Dependency & dependency) override;

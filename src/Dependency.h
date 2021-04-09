@@ -25,6 +25,7 @@
 
 #include <string>
 #include <sstream>
+#include <vector>
 
 class Dependency
 {
@@ -34,6 +35,9 @@ public:
         REMAKEN = 0,
         CONAN,
         VCPKG,
+        BREW,
+        CHOCO,
+        SCOOP,
         SYSTEM
     };
 
@@ -84,6 +88,11 @@ public:
         return m_bHasOptions;
     }
 
+
+    inline bool hasConditions() const {
+        return m_bHasConditions;
+    }
+
     inline bool hasIdentifier() const {
         return m_bHasIdentifier;
     }
@@ -93,11 +102,21 @@ public:
         return m_toolOptions;
     }
 
+    inline const std::vector<std::string> & getConditions() const {
+        return m_buildConditions;
+    }
+
+    bool isSystemDependency() const;
+    bool isSpecificSystemToolDependency() const;
+    bool isGenericSystemDependency() const;
+    bool needsPriviledgeElevation() const;
     bool validate();
 
     friend std::ostream& operator<< (std::ostream& stream, const Dependency& dep);
+    std::string toString() const;
 
 private:
+    std::string parseConditions(const std::string & token);
     std::string m_packageName;
     std::string m_packageChannel;
     std::string m_name;
@@ -107,8 +126,10 @@ private:
     std::string m_repositoryType;
     std::string m_mode;
     std::string m_toolOptions;
+    std::vector<std::string> m_buildConditions;
     Type m_type;
     bool m_bHasOptions = false;
+    bool m_bHasConditions = false;
     bool m_bHasIdentifier = false;
 };
 

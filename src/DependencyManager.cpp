@@ -4,6 +4,7 @@
 #include <list>
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 #include <boost/dll.hpp>
+#include <boost/algorithm/string.hpp>
 //#include <zipper/unzipper.h>
 #include <future>
 #include "SystemTools.h"
@@ -15,28 +16,6 @@
 using namespace std;
 using std::placeholders::_1;
 using std::placeholders::_2;
-
-bool isSystemDependency(const Dependency & dep)
-{
-    return (dep.getRepositoryType() == "system");
-}
-
-bool isSpecificSystemToolDependency(const Dependency & dep)
-{
-    return isSystemDependency(dep) && (dep.getIdentifier() == SystemTools::getToolIdentifier());
-}
-
-bool isGenericSystemDependency(const Dependency & dep)
-{
-    return isSystemDependency(dep) && (dep.getIdentifier() == "system");
-}
-
-#ifdef BOOST_OS_WINDOWS_AVAILABLE
-bool isSystemNeededElevation(const Dependency & dep)
-{
-    return (isSystemDependency(dep) && SystemTools::getToolIdentifier() == "choco");
-}
-#endif
 
 DependencyManager::DependencyManager(const CmdOptions & options):m_options(options),m_cache(options)
 {
@@ -82,7 +61,7 @@ int DependencyManager::parse()
             bValid = false;
         }
 #ifdef BOOST_OS_WINDOWS_AVAILABLE
-        if (isSystemNeededElevation(dep)) {
+        if (dep.needsPriviledgeElevation()) {
             bNeedElevation = true;
         }
 #endif
@@ -190,7 +169,7 @@ std::vector<Dependency> removeRedundantDependencies(const std::multimap<std::str
     std::multimap<std::string,std::pair<std::size_t,Dependency>> dependencyMap;
     std::vector<Dependency> depVector;
     for (auto const & node : dependencies) {
-        if (!isSystemDependency(node.second)) {
+        if (!node.second.isSystemDependency()) {
             depVector.push_back(std::move(node.second));
         }
         else {// System dependency
@@ -199,7 +178,7 @@ std::vector<Dependency> removeRedundantDependencies(const std::multimap<std::str
                 depVector.push_back(std::move(node.second));
             }
             else {
-                if (isSpecificSystemToolDependency(node.second)) {
+                if (node.second.isSpecificSystemToolDependency()) {
                     // there must be one dedicated tool when the dependency appears twice : add only the dedicated dependency
                     depVector.push_back(std::move(node.second));
                 }
@@ -225,7 +204,10 @@ std::vector<Dependency> DependencyManager::parse(const fs::path &  dependenciesP
                 if (!std::regex_search(curStr, sm, commentRegex, std::regex_constants::match_any)) {
                     // Dependency line is not commented: parsing the dependency
                     Dependency dep(curStr, linkMode);
-                    if (isGenericSystemDependency(dep)||isSpecificSystemToolDependency(dep)||!isSystemDependency(dep)) {
+
+                    if (dep.isGenericSystemDependency()
+                        ||dep.isSpecificSystemToolDependency()
+                        ||!dep.isSystemDependency()) {
                         // only add "generic" system or tool@system or other deps
                         libraries.insert(std::make_pair(dep.getName(), std::move(dep)));
                     }
@@ -349,18 +331,100 @@ void DependencyManager::retrieveDependency(Dependency &  dependency)
     this->retrieveDependencies(outputDirectory/"packagedependencies.txt");
 }
 
+void DependencyManager::generateConfigureFile(const fs::path &  rootFolderPath, const std::vector<Dependency> & deps)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    fs::path buildFolderPath = rootFolderPath/"build";
+    fs::path configureFilePath = buildFolderPath/"configure_conditions.pri";
+    if (deps.empty()) {
+        return;
+    }
+    if (fs::exists(configureFilePath) ) {
+        fs::remove(configureFilePath);
+    }
+    if (!fs::exists(buildFolderPath)) {
+        fs::create_directories(buildFolderPath);
+    }
+
+    std::ofstream configureFile(configureFilePath.generic_string(utf8).c_str(), std::ios::out);
+    for (auto & dep : deps) {
+        for (auto & condition : dep.getConditions()) {
+            configureFile << "DEFINES += " << condition;
+            configureFile << "\n";
+        }
+    }
+    configureFile.close();
+}
+
+void DependencyManager::parseConditionsFile(const fs::path &  rootFolderPath)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    fs::path configureFilePath = rootFolderPath/"configure_conditions.pri";
+    if (!fs::exists(configureFilePath)) {
+        return ;
+    }
+
+    std::ifstream configureFile(configureFilePath.generic_string(utf8).c_str(), std::ios::in);
+    while (!configureFile.eof()) {
+        std::vector<std::string> results;
+        string curStr;
+        getline(configureFile,curStr);
+        std::string formatRegexStr = "^[\t\s]*DEFINES[\t\s]*+=[\t\s]*[a-zA-Z0-9_-]*";
+        //std::regex formatRegexr(formatRegexStr, std::regex_constants::extended);
+        std::smatch sm;
+        //check string format is ^[\t\s]*DEFINES[\t\s]*+=[\t\s]*[a-zA-Z0-9_-]*
+       // if (std::regex_search(curStr, sm, formatRegexr, std::regex_constants::match_any)) {
+            boost::split(results, curStr, [](char c){return c == '=';});
+            if (results.size() == 2) {
+                std::string conditionValue = results[1];
+                boost::trim(conditionValue);
+                m_defaultConditionsMap.insert({conditionValue,true});
+            }
+       // }
+    }
+    configureFile.close();
+}
+
+std::vector<Dependency> DependencyManager::filterConditionDependencies(const std::vector<Dependency> & depCollection)
+{
+    std::vector<Dependency> filteredDepCollection;
+    for (auto const & dep : depCollection) {
+        bool conditionsFullfilled = true;
+        if (dep.hasConditions()) {
+            for (auto & condition : dep.getConditions()) {
+                if (!mapContains(m_defaultConditionsMap, condition)) {
+                    std::string msg = "configure project with [" + condition + "] (=> " + dep.getPackageName() +":"+dep.getVersion() +") ?";
+                    if (!yesno_prompt(msg.c_str()))  {
+                        conditionsFullfilled = false;
+                        std::cout<<"Dependency not configured "<<dep.toString()<<std::endl;
+                    }
+                }
+                else {
+                    std::cout<<"Configuring project with [" + condition + "] (=> " + dep.getPackageName() +":"+dep.getVersion() +")"<<std::endl;
+                }
+            }
+        }
+        if (conditionsFullfilled) {
+            filteredDepCollection.push_back(dep);
+        }
+    }
+    return filteredDepCollection;
+}
+
 void DependencyManager::retrieveDependencies(const fs::path &  dependenciesFile)
 {
     std::vector<fs::path> dependenciesFileList = getChildrenDependencies(dependenciesFile.parent_path(), m_options.getOS());
+    parseConditionsFile(dependenciesFile.parent_path());
+    std::vector<Dependency> conditionsDependencies;
     for (fs::path depsFile : dependenciesFileList) {
         if (fs::exists(depsFile)) {
-            std::vector<Dependency> dependencies = parse(depsFile, m_options.getMode());
+            std::vector<Dependency> dependencies = filterConditionDependencies( parse(depsFile, m_options.getMode()) );
             for (auto dep : dependencies) {
                 if (!dep.validate()) {
                     throw std::runtime_error("Error parsing dependency file : invalid format ");
                 }
 #ifdef BOOST_OS_WINDOWS_AVAILABLE
-                if (isSystemNeededElevation(dep) && !OsTools::isElevated()) {
+                if (dep.needsPriviledgeElevation() && !OsTools::isElevated()) {
                     throw std::runtime_error("Remaken needs elevated privileges to install system Windows " + SystemTools::getToolIdentifier() + " dependencies");
                 }
 #endif
@@ -371,6 +435,9 @@ void DependencyManager::retrieveDependencies(const fs::path &  dependenciesFile)
                 thread_group.push_back(std::make_shared<std::thread>(&DependencyManager::retrieveDependency,this, dependency));
 #else
                 retrieveDependency(dependency);
+                if (dependency.hasConditions()) {
+                    conditionsDependencies.push_back(dependency);
+                }
 #endif
             }
             for (auto threadPtr : thread_group) {
@@ -378,6 +445,7 @@ void DependencyManager::retrieveDependencies(const fs::path &  dependenciesFile)
             }
         }
     }
+    generateConfigureFile(dependenciesFile.parent_path(), conditionsDependencies);
 }
 
 std::vector<fs::path> DependencyManager::getChildrenDependencies(const fs::path &  outputDirectory, const std::string & osPlatform, const std::string & filePrefix)

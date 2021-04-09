@@ -59,7 +59,6 @@ HEADERS += \
     src/AsioWrapper.h \
     src/HttpHandlerFactory.h \
     src/ConanFileRetriever.h \
-    src/VCPKGFileRetriever.h \
     src/SystemFileRetriever.h \
     src/SystemTools.h \
     src/ParseCommand.h \
@@ -96,7 +95,6 @@ SOURCES += \
     src/AbstractFileRetriever.cpp \
     src/HttpHandlerFactory.cpp \
     src/ConanFileRetriever.cpp \
-    src/VCPKGFileRetriever.cpp \
     src/SystemFileRetriever.cpp \
     src/SystemTools.cpp \
     src/ParseCommand.cpp \

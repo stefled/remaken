@@ -7,9 +7,9 @@
 namespace fs = boost::filesystem;
 namespace bp = boost::process;
 
-SystemFileRetriever::SystemFileRetriever(const CmdOptions & options):AbstractFileRetriever (options)
+SystemFileRetriever::SystemFileRetriever(const CmdOptions & options, std::optional<std::reference_wrapper<const Dependency>> dependencyOpt):AbstractFileRetriever (options)
 {
-    m_tool = SystemTools::createTool(options);
+    m_tool = SystemTools::createTool(options, dependencyOpt);
 }
 
 std::string SystemFileRetriever::computeSourcePath( const Dependency &  dependency)

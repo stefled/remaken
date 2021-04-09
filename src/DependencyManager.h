@@ -47,6 +47,9 @@ public:
     static std::vector<Dependency> parse(const fs::path & dependenciesPath, const std::string & linkMode);
 
 private:
+    void generateConfigureFile(const fs::path &  rootFolderPath, const std::vector<Dependency> & deps);
+    void parseConditionsFile(const fs::path &  rootFolderPath);
+    std::vector<Dependency> filterConditionDependencies(const std::vector<Dependency> & depCollection);
     void retrieveDependencies(const fs::path & dependenciesFiles);
     void retrieveDependency(Dependency &  dependency);
     bool installDep(Dependency &  dependency, const std::string & source,
@@ -55,6 +58,7 @@ private:
     const CmdOptions & m_options;
     uint32_t m_indentLevel = 0;
     Cache m_cache;
+    std::map<std::string,bool> m_defaultConditionsMap;
 
 };
 
