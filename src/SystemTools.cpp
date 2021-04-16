@@ -290,7 +290,7 @@ std::shared_ptr<BaseSystemTool> SystemTools::createTool(const CmdOptions & optio
                 return std::make_shared<PkgUtilSystemTool>(options);
             }
 #endif
-#ifdef BOOST_OS_MACOS_AVAILABLE || BOOST_OS_LINUX_AVAILABLE
+#if defined(BOOST_OS_MACOS_AVAILABLE) || defined(BOOST_OS_LINUX_AVAILABLE)
             if (explicitToolName == "brew") {
                 return std::make_shared<BrewSystemTool>(options);
             }
