@@ -418,6 +418,13 @@ void ConanSystemTool::install(const Dependency & dependency)
             optionsArgs.push_back("-o " + option);
         }
     }
+    if (m_options.crossCompiling() && m_options.getConanProfile() == "default") {
+        std::string profileName = m_options.getOS() + "-" + m_options.getBuildToolchain() + "-" + m_options.getArchitecture();
+        optionsArgs.push_back("--profile " + profileName);
+    }
+    else {
+        optionsArgs.push_back("--profile " + m_options.getConanProfile());
+    }
     std::string cppStd="compiler.cppstd=";
     cppStd += m_options.getCppVersion();
     int result = -1;

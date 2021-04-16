@@ -30,7 +30,7 @@ class InfoCommand : public AbstractCommand
 public:
     InfoCommand(const CmdOptions & options);
     int execute() override;
-    static constexpr const char * NAME="clean";
+    static constexpr const char * NAME="info";
 
 private:
     const CmdOptions & m_options;

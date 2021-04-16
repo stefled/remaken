@@ -132,12 +132,15 @@ CmdOptions::CmdOptions()
     m_cliApp.add_flag("--override,-e", m_override, "override existing files while (re)-installing packages/rules...");
     m_dependenciesFile = "packagedependencies.txt";
 
+
+    // BUNDLE COMMAND
     CLI::App * bundleCommand = m_cliApp.add_subcommand("bundle","copy shared libraries dependencies to a destination folder");
     bundleCommand->add_option("--destination,-d", m_destinationRoot, "Destination directory")->required();
     m_recurse = false;
     bundleCommand->add_flag("--recurse", m_recurse, "recursive mode : bundle dependencies recursively");
     bundleCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files", true);
 
+    // BUNDLEXPCF COMMAND
     CLI::App * bundleXpcfCommand = m_cliApp.add_subcommand("bundleXpcf","copy xpcf modules and their dependencies from their declaration in a xpcf xml file");
     m_moduleSubfolder = "modules";
     bundleXpcfCommand->add_option("--destination,-d", m_destinationRoot, "Destination directory")->required();
@@ -147,10 +150,12 @@ CmdOptions::CmdOptions()
 
     CLI::App * cleanCommand = m_cliApp.add_subcommand("clean", "WARNING : remove every remaken installed packages");
 
+
+    // INFO COMMAND
     CLI::App * infoCommand = m_cliApp.add_subcommand("info", "Read package dependencies informations");
     infoCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files", true);
 
-
+    // PROFILE COMMAND
     CLI::App * profileCommand = m_cliApp.add_subcommand("profile", "manage remaken profiles configuration");
     CLI::App * initProfileCommand = profileCommand->add_subcommand("init", "create remaken default profile from current options");
     CLI::App * displayProfileCommand = profileCommand->add_subcommand("display", "display remaken current profile (display current options and profile options)");
@@ -158,19 +163,22 @@ CmdOptions::CmdOptions()
     displayProfileCommand->add_flag("--with-default,-w", m_defaultProfileOptions, "display all profile options : default and provided");
     initProfileCommand ->add_flag("--with-default,-w", m_defaultProfileOptions, "create remaken profile with all profile options : default and provided");
 
+    // INIT COMMAND
     CLI::App * initCommand = m_cliApp.add_subcommand("init", "initialize remaken root folder and retrieve qmake rules");
     m_qmakeRulesTag = Constants::QMAKE_RULES_DEFAULT_TAG;
     initCommand->add_option("--tag", m_qmakeRulesTag, "the qmake rules tag version to install - either provide a tag or the keyword 'latest' to install latest qmake rules",true);
     CLI::App * initVcpkgCommand = initCommand->add_subcommand("vcpkg", "setup vcpkg repository");
 
-
+    // VERSION COMMAND
     CLI::App * versionCommand = m_cliApp.add_subcommand("version", "display remaken version");
 
+    // INSTALL COMMAND
     CLI::App * installCommand = m_cliApp.add_subcommand("install", "install dependencies for a package from its packagedependencies file(s)");
     installCommand->add_option("--alternate-remote-type,-l", m_altRepoType, "alternate remote type: " + getOptionString("--alternate-remote-type"));
     installCommand->add_option("--alternate-remote-url,-u", m_altRepoUrl, "alternate remote url to use when the declared remote fails to provide a dependency");
     installCommand->add_option("--apiKey,-k", m_apiKey, "Artifactory api key");
     installCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files", true);
+    installCommand->add_option("--profile,-p", m_conanProfile, "force conan profile name to use (overrides detected profile)",true);
 
     m_ignoreCache = false;
     installCommand->add_flag("--ignore-cache,-i", m_ignoreCache, "ignore cache entries : dependencies update is forced");
@@ -181,6 +189,12 @@ CmdOptions::CmdOptions()
     m_zipTool = ZipTool::getZipToolIdentifier();
     installCommand->add_option("--ziptool,-z", m_zipTool, "unzipper tool name : unzip, compact ...", true);
 
+    // RUN COMMAND
+    CLI::App * runCommand = m_cliApp.add_subcommand("run", "run binary (and set dependencies path depending on the run environment)");
+    runCommand->add_option("--xpcf", m_xpcfConfigurationFile, "XPCF xml module declaration file path");
+    runCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files", true);
+
+    // PACKAGE COMMAND
     CLI::App * packageCommand = m_cliApp.add_subcommand("package","package a build result in remaken format");
     packageCommand->add_option("--sourcedir,-s", m_packageOptions["sourcedir"], "product root directory (where libs and includes are located)", true);//->required();
     packageCommand->add_option("--includedir,-i", m_packageOptions["includedir"], " relative path to include folder to export (defaults to the sourcedir provided with -s)\n");
@@ -209,6 +223,8 @@ CmdOptions::CmdOptions()
     print "    -w, --withsuffix suffix          => specify the suffix used by the thirdparty when building with mode mode\n";
     print "    -u, --useOriginalPCfiles         => specify to search and use original pkgconfig files from the thirdparty, instead of generating them\n";
    */
+
+    // COMPRESS SUBCOMMAND
     CLI::App * compressCommand = packageCommand->add_subcommand("compress","compress packages within a folder");
     compressCommand->fallthrough(false);
     m_packageCompressOptions["rootdir"] = boost::filesystem::initial_path().generic_string(utf8);
@@ -216,6 +232,7 @@ CmdOptions::CmdOptions()
     compressCommand->add_option("--packagename,-p", m_packageCompressOptions["packagename"], " package name\n");
     compressCommand->add_option("--packageversion,-k", m_packageCompressOptions["packageversion"], " package version\n");
 
+    // PARSE COMMAND
     CLI::App * parseCommand = m_cliApp.add_subcommand("parse","check dependency file validity");
     parseCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files", true);
 }
@@ -262,9 +279,7 @@ void CmdOptions::validateOptions()
     if (zipToolPath.empty()) {
         throw std::runtime_error("Error : " + m_zipTool + " command not found on the system. Please install it first.");
     }
-    if (m_os != computeOS()) { // cross compilation
-
-    }
+    m_crossCompile = (m_os != computeOS());
 }
 
 CmdOptions::OptionResult CmdOptions::parseArguments(int argc, char** argv)

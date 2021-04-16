@@ -26,44 +26,52 @@ FileHandlerFactory * FileHandlerFactory::instance()
 }
 
 
-std::shared_ptr<IFileRetriever> FileHandlerFactory::getFileHandler(const CmdOptions & options, bool useAlternateRepo)
+std::shared_ptr<IFileRetriever> FileHandlerFactory::getHandler(const Dependency & dependency, const CmdOptions & options, const std::string & repo)
 {
-    std::string repoType = options.getRepositoryType();
-    if (useAlternateRepo) {
-        repoType = options.getAlternateRepoType();
-        if (repoType.empty()) {
-            return nullptr;
+    std::lock_guard<std::mutex> lock(m_mutex);
+    if (!mapContains(m_handlers, repo)) {
+        if (repo == "github") {
+            m_handlers[repo] = make_shared<HttpFileRetriever>(options);
+        }
+        if ((repo == "artifactory") || (repo == "nexus")) {
+            m_handlers[repo] = make_shared<CredentialsFileRetriever>(options);
+        }
+        if (repo == "path") {
+            m_handlers[repo] = make_shared<FSFileRetriever>(options);
+        }
+        if (repo == "conan") {
+            m_handlers[repo] = make_shared<ConanFileRetriever>(options);
+        }
+        if (repo == "vcpkg" || repo == "system") {
+            m_handlers[repo] = make_shared<SystemFileRetriever>(options, dependency);
         }
     }
-    if (repoType == "github") {
-        return make_shared<HttpFileRetriever>(options);
+    if (mapContains(m_handlers, repo)) {
+        return m_handlers.at(repo);
     }
-    if ((repoType == "artifactory") || (repoType == "nexus")) {
-        return make_shared<CredentialsFileRetriever>(options);
+    return nullptr;
+}
+
+std::shared_ptr<IFileRetriever> FileHandlerFactory::getAlternateHandler(const Dependency & dependency,const CmdOptions & options)
+{
+    std::string repoType = options.getAlternateRepoType();
+    std::shared_ptr<IFileRetriever> retriever;
+    if (!repoType.empty()) {
+        retriever = getHandler(dependency, options, repoType);
     }
-    if (repoType == "path") {
-        return make_shared<FSFileRetriever>(options);
+    if (!retriever) {
+        // This should never happen, as command line options are validated in CmdOptions after parsing
+        throw std::runtime_error("Unknown repository type " + repoType);
     }
-    // This should never happen, as command line options are validated in CmdOptions after parsing
-    throw std::runtime_error("Unknown repository type " + repoType);
+    return retriever;
 }
 
 std::shared_ptr<IFileRetriever> FileHandlerFactory::getFileHandler(const Dependency & dependency,const CmdOptions & options)
 {
-    if (dependency.getRepositoryType() == "github") {
-        return make_shared<HttpFileRetriever>(options);
+    std::shared_ptr<IFileRetriever> retriever = getHandler(dependency, options, dependency.getRepositoryType());
+    if (!retriever) {
+        // This should never happen, as command line options are validated in CmdOptions after parsing
+        throw std::runtime_error("Unknown repository type " + dependency.getRepositoryType());
     }
-    if ((dependency.getRepositoryType() == "artifactory") || (dependency.getRepositoryType() == "nexus")) {
-        return make_shared<CredentialsFileRetriever>(options);
-    }
-    if (dependency.getRepositoryType() == "path") {
-        return make_shared<FSFileRetriever>(options);
-    }
-    if (dependency.getRepositoryType() == "conan") {
-        return make_shared<ConanFileRetriever>(options);
-    }
-    if (dependency.getRepositoryType() == "vcpkg" || dependency.getRepositoryType() == "system") {
-        return make_shared<SystemFileRetriever>(options, dependency);
-    }
-    return getFileHandler(options);
+    return retriever;
 }

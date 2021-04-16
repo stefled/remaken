@@ -33,7 +33,7 @@ class FileHandlerFactory
 {
     public:
         static FileHandlerFactory* instance();
-        std::shared_ptr<IFileRetriever> getFileHandler(const CmdOptions & options, bool useAlternateRepo = false);
+        std::shared_ptr<IFileRetriever> getAlternateHandler(const Dependency & dependency,const CmdOptions & options);
         std::shared_ptr<IFileRetriever> getFileHandler(const Dependency & dependency,const CmdOptions & options);
 
 private:
@@ -45,6 +45,8 @@ private:
         FileHandlerFactory&& operator=(const FileHandlerFactory&&)= delete;
         static std::atomic<FileHandlerFactory*> m_instance;
         static std::mutex m_mutex;
+        std::shared_ptr<IFileRetriever> getHandler(const Dependency & dependency, const CmdOptions & options, const std::string & repo);
+        std::map<std::string,std::shared_ptr<IFileRetriever>> m_handlers;
 };
 
 

@@ -141,6 +141,10 @@ public:
         return m_force;
     }
 
+    inline bool crossCompiling() const {
+        return m_crossCompile;
+    }
+
     const std::string & getBuildConfig() const {
         return m_buildConfig;
     }
@@ -152,6 +156,11 @@ public:
     const std::string & getQmakeRulesTag() const {
         return m_qmakeRulesTag;
     }
+
+    const std::string & getConanProfile() const {
+        return m_conanProfile;
+    }
+
 
     const std::map<std::string,std::string> & getCompressCommandOptions() const {
         return m_packageCompressOptions;
@@ -166,6 +175,7 @@ private:
     void initBuildConfig();
     std::string m_action;
     std::string m_dependenciesFile;
+    std::string m_xpcfConfigurationFile;
     std::string m_architecture;
     std::string m_mode;
     std::string m_config;
@@ -187,6 +197,7 @@ private:
     std::string m_buildConfig;
     std::string m_subcommand;
     std::string m_qmakeRulesTag;
+    std::string m_conanProfile = "default";
     fs::path m_moduleSubfolderPath;
     bool m_ignoreCache;
     bool m_verbose;
@@ -196,6 +207,7 @@ private:
     bool m_force = false;
     bool m_override = false;
     bool m_defaultProfileOptions = false;
+    bool m_crossCompile = false;
     CLI::App m_cliApp{"remaken"};
 };
 

@@ -11,6 +11,7 @@
 #include "BundleXpcfCommand.h"
 #include "VersionCommand.h"
 #include "ProfileCommand.h"
+#include "RunCommand.h"
 #include <memory>
 
 using namespace std;
@@ -28,6 +29,7 @@ int main(int argc, char** argv)
         dispatcher["init"] = make_shared<InitCommand>(opts);
         dispatcher["info"] = make_shared<InfoCommand>(opts);
         dispatcher["install"] = make_shared<InstallCommand>(opts);
+        dispatcher["run"] = make_shared<RunCommand>(opts);
         dispatcher["parse"] = make_shared<ParseCommand>(opts);
         dispatcher["package"] = make_shared<PackageCommand>(opts);
         dispatcher["bundle"] = make_shared<BundleCommand>(opts);
