@@ -418,25 +418,22 @@ void ConanSystemTool::install(const Dependency & dependency)
             optionsArgs.push_back("-o " + option);
         }
     }
+    std::string profileName = m_options.getConanProfile();
     if (m_options.crossCompiling() && m_options.getConanProfile() == "default") {
         std::string profileName = m_options.getOS() + "-" + m_options.getBuildToolchain() + "-" + m_options.getArchitecture();
-        optionsArgs.push_back("--profile " + profileName);
-    }
-    else {
-        optionsArgs.push_back("--profile " + m_options.getConanProfile());
     }
     std::string cppStd="compiler.cppstd=";
     cppStd += m_options.getCppVersion();
     int result = -1;
     if (dependency.getMode() == "na") {
-        result = bp::system(m_systemInstallerPath, "install", bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), bp::args(optionsArgs),"--build=missing", source.c_str());
+        result = bp::system(m_systemInstallerPath, "install", bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-pr", profileName.c_str(), bp::args(optionsArgs),"--build=missing", source.c_str());
     }
     else {
         std::string buildMode = "shared=True";
         if (dependency.getMode() == "static") {
             buildMode = "shared=False";
         }
-        result = bp::system(m_systemInstallerPath, "install", "-o", buildMode.c_str(), bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), bp::args(optionsArgs),"--build=missing", source.c_str());
+        result = bp::system(m_systemInstallerPath, "install", "-o", buildMode.c_str(), bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-pr", profileName.c_str(), bp::args(optionsArgs),"--build=missing", source.c_str());
     }
     if (result != 0) {
         throw std::runtime_error("Error installing conan dependency : " + source);

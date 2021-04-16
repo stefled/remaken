@@ -35,6 +35,7 @@ class FileHandlerFactory
         static FileHandlerFactory* instance();
         std::shared_ptr<IFileRetriever> getAlternateHandler(const Dependency & dependency,const CmdOptions & options);
         std::shared_ptr<IFileRetriever> getFileHandler(const Dependency & dependency,const CmdOptions & options);
+        const std::map<std::string,std::shared_ptr<IFileRetriever>> & getHandlers() const { return m_handlers; }
 
 private:
         FileHandlerFactory() = default;

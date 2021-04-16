@@ -17,7 +17,7 @@ std::string SystemFileRetriever::computeSourcePath( const Dependency &  dependen
     return m_tool->computeSourcePath(dependency);
 }
 
-fs::path SystemFileRetriever::installArtefact(const Dependency & dependency)
+fs::path SystemFileRetriever::installArtefactImpl(const Dependency & dependency)
 {
     return retrieveArtefact(dependency);
 }

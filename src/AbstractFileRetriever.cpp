@@ -82,7 +82,21 @@ fs::path AbstractFileRetriever::computeRootBinDir( const Dependency & dependency
     return binPath;
 }
 
+
 fs::path AbstractFileRetriever::installArtefact(const Dependency & dependency)
+{
+    fs::path folder = installArtefactImpl(dependency);
+    m_installedDeps.push_back(dependency);
+    processPostInstallActions();
+    return folder;
+}
+
+void AbstractFileRetriever::processPostInstallActions()
+{
+    return;
+}
+
+fs::path AbstractFileRetriever::installArtefactImpl(const Dependency & dependency)
 {
     fs::detail::utf8_codecvt_facet utf8;
     fs::path compressedDependency = retrieveArtefact(dependency);

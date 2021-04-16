@@ -56,12 +56,13 @@ fs::path ConanFileRetriever::bundleArtefact(const Dependency & dependency)
     for (option,remakenConanOptions) {
         CONANFILECONTENT+=$${option}
     }
+    conan install $$_PRO_FILE_PWD_/build/$$OUTPUTDIR/conanfile.txt -s $${conanArch} -s compiler.cppstd=$${conanCppStd} -s build_type=$${CONANBUILDTYPE} --build=missing -if $$_PRO_FILE_PWD_/build/$$OUTPUTDIR
 */
 
-fs::path ConanFileRetriever::createConanFile(const fs::path & projectFolderPath, const std::vector<Dependency> & conanDeps)
+fs::path ConanFileRetriever::createConanFile(const fs::path & projectFolderPath)
 {
     fs::detail::utf8_codecvt_facet utf8;
-    fs::path conanFilePath = projectFolderPath / "build";
+    fs::path conanFilePath = projectFolderPath / "build" / "conanfile.txt";
     ofstream fos(conanFilePath.generic_string(utf8),ios::out);
     fos<<"[requires]"<<'\n';
     fos.close();
@@ -71,4 +72,10 @@ fs::path ConanFileRetriever::createConanFile(const fs::path & projectFolderPath,
 void ConanFileRetriever::invokeGenerator(const fs::path & conanFilePath, const fs::path &  projectFolderPath, ConanFileRetriever::GeneratorType generator)
 {
 
+}
+
+void ConanFileRetriever::processPostInstallActions()
+{
+    // if (m_options.projectMode())
+    //invokeGenerator();
 }

@@ -32,20 +32,24 @@ class AbstractFileRetriever : public IFileRetriever
 public:
     AbstractFileRetriever(const CmdOptions & options);
     virtual ~AbstractFileRetriever() override;
-    virtual fs::path installArtefact(const Dependency & dependency) override;
+    virtual fs::path installArtefact(const Dependency & dependency) override final;
     virtual fs::path bundleArtefact(const Dependency & dependency) override;
     virtual std::string computeSourcePath( const Dependency &  dependency) override;
     virtual fs::path computeRootBinDir( const Dependency & dependency) override;
     virtual fs::path computeRootLibDir( const Dependency & dependency) override;
     virtual fs::path computeLocalDependencyRootDir( const Dependency &  dependency) override;
     virtual fs::path computeRemakenRootDir( const Dependency &  dependency) override;
+    virtual const std::vector<Dependency> & installedDependencies() const override final { return m_installedDeps; }
 
 protected:
+    virtual fs::path installArtefactImpl(const Dependency & dependency);
+    virtual void processPostInstallActions();
     void copySharedLibraries(const fs::path & sourceRootFolder);
     void cleanUpWorkingDirectory();
     fs::path m_workingDirectory;
     const CmdOptions & m_options;
     std::shared_ptr<ZipTool> m_zipTool;
+    std::vector<Dependency> m_installedDeps;
 
 };
 

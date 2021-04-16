@@ -42,6 +42,15 @@ int DependencyManager::retrieve()
 {
     try {
         retrieveDependencies(buildDependencyPath());
+        std::cout<<std::endl;
+        std::cout<<"--------- Installation status ---------"<<std::endl;
+        for (auto & [depType,retriever] : FileHandlerFactory::instance()->getHandlers()) {
+            std::cout<<"=> '"<<depType<<"' dependencies installed:"<<std::endl;
+            for (auto & dependency : retriever->installedDependencies()) {
+                std::cout<<"===> "<<dependency.toString()<<std::endl;
+            }
+            std::cout<<std::endl;
+        }
     }
     catch (const std::runtime_error & e) {
         BOOST_LOG_TRIVIAL(error)<<e.what();

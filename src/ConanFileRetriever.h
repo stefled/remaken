@@ -46,8 +46,11 @@ public:
     ConanFileRetriever(const CmdOptions & options);
     ~ConanFileRetriever() override = default;
     fs::path bundleArtefact(const Dependency & dependency) override;
-    fs::path createConanFile(const fs::path & projectFolderPath, const std::vector<Dependency> & conanDeps);
+    fs::path createConanFile(const fs::path & projectFolderPath);
     void invokeGenerator(const fs::path & conanFilePath, const fs::path & projectFolderPath, GeneratorType generator = GeneratorType::qmake);
+
+protected:
+    virtual void processPostInstallActions() override;
 
 };
 

@@ -35,7 +35,7 @@ public:
     SystemFileRetriever(const CmdOptions & options, std::optional<std::reference_wrapper<const Dependency>> dependencyOpt=std::nullopt);
     ~SystemFileRetriever() override = default;
 
-    fs::path installArtefact(const Dependency & dependency) override;
+    fs::path installArtefactImpl(const Dependency & dependency) override;
     fs::path retrieveArtefact(const Dependency & dependency) override;
     std::string computeSourcePath( const Dependency &  dependency) override;
 
