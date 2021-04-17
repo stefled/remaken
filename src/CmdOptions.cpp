@@ -178,7 +178,9 @@ CmdOptions::CmdOptions()
     installCommand->add_option("--alternate-remote-url,-u", m_altRepoUrl, "alternate remote url to use when the declared remote fails to provide a dependency");
     installCommand->add_option("--apiKey,-k", m_apiKey, "Artifactory api key");
     installCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files", true);
-    installCommand->add_option("--profile,-p", m_conanProfile, "force conan profile name to use (overrides detected profile)",true);
+    installCommand->add_option("--profile", m_conanProfile, "force conan profile name to use (overrides detected profile)",true);
+    installCommand->add_flag("--project_mode,-p", m_projectMode, "force conan profile name to use (overrides detected profile)");
+
 
     m_ignoreCache = false;
     installCommand->add_flag("--ignore-cache,-i", m_ignoreCache, "ignore cache entries : dependencies update is forced");

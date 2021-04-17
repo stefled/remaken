@@ -1,5 +1,6 @@
 #include "ConanFileRetriever.h"
 #include <boost/log/trivial.hpp>
+#include <boost/algorithm/string.hpp>
 #include <fstream>
 using namespace std;
 
@@ -58,13 +59,47 @@ fs::path ConanFileRetriever::bundleArtefact(const Dependency & dependency)
     }
     conan install $$_PRO_FILE_PWD_/build/$$OUTPUTDIR/conanfile.txt -s $${conanArch} -s compiler.cppstd=$${conanCppStd} -s build_type=$${CONANBUILDTYPE} --build=missing -if $$_PRO_FILE_PWD_/build/$$OUTPUTDIR
 */
+std::vector<std::string> ConanFileRetriever::buildOptions(const Dependency & dep)
+{
+    std::vector<std::string> options;
+    std::vector<std::string> results;
+    if (dep.getMode() != "na") {
+        std::string modeValue = "False";
+        if (dep.getMode() == "shared") {
+            modeValue = "True";
+        }
+        results.push_back(dep.getPackageName() + ":" + dep.getMode() + "=" + modeValue);
+    }
+    if (dep.hasOptions()) {
+        boost::split(options, dep.getToolOptions(), [](char c){return c == '#';});
+        for (const auto & option: options) {
+            results.push_back(dep.getPackageName() + ":" + option);
+        }
+    }
+    return results;
+}
 
 fs::path ConanFileRetriever::createConanFile(const fs::path & projectFolderPath)
 {
     fs::detail::utf8_codecvt_facet utf8;
-    fs::path conanFilePath = projectFolderPath / "build" / "conanfile.txt";
+    fs::path conanFilePath = projectFolderPath / "build" / m_options.getConfig() / "conanfile.txt";
     ofstream fos(conanFilePath.generic_string(utf8),ios::out);
     fos<<"[requires]"<<'\n';
+    for (auto & dependency : m_installedDeps) {
+        std::string sourceURL = dependency.getPackageName();
+        sourceURL += "/" + dependency.getVersion();
+        fos<<sourceURL<<'\n';
+    }
+    fos<<'\n';
+    fos<<"[generators]"<<'\n';
+    fos<<"qmake"<<'\n';
+    fos<<"\n";
+    fos<<"[options]"<<'\n';
+    for (auto & dependency : m_installedDeps) {
+        for (auto & option : buildOptions(dependency)) {
+            fos<<option<<'\n';
+        }
+    }
     fos.close();
     return conanFilePath;
 }
@@ -76,6 +111,8 @@ void ConanFileRetriever::invokeGenerator(const fs::path & conanFilePath, const f
 
 void ConanFileRetriever::processPostInstallActions()
 {
-    // if (m_options.projectMode())
-    //invokeGenerator();
+    if (m_options.projectModeEnabled()) {
+        fs::path conanFilePath = createConanFile(m_options.getProjectRootPath());
+        invokeGenerator(conanFilePath, m_options.getProjectRootPath(), ConanFileRetriever::GeneratorType::qmake);
+    }
 }

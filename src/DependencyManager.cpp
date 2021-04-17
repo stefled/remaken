@@ -41,7 +41,11 @@ fs::path DependencyManager::buildDependencyPath()
 int DependencyManager::retrieve()
 {
     try {
-        retrieveDependencies(buildDependencyPath());
+        fs::path rootPath = buildDependencyPath();
+        if (m_options.projectModeEnabled()) {
+            m_options.setProjectRootPath(rootPath.parent_path());
+        }
+        retrieveDependencies(rootPath);
         std::cout<<std::endl;
         std::cout<<"--------- Installation status ---------"<<std::endl;
         for (auto & [depType,retriever] : FileHandlerFactory::instance()->getHandlers()) {

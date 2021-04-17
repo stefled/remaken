@@ -51,6 +51,7 @@ public:
 
 protected:
     virtual void processPostInstallActions() override;
+    std::vector<std::string> buildOptions(const Dependency & dep);
 
 };
 

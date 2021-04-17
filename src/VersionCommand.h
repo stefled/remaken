@@ -29,7 +29,7 @@ class VersionCommand : public AbstractCommand
 {
 public:
     VersionCommand();
-    int execute();
+    int execute() override;
     static constexpr const char * NAME="version";
 
 private:

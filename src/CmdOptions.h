@@ -141,6 +141,10 @@ public:
         return m_force;
     }
 
+    bool projectModeEnabled() const {
+        return m_projectMode;
+    }
+
     inline bool crossCompiling() const {
         return m_crossCompile;
     }
@@ -161,6 +165,13 @@ public:
         return m_conanProfile;
     }
 
+    void setProjectRootPath(const fs::path & projectPath) const {
+        m_projectRootPath = projectPath;
+    }
+
+    const fs::path & getProjectRootPath() const  {
+        return m_projectRootPath;
+    }
 
     const std::map<std::string,std::string> & getCompressCommandOptions() const {
         return m_packageCompressOptions;
@@ -185,6 +196,7 @@ private:
     std::string m_remakenRoot;
     fs::path m_destinationRootPath;
     fs::path m_remakenRootPath;
+    mutable fs::path m_projectRootPath;
     std::string m_repositoryType;
     std::string m_cppVersion;
     std::string m_toolchain;
@@ -202,6 +214,7 @@ private:
     bool m_ignoreCache;
     bool m_verbose;
     bool m_recurse;
+    bool m_projectMode = false;
     bool m_isXpcfBundle = false;
     bool m_cleanAll = true;
     bool m_force = false;
