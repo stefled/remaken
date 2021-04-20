@@ -42,7 +42,7 @@ HEADERS += \
     src/Cache.h \
     src/AbstractCommand.h \
 #    src/HttpAsyncDownloader.h \
-    src/GitTool.h \
+    src/tools/GitTool.h \
     src/InfoCommand.h \
     src/InitCommand.h \
     src/InstallCommand.h \
@@ -61,11 +61,11 @@ HEADERS += \
     src/HttpHandlerFactory.h \
     src/ConanFileRetriever.h \
     src/SystemFileRetriever.h \
-    src/SystemTools.h \
+    src/tools/SystemTools.h \
     src/ParseCommand.h \
     src/BundleCommand.h \
-    src/ZipTool.h \
-    src/OsTools.h \
+    src/tools/ZipTool.h \
+    src/tools/OsTools.h \
     src/tinyxml2.h \
     src/tinyxmlhelper.h
 
@@ -74,14 +74,14 @@ SOURCES += \
     src/BundleXpcfCommand.cpp \
     src/CleanCommand.cpp \
 #    src/HttpAsyncDownloader.cpp \
-    src/GitTool.cpp \
+    src/tools/GitTool.cpp \
     src/InfoCommand.cpp \
     src/PackageCommand.cpp \
     src/InitCommand.cpp \
     src/PathBuilder.cpp \
     src/ProfileCommand.cpp \
     src/RunCommand.cpp \
-    src/ZipTool.cpp \
+    src/tools/ZipTool.cpp \
     src/main.cpp \
     src/Dependency.cpp \
     src/DependencyManager.cpp \
@@ -98,12 +98,14 @@ SOURCES += \
     src/HttpHandlerFactory.cpp \
     src/ConanFileRetriever.cpp \
     src/SystemFileRetriever.cpp \
-    src/SystemTools.cpp \
+    src/tools/SystemTools.cpp \
     src/ParseCommand.cpp \
     src/BundleCommand.cpp \
-    src/OsTools.cpp \
+    src/tools/OsTools.cpp \
     src/tinyxml2.cpp \
     src/tinyxmlhelper.cpp
+
+INCLUDEPATH += src
 
 unix {
    # QMAKE_CXXFLAGS += --coverage

@@ -7,8 +7,8 @@
 #include <boost/algorithm/string.hpp>
 //#include <zipper/unzipper.h>
 #include <future>
-#include "SystemTools.h"
-#include "OsTools.h"
+#include "Tools/SystemTools.h"
+#include "Tools/OsTools.h"
 #include <boost/log/trivial.hpp>
 #include "PathBuilder.h"
 #include <regex>

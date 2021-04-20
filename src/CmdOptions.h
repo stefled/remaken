@@ -214,6 +214,7 @@ private:
     bool m_ignoreCache;
     bool m_verbose;
     bool m_recurse;
+    bool m_environment = false;
     bool m_projectMode = false;
     bool m_isXpcfBundle = false;
     bool m_cleanAll = true;

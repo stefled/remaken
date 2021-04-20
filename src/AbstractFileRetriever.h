@@ -25,7 +25,7 @@
 
 #include "IFileRetriever.h"
 #include "CmdOptions.h"
-#include "ZipTool.h"
+#include "Tools/ZipTool.h"
 
 class AbstractFileRetriever : public IFileRetriever
 {

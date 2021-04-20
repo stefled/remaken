@@ -3,7 +3,7 @@
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 #include "PathBuilder.h"
 #include "HttpFileRetriever.h"
-#include "OsTools.h"
+#include "Tools/OsTools.h"
 #include <boost/log/trivial.hpp>
 
 ProfileCommand::ProfileCommand(const CmdOptions & options):AbstractCommand(ProfileCommand::NAME),m_options(options)
