@@ -42,6 +42,7 @@ HEADERS += \
     src/Cache.h \
     src/AbstractCommand.h \
 #    src/HttpAsyncDownloader.h \
+    src/tools/ConanSystemTool.h \
     src/tools/GitTool.h \
     src/InfoCommand.h \
     src/InitCommand.h \
@@ -74,6 +75,7 @@ SOURCES += \
     src/BundleXpcfCommand.cpp \
     src/CleanCommand.cpp \
 #    src/HttpAsyncDownloader.cpp \
+    src/tools/ConanSystemTool.cpp \
     src/tools/GitTool.cpp \
     src/InfoCommand.cpp \
     src/PackageCommand.cpp \

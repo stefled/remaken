@@ -61,38 +61,6 @@ public:
     static std::shared_ptr<BaseSystemTool> createTool(const CmdOptions & options, std::optional<std::reference_wrapper<const Dependency>> dependencyOpt=std::nullopt);
 };
 
-class ConanSystemTool : public BaseSystemTool
-{
-public:
-    typedef enum {
-        cmake = 0x01,
-        cmake_multi = 0x02,
-        cmake_paths = 0x04,
-        cmake_find_package = 0x08,
-        cmake_find_package_multi = 0x0F,
-        compiler_args = 0x10,
-        qmake = 0x20,
-        pkg_config = 0x40,
-        txt = 0x80,
-        json = 0xF0,
-        make = 0x100,
-        markdown = 0x200,
-        deploy = 0x400
-    } GeneratorType;
-    ConanSystemTool(const CmdOptions & options):BaseSystemTool(options, "conan") {}
-    ~ConanSystemTool() override = default;
-    void update() override;
-    void bundle(const Dependency & dependency) override;
-    void install(const Dependency & dependency) override;
-    bool installed(const Dependency & dependency) override;
-    std::string computeSourcePath( const Dependency &  dependency) override;
-    void invokeGenerator(const fs::path & conanFilePath, GeneratorType generator);
-
-
-private:
-    std::string computeToolRef( const Dependency &  dependency) override;
-};
-
 class VCPKGSystemTool : public BaseSystemTool
 {
 public:
