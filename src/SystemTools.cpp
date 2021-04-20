@@ -440,6 +440,30 @@ void ConanSystemTool::install(const Dependency & dependency)
     }
 }
 
+void ConanSystemTool::invokeGenerator(const fs::path & conanFilePath, ConanSystemTool::GeneratorType generator)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    fs::path targetPath = m_options.getProjectRootPath() / "build" / m_options.getConfig();
+    std::string buildType = "build_type=Debug";
+
+    if (m_options.getConfig() == "release") {
+        buildType = "build_type=Release";
+    }
+    std::vector<std::string> settingsArgs;
+    if (mapContains(conanArchTranslationMap, m_options.getArchitecture())) {
+        settingsArgs.push_back("-s");
+        settingsArgs.push_back("arch=" + conanArchTranslationMap.at(m_options.getArchitecture()));
+    }
+    std::string cppStd="compiler.cppstd=";
+    cppStd += m_options.getCppVersion();
+
+    int result = -1;
+    result = bp::system(m_systemInstallerPath, "install", conanFilePath.generic_string(utf8).c_str(), bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if",  targetPath.generic_string(utf8).c_str());
+    if (result != 0) {
+        throw std::runtime_error("Error calling conan generator : ");
+    }
+}
+
 bool ConanSystemTool::installed(const Dependency & dependency)
 {
     return false;

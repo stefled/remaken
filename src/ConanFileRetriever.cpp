@@ -104,15 +104,17 @@ fs::path ConanFileRetriever::createConanFile(const fs::path & projectFolderPath)
     return conanFilePath;
 }
 
-void ConanFileRetriever::invokeGenerator(const fs::path & conanFilePath, const fs::path &  projectFolderPath, ConanFileRetriever::GeneratorType generator)
+void ConanFileRetriever::invokeGenerator(const fs::path & conanFilePath, ConanSystemTool::GeneratorType generator)
 {
-
+    ConanSystemTool tool(m_options);
+    tool.invokeGenerator(conanFilePath, generator);
+//conan install $$_PRO_FILE_PWD_/build/$$OUTPUTDIR/conanfile.txt -s $${conanArch} -s compiler.cppstd=$${conanCppStd} -s build_type=$${CONANBUILDTYPE} --build=missing -if $$_PRO_FILE_PWD_/build/$$OUTPUTDIR
 }
 
 void ConanFileRetriever::processPostInstallActions()
 {
     if (m_options.projectModeEnabled()) {
         fs::path conanFilePath = createConanFile(m_options.getProjectRootPath());
-        invokeGenerator(conanFilePath, m_options.getProjectRootPath(), ConanFileRetriever::GeneratorType::qmake);
+        invokeGenerator(conanFilePath, ConanSystemTool::GeneratorType::qmake);
     }
 }
