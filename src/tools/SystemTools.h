@@ -40,6 +40,8 @@ public:
     }
     virtual void install(const Dependency & dependency) = 0;
     virtual bool installed(const Dependency & dependency) = 0;
+    virtual std::vector<std::string> binPaths(const Dependency & dependency);
+    virtual std::vector<std::string> libPaths(const Dependency & dependency);
     virtual std::string computeSourcePath( const Dependency &  dependency);
     virtual fs::path sudo() { return m_sudoCmd; }
 
@@ -60,21 +62,6 @@ public:
     static bool isToolSupported(const std::string & tool);
     static std::shared_ptr<BaseSystemTool> createTool(const CmdOptions & options, std::optional<std::reference_wrapper<const Dependency>> dependencyOpt=std::nullopt);
 };
-
-class VCPKGSystemTool : public BaseSystemTool
-{
-public:
-    fs::detail::utf8_codecvt_facet utf8;
-    VCPKGSystemTool(const CmdOptions & options):BaseSystemTool(options, options.getRemakenRoot().generic_string(utf8) + "/vcpkg/vcpkg") {}
-    ~VCPKGSystemTool() override = default;
-    void update() override;
-    void install(const Dependency & dependency) override;
-    bool installed(const Dependency & dependency) override;
-
-protected:
-    std::string computeToolRef( const Dependency &  dependency) override;
-};
-
 
 
 #endif // SYSTEMTOOLS_H

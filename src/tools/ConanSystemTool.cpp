@@ -188,3 +188,13 @@ std::string ConanSystemTool::computeSourcePath(const Dependency &  dependency)
     return sourceURL;
 }
 
+std::vector<std::string> ConanSystemTool::binPaths(const Dependency & dependency)
+{
+    return std::vector<std::string>();
+}
+
+std::vector<std::string> ConanSystemTool::libPaths(const Dependency & dependency)
+{
+    return std::vector<std::string>();
+}
+

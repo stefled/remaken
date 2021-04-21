@@ -42,6 +42,7 @@ HEADERS += \
     src/Cache.h \
     src/AbstractCommand.h \
 #    src/HttpAsyncDownloader.h \
+    src/tools/BrewSystemTool.h \
     src/tools/ConanSystemTool.h \
     src/tools/GitTool.h \
     src/InfoCommand.h \
@@ -65,6 +66,7 @@ HEADERS += \
     src/tools/SystemTools.h \
     src/ParseCommand.h \
     src/BundleCommand.h \
+    src/tools/VCPKGSystemTool.h \
     src/tools/ZipTool.h \
     src/tools/OsTools.h \
     src/tinyxml2.h \
@@ -75,6 +77,7 @@ SOURCES += \
     src/BundleXpcfCommand.cpp \
     src/CleanCommand.cpp \
 #    src/HttpAsyncDownloader.cpp \
+    src/tools/BrewSystemTool.cpp \
     src/tools/ConanSystemTool.cpp \
     src/tools/GitTool.cpp \
     src/InfoCommand.cpp \
@@ -83,6 +86,7 @@ SOURCES += \
     src/PathBuilder.cpp \
     src/ProfileCommand.cpp \
     src/RunCommand.cpp \
+    src/tools/VCPKGSystemTool.cpp \
     src/tools/ZipTool.cpp \
     src/main.cpp \
     src/Dependency.cpp \

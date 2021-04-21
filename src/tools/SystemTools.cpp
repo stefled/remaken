@@ -1,4 +1,6 @@
 #include "SystemTools.h"
+#include "BrewSystemTool.h"
+#include "VCPKGSystemTool.h"
 #include "OsTools.h"
 
 #include <boost/process.hpp>
@@ -11,18 +13,6 @@
 namespace bp = boost::process;
 namespace nj = nlohmann;
 
-static const std::map<std::string,std::string> options2vcpkg ={{"mac","osx"},
-                                                               {"win","windows"},
-                                                               {"linux","linux"},
-                                                               {"android","android"},
-                                                               {"x86_64","x64"},
-                                                               {"i386","x86"},
-                                                               {"arm","arm"},
-                                                               {"arm64","arm64"},
-                                                               {"shared","dynamic"},
-                                                               {"static","static"},
-                                                               {"unix","linux"}};
-
 class AptSystemTool : public BaseSystemTool
 {
 public:
@@ -34,20 +24,6 @@ public:
 
 
 private:
-};
-
-class BrewSystemTool : public BaseSystemTool
-{
-public:
-    BrewSystemTool(const CmdOptions & options):BaseSystemTool(options, "brew") {}
-    ~BrewSystemTool() override = default;
-    void update() override;
-    void install(const Dependency & dependency) override;
-    bool installed(const Dependency & dependency) override;
-
-
-private:
-    std::string computeToolRef( const Dependency &  dependency) override;
 };
 
 class YumSystemTool : public BaseSystemTool
@@ -159,6 +135,16 @@ std::string BaseSystemTool::computeToolRef( const Dependency &  dependency)
 std::string BaseSystemTool::computeSourcePath( const Dependency &  dependency)
 {
     return computeToolRef(dependency);
+}
+
+std::vector<std::string> BaseSystemTool::binPaths(const Dependency & dependency)
+{
+    return std::vector<std::string>();
+}
+
+std::vector<std::string> BaseSystemTool::libPaths(const Dependency & dependency)
+{
+    return std::vector<std::string>();
 }
 
 std::string SystemTools::getToolIdentifier()
@@ -312,67 +298,6 @@ std::shared_ptr<BaseSystemTool> SystemTools::createTool(const CmdOptions & optio
     return nullptr;
 }
 
-void VCPKGSystemTool::update()
-{
-}
-
-void VCPKGSystemTool::install(const Dependency & dependency)
-{
-    std::string source = this->computeToolRef(dependency);
-    int result = bp::system(m_systemInstallerPath, "install", source.c_str());
-    if (result != 0) {
-        throw std::runtime_error("Error installing vcpkg dependency : " + source);
-    }
-}
-
-bool VCPKGSystemTool::installed(const Dependency & dependency)
-{
-    return false;
-}
-
-std::string VCPKGSystemTool::computeToolRef( const Dependency &  dependency)
-{
-    std::string mode = dependency.getMode();
-    std::string os =  m_options.getOS();
-    std::string arch =  m_options.getArchitecture();
-    if (options2vcpkg.find(mode) == options2vcpkg.end()) {
-        throw std::runtime_error("Error installing vcpkg dependency : unknown mode " + mode);
-    }
-    if (options2vcpkg.find(os) == options2vcpkg.end()) {
-        throw std::runtime_error("Error installing vcpkg dependency : unsupported operating system " + os);
-    }
-    if (options2vcpkg.find(arch) == options2vcpkg.end()) {
-        throw std::runtime_error("Error installing vcpkg dependency : unsupported architecture " + arch);
-    }
-    std::vector<std::string> options;
-    std::string optionStr;
-
-    os = options2vcpkg.at(os);
-    arch = options2vcpkg.at(arch);
-    std::string sourceURL = dependency.getPackageName();
-
-    if (dependency.hasOptions()) {
-        sourceURL += "[";
-        boost::split(options, dependency.getToolOptions(), [](char c){return c == '#';});
-        for (auto option: options) {
-            if (!optionStr.empty()) {
-                optionStr += ",";
-            }
-            boost::trim(option);
-            optionStr += option;
-        }
-        sourceURL += optionStr;
-        sourceURL += "]";
-    }
-
-    sourceURL += ":" + arch;
-    sourceURL += "-" + os;
-    sourceURL += "-" + mode;
-    return sourceURL;
-}
-
-
-
 void AptSystemTool::update()
 {
     int result = bp::system(sudo(),m_systemInstallerPath, "update");
@@ -399,43 +324,6 @@ bool AptSystemTool::installed(const Dependency & dependency)
     int result = bp::system(dpkg, "-W","-f='${Status}'", source.c_str(),"|","grep -q \"ok installed\"");
     return result == 0;
 }
-
-std::string BrewSystemTool::computeToolRef(const Dependency &  dependency)
-{
-    std::string sourceURL = dependency.getPackageName();
-    // package@version is not supported for all packages - not reliable !
-    // sourceURL += "@" + dependency.getVersion();
-    return sourceURL;
-}
-
-void BrewSystemTool::update()
-{
-    int result = bp::system(m_systemInstallerPath, "update");
-    if (result != 0) {
-        throw std::runtime_error("Error updating brew repositories");
-    }
-}
-
-void BrewSystemTool::install(const Dependency & dependency)
-{
-    if (installed(dependency)) {//TODO : version comparison and checking with range approach
-        return;
-    }
-    std::string source = computeToolRef(dependency);
-    int result = bp::system(m_systemInstallerPath, "install", source.c_str());
-    if (result != 0) {
-        throw std::runtime_error("Error installing brew dependency : " + source);
-    }
-}
-
-bool BrewSystemTool::installed(const Dependency & dependency)
-{
-    std::string source = computeToolRef(dependency);
-    int result = bp::system(m_systemInstallerPath, "ls","--versions", source.c_str());
-    return (result == 0);
-}
-
-
 
 void YumSystemTool::update()
 {

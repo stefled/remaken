@@ -57,6 +57,14 @@ public:
         return m_dependenciesFile;
     }
 
+    inline const std::string & getApplicationFile() const {
+        return m_applicationFile;
+    }
+
+    inline const std::string & getXpcfXmlFile() const {
+        return m_xpcfConfigurationFile;
+    }
+
     inline const std::string & getArchitecture() const {
         return m_architecture;
     }
@@ -119,6 +127,10 @@ public:
 
     inline bool useCache() const {
         return !m_ignoreCache;
+    }
+
+    inline bool environmentOnly() const {
+        return m_environment;
     }
 
     inline bool isXpcfBundle() const {
@@ -185,6 +197,7 @@ private:
     void validateOptions();
     void initBuildConfig();
     std::string m_action;
+    std::string m_applicationFile;
     std::string m_dependenciesFile;
     std::string m_xpcfConfigurationFile;
     std::string m_architecture;

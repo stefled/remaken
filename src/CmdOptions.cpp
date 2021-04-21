@@ -4,7 +4,7 @@
 #include "Constants.h"
 #include <exception>
 #include <algorithm>
-#include "ZipTool.h"
+#include "tools/ZipTool.h"
 #include <boost/process.hpp>
 #include <boost/predef.h>
 #include <boost/dll.hpp>
@@ -195,7 +195,8 @@ CmdOptions::CmdOptions()
     CLI::App * runCommand = m_cliApp.add_subcommand("run", "run binary (and set dependencies path depending on the run environment)");
     runCommand->add_option("--xpcf", m_xpcfConfigurationFile, "XPCF xml module declaration file path");
     runCommand->add_flag("--env", m_environment, "don't run executable, only retrieve run environment informations from files (dependencies and/or XPCF xml module declaration file)");
-    runCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files", true);
+    runCommand->add_option("--deps", m_dependenciesFile, "Remaken dependencies files", true);
+    runCommand->add_option("application", m_applicationFile, "executable file path", true);
 
     // PACKAGE COMMAND
     CLI::App * packageCommand = m_cliApp.add_subcommand("package","package a build result in remaken format");
@@ -318,6 +319,16 @@ CmdOptions::OptionResult CmdOptions::parseArguments(int argc, char** argv)
                         return OptionResult::RESULT_ERROR;
                     }
                 }
+            }
+        }
+        if (sub->get_name() == "run") {
+            if (environmentOnly() && !getApplicationFile().empty()) {
+                cout << "Error : application file and environment set ! choose between --env or provide an application file to run but don't provide both options simultaneously!"<<endl;
+                return OptionResult::RESULT_ERROR;
+            }
+            if (!environmentOnly() && getApplicationFile().empty()) {
+                cout << "Error : neither application file nor environment set ! provide either --env or an application file to run (don't provide both options simultaneously)!"<<endl;
+                return OptionResult::RESULT_ERROR;
             }
         }
         if (m_cliApp.get_subcommands().size() == 1) {
