@@ -8,7 +8,7 @@
 //#include <zipper/unzipper.h>
 #include <future>
 #include "tools/SystemTools.h"
-#include "Tools/OsTools.h"
+#include "tools/OsTools.h"
 #include <boost/log/trivial.hpp>
 #include "PathBuilder.h"
 #include "DependencyManager.h"
@@ -18,7 +18,7 @@ using namespace std;
 using std::placeholders::_1;
 using std::placeholders::_2;
 
-BundleManager::BundleManager(const CmdOptions & options):m_options(options)
+BundleManager::BundleManager(const CmdOptions & options):m_xpcfManager(options),m_options(options)
 {
 }
 
@@ -88,31 +88,6 @@ int BundleManager::bundle()
     return 0;
 }
 
-fs::path findPackageRoot(fs::path moduleLibPath)
-{
-    fs::detail::utf8_codecvt_facet utf8;
-    std::string versionRegex = "[0-9]+\.[0-9]+\.[0-9]+";
-    fs::path currentFilename = moduleLibPath.filename();
-    bool bFoundVersion = false;
-    std::smatch sm;
-    while (!bFoundVersion) {
-        std::regex tmplRegex(versionRegex, std::regex_constants::extended);
-        std::string currentFilenameStr = currentFilename.string(utf8);
-        if (std::regex_search(currentFilenameStr, sm, tmplRegex, std::regex_constants::match_any)) {
-            std::string matchStr = sm.str(0);
-            BOOST_LOG_TRIVIAL(warning)<<"Found "<< matchStr<<" version for modulepath "<<moduleLibPath;
-            std::cout<<"Found "<< matchStr<<" version "<<std::endl;
-            return moduleLibPath;
-        }
-        else {
-            moduleLibPath = moduleLibPath.parent_path();
-            currentFilename = moduleLibPath.filename();
-        }
-    }
-    // no path found : return empty path
-    return fs::path();
-}
-
 int BundleManager::bundleXpcf()
 {
     try {
@@ -125,15 +100,15 @@ int BundleManager::bundleXpcf()
         }
         fs::copy_file(xpcfConfigFilePath , m_options.getDestinationRoot()/xpcfConfigFilePath.filename(), fs::copy_option::overwrite_if_exists);
 
-        parseXpcfModulesConfiguration(xpcfConfigFilePath);
-        updateXpcfModulesPath(m_options.getDestinationRoot()/xpcfConfigFilePath.filename());
-        for (auto & [name,modulePath] : m_modulesPathMap) {
+        const std::map<std::string, fs::path> & modulesPathMap = m_xpcfManager.parseXpcfModulesConfiguration(xpcfConfigFilePath);
+        m_xpcfManager.updateXpcfModulesPath(m_options.getDestinationRoot()/xpcfConfigFilePath.filename());
+        for (auto & [name,modulePath] : modulesPathMap) {
             OsTools::copySharedLibraries(modulePath,m_options);
         }
 
-        for (auto & [name,modulePath] : m_modulesPathMap) {
+        for (auto & [name,modulePath] : modulesPathMap) {
             OsTools::copySharedLibraries(modulePath,m_options);
-            fs::path packageRootPath = findPackageRoot(modulePath);
+            fs::path packageRootPath = XpcfXmlManager::findPackageRoot(modulePath);
             if (!fs::exists(packageRootPath)) {
                 BOOST_LOG_TRIVIAL(warning)<<"Unable to find root package path "<<packageRootPath<<" for module "<<name;
             }
@@ -156,92 +131,6 @@ int BundleManager::bundleXpcf()
     return 0;
 }
 
-void BundleManager::updateModuleNode(tinyxml2::XMLElement * xmlModuleElt)
-{
-    fs::detail::utf8_codecvt_facet utf8;
-    xmlModuleElt->SetAttribute("path",m_options.getModulesSubfolder().string(utf8).c_str());
-}
-
-int BundleManager::updateXpcfModulesPath(const fs::path & configurationFilePath)
-{
-    fs::detail::utf8_codecvt_facet utf8;
-    int result = -1;
-    tinyxml2::XMLDocument xmlDoc;
-    enum tinyxml2::XMLError loadOkay = xmlDoc.LoadFile(configurationFilePath.string(utf8).c_str());
-    if (loadOkay == 0) {
-        try {
-            //TODO : check each element exists before using it !
-            // a check should be performed upon announced module uuid and inner module uuid
-            // check xml node is xpcf-registry first !
-            tinyxml2::XMLElement * rootElt = xmlDoc.RootElement();
-            string rootName = rootElt->Value();
-            if (rootName != "xpcf-registry" && rootName != "xpcf-configuration") {
-                return -1;
-            }
-            result = 0;
-
-            processXmlNode(rootElt, "module", std::bind(&BundleManager::updateModuleNode, this, _1));
-            xmlDoc.SaveFile(configurationFilePath.string(utf8).c_str());
-        }
-        catch (const std::runtime_error & e) {
-            return -1;
-        }
-    }
-    return result;
-}
-
-void BundleManager::declareModule(tinyxml2::XMLElement * xmlModuleElt)
-{
-    std::string moduleName = xmlModuleElt->Attribute("name");
-    std::string moduleDescription = "";
-    if (xmlModuleElt->Attribute("description") != nullptr) {
-        moduleDescription = xmlModuleElt->Attribute("description");
-    }
-    std::string moduleUuid =  xmlModuleElt->Attribute("uuid");
-    fs::path modulePath = PathBuilder::buildModuleFolderPath(xmlModuleElt->Attribute("path"), m_options.getConfig());
-    if (! mapContains(m_modulesUUiDMap, moduleName)) {
-        m_modulesUUiDMap[moduleName] = moduleUuid;
-    }
-    else {
-        std::string previousModuleUUID = m_modulesUUiDMap.at(moduleName);
-        if (moduleUuid != previousModuleUUID) {
-            BOOST_LOG_TRIVIAL(warning)<<"Already found a module named "<<moduleName<<" with a different UUID: first UUID found ="<<previousModuleUUID<<" last UUID = "<<moduleUuid;
-        }
-    }
-
-    if (! mapContains(m_modulesPathMap, moduleName)) {
-        m_modulesPathMap[moduleName] = modulePath;
-    }
-}
-
-
-int BundleManager::parseXpcfModulesConfiguration(const fs::path & configurationFilePath)
-{
-    int result = -1;
-    tinyxml2::XMLDocument doc;
-    m_modulesPathMap.clear();
-    enum tinyxml2::XMLError loadOkay = doc.LoadFile(configurationFilePath.string().c_str());
-    if (loadOkay == 0) {
-        try {
-            //TODO : check each element exists before using it !
-            // a check should be performed upon announced module uuid and inner module uuid
-            // check xml node is xpcf-registry first !
-            tinyxml2::XMLElement * rootElt = doc.RootElement();
-            string rootName = rootElt->Value();
-            if (rootName != "xpcf-registry" && rootName != "xpcf-configuration") {
-                return -1;
-            }
-            result = 0;
-
-            processXmlNode(rootElt, "module", std::bind(&BundleManager::declareModule, this, _1));
-        }
-        catch (const std::runtime_error & e) {
-            return -1;
-        }
-    }
-    return result;
-}
-
 
 void BundleManager::bundleDependency(const Dependency & dependency)
 {
@@ -256,7 +145,7 @@ void BundleManager::bundleDependency(const Dependency & dependency)
 void BundleManager::bundleDependencies(const fs::path &  dependenciesFile)
 {
     std::vector<fs::path> dependenciesFileList = DependencyManager::getChildrenDependencies(dependenciesFile.parent_path(), m_options.getOS());
-    for (fs::path depsFile : dependenciesFileList) {
+    for (fs::path const & depsFile : dependenciesFileList) {
         if (fs::exists(depsFile)) {
             std::vector<Dependency> dependencies = DependencyManager::parse(depsFile, m_options.getMode());
             for (auto dependency : dependencies) {

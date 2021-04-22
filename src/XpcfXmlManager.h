@@ -19,8 +19,8 @@
  * @date 2021-02-24
  */
 
-#ifndef BUNDLEMANAGER_H
-#define BUNDLEMANAGER_H
+#ifndef XPCFXMLMANAGER_H
+#define XPCFXMLMANAGER_H
 
 #include <string>
 #include <vector>
@@ -30,25 +30,23 @@
 #include "CmdOptions.h"
 #include "Cache.h"
 #include "tinyxmlhelper.h"
-#include "XpcfXmlManager.h"
 
 namespace fs = boost::filesystem;
 
-class BundleManager
+class XpcfXmlManager
 {
 public:
-    BundleManager(const CmdOptions & options);
-    fs::path buildDependencyPath();
-    int bundle();
-    int bundleXpcf();
+    XpcfXmlManager(const CmdOptions & options);
+    const std::map<std::string, fs::path> & parseXpcfModulesConfiguration(const fs::path & configurationFilePath);
+    int updateXpcfModulesPath(const fs::path & configurationFilePath);
+    static fs::path findPackageRoot(const fs::path & moduleLibPath);
 
 private:
-    XpcfXmlManager m_xpcfManager;
-    void parseIgnoreInstall(const fs::path &  dependenciesPath);
+    void updateModuleNode(tinyxml2::XMLElement * xmlModuleElt);
+    void declareModule(tinyxml2::XMLElement * xmlModuleElt);
 
-    void bundleDependencies(const fs::path & dependenciesFiles);
-    void bundleDependency(const Dependency & dep);
-    std::map<std::string,bool> m_ignoredPackages;
+    std::map<std::string, fs::path> m_modulesPathMap;
+    std::map<std::string, std::string> m_modulesUUiDMap;
     const CmdOptions & m_options;
 
 };

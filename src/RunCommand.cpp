@@ -20,7 +20,11 @@ int RunCommand::execute()
     }
 
     if (!m_options.getDependenciesFile().empty()) {
-
+        std::vector<Dependency> deps;
+        DependencyManager::parseRecurse(m_options.getDependenciesFile(), m_options, deps);
+        for (Dependency & dependency : deps) {
+            std::cout<<dependency.toString()<<std::endl;
+        }
     }
     if (m_options.environmentOnly()) {
     // display results

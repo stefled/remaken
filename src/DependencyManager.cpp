@@ -235,6 +235,26 @@ std::vector<Dependency> DependencyManager::parse(const fs::path &  dependenciesP
     return removeRedundantDependencies(libraries);
 }
 
+void DependencyManager::parseRecurse(const fs::path &  dependenciesPath, const CmdOptions & options, std::vector<Dependency> & deps)
+{
+    std::vector<fs::path> dependenciesFileList = getChildrenDependencies(dependenciesPath.parent_path(), options.getOS());
+    for (fs::path & depsFile : dependenciesFileList) {
+        if (fs::exists(depsFile)) {
+            std::vector<Dependency> dependencies = parse(depsFile, options.getMode());
+            deps.insert(std::end(deps), std::begin(dependencies), std::end(dependencies));
+            for (auto dep : dependencies) {
+                if (!dep.validate()) {
+                    throw std::runtime_error("Error parsing dependency file : invalid format ");
+                }
+                fs::detail::utf8_codecvt_facet utf8;
+                shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(dep, options);
+                fs::path outputDirectory = fileRetriever->computeLocalDependencyRootDir(dep);
+                parseRecurse(outputDirectory/"packagedependencies.txt", options,deps);
+            }
+        }
+    }
+}
+
 bool DependencyManager::installDep(Dependency &  dependency, const std::string & source,
                                    const fs::path & outputDirectory, const fs::path & libDirectory, const fs::path & binDirectory)
 {
