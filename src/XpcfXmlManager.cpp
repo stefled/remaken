@@ -8,7 +8,7 @@
 //#include <zipper/unzipper.h>
 #include <future>
 #include "tools/SystemTools.h"
-#include "Tools/OsTools.h"
+#include "tools/OsTools.h"
 #include <boost/log/trivial.hpp>
 #include "PathBuilder.h"
 #include "DependencyManager.h"
@@ -27,10 +27,10 @@ fs::path XpcfXmlManager::findPackageRoot(const fs::path & moduleLibPath)
     fs::detail::utf8_codecvt_facet utf8;
     std::string versionRegex = "[0-9]+\.[0-9]+\.[0-9]+";
     fs::path currentFilename = moduleLibPath.filename();
-    fs::path currentModulePath = moduleLibPath.filename();
+    fs::path currentModulePath = moduleLibPath;
     bool bFoundVersion = false;
     std::smatch sm;
-    while (!bFoundVersion) {
+    while (!bFoundVersion && !currentModulePath.empty()) {
         std::regex tmplRegex(versionRegex, std::regex_constants::extended);
         std::string currentFilenameStr = currentFilename.string(utf8);
         if (std::regex_search(currentFilenameStr, sm, tmplRegex, std::regex_constants::match_any)) {

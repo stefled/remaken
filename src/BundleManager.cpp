@@ -10,7 +10,6 @@
 #include "tools/SystemTools.h"
 #include "tools/OsTools.h"
 #include <boost/log/trivial.hpp>
-#include "PathBuilder.h"
 #include "DependencyManager.h"
 #include <regex>
 
@@ -24,18 +23,7 @@ BundleManager::BundleManager(const CmdOptions & options):m_xpcfManager(options),
 
 fs::path BundleManager::buildDependencyPath()
 {
-    fs::detail::utf8_codecvt_facet utf8;
-    fs::path currentPath(boost::filesystem::initial_path().generic_string(utf8));
-
-    fs::path dependenciesFile (m_options.getDependenciesFile(),utf8);
-
-    if (!dependenciesFile.is_absolute()){
-        dependenciesFile = currentPath /dependenciesFile;
-    }
-
-    if (!fs::exists(dependenciesFile)) {
-        throw std::runtime_error("The file does not exists " + dependenciesFile.generic_string(utf8));
-    }
+    fs::path dependenciesFile = DependencyManager::buildDependencyPath(m_options.getDependenciesFile());
     parseIgnoreInstall(dependenciesFile);
     return dependenciesFile;
 }
