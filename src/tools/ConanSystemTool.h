@@ -43,17 +43,22 @@ public:
         markdown = 0x200,
         deploy = 0x400
     } GeneratorType;
+
+    typedef enum {
+       LIB_PATHS,
+       BIN_PATHS
+    } ConanNode;
     ConanSystemTool(const CmdOptions & options):BaseSystemTool(options, "conan") {}
     ~ConanSystemTool() override = default;
     void update() override;
     void bundle(const Dependency & dependency) override;
     void install(const Dependency & dependency) override;
     bool installed(const Dependency & dependency) override;
-    std::vector<std::string> binPaths(const Dependency & dependency) override;
-    std::vector<std::string> libPaths(const Dependency & dependency) override;
+    std::vector<fs::path> binPaths(const Dependency & dependency) override;
+    std::vector<fs::path> libPaths(const Dependency & dependency) override;
     std::string computeSourcePath( const Dependency &  dependency) override;
     void invokeGenerator(const fs::path & conanFilePath, GeneratorType generator);
-
+    std::vector<fs::path> retrievePaths(const Dependency & dependency, ConanNode conanNode, const fs::path & destination);
 
 private:
     std::string computeToolRef( const Dependency &  dependency) override;

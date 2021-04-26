@@ -41,6 +41,9 @@ public:
     static void copyLibraries(const fs::path & sourceRootFolder, const fs::path & destinationFolderPath, const std::string_view & suffix);
     static const std::string_view & sharedSuffix(const std::string_view & osStr);
     static const std::string_view & staticSuffix(const std::string_view & osStr);
+    static const std::string_view & sharedLibraryPathEnvName(const std::string_view & osStr);
+    static fs::path acquireTempFolderPath();
+    static void releaseTempFolderPath(const fs::path & tmpDir);
 };
 
 #endif // OSTOOLS_H

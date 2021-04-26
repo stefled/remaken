@@ -7,38 +7,13 @@
 
 AbstractFileRetriever::AbstractFileRetriever(const CmdOptions & options):m_options(options)
 {
-    fs::detail::utf8_codecvt_facet utf8;
-    boost::uuids::uuid uuid = boost::uuids::random_generator()();
-    fs::path tmpDir(fs::temp_directory_path().generic_string(utf8));
-    m_workingDirectory = tmpDir / boost::uuids::to_string(uuid);
+    m_workingDirectory = OsTools::acquireTempFolderPath();
     m_zipTool = ZipTool::createZipTool(m_options);
-
-    try {
-        fs::create_directories(m_workingDirectory);
-    }
-    catch (const fs::filesystem_error & e) {
-        throw std::runtime_error("Unable to create working directory " + m_workingDirectory.generic_string());
-    }
 }
 
 AbstractFileRetriever::~AbstractFileRetriever()
 {
-    cleanUpWorkingDirectory();
-}
-
-void AbstractFileRetriever::cleanUpWorkingDirectory()
-{
-    try {
-        for (fs::directory_entry& x : fs::directory_iterator(m_workingDirectory)) {
-            if (is_regular_file(x.path())) {
-                fs::remove(x.path());
-            }
-        }
-        fs::remove(m_workingDirectory);
-    }
-    catch (const fs::filesystem_error & e) {
-        throw std::runtime_error("Unable to cleanup working directory " + m_workingDirectory.generic_string());
-    }
+    OsTools::releaseTempFolderPath(m_workingDirectory);
 }
 
 std::string AbstractFileRetriever::computeSourcePath( const Dependency &  dependency)
@@ -138,6 +113,22 @@ fs::path AbstractFileRetriever::bundleArtefact(const Dependency & dependency)
     copySharedLibraries(rootLibDir);
     fs::path outputDirectory = computeLocalDependencyRootDir(dependency);
     return outputDirectory;
+}
+
+std::vector<fs::path> AbstractFileRetriever::binPaths(const Dependency & dependency)
+{
+    std::vector<fs::path> paths;
+    fs::detail::utf8_codecvt_facet utf8;
+    paths.push_back(computeRootBinDir(dependency));
+    return paths;
+}
+
+std::vector<fs::path> AbstractFileRetriever::libPaths(const Dependency & dependency)
+{
+    std::vector<fs::path> paths;
+    fs::detail::utf8_codecvt_facet utf8;
+    paths.push_back(computeRootLibDir(dependency));
+    return paths;
 }
 
 

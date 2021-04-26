@@ -43,12 +43,22 @@ bool BrewSystemTool::installed(const Dependency & dependency)
     return (result == 0);
 }
 
-std::vector<std::string> BrewSystemTool::binPaths(const Dependency & dependency)
+std::vector<fs::path> BrewSystemTool::binPaths([[maybe_unused]] const Dependency & dependency)
 {
-    return std::vector<std::string>();
+    std::vector<fs::path> paths;
+    fs::detail::utf8_codecvt_facet utf8;
+    fs::path baseBrewPath = m_systemInstallerPath.parent_path().parent_path();
+    baseBrewPath /= "bin";
+    paths.push_back(baseBrewPath);
+    return std::vector<fs::path>();
 }
 
-std::vector<std::string> BrewSystemTool::libPaths(const Dependency & dependency)
+std::vector<fs::path> BrewSystemTool::libPaths([[maybe_unused]] const Dependency & dependency)
 {
-    return std::vector<std::string>();
+    std::vector<fs::path> paths;
+    fs::detail::utf8_codecvt_facet utf8;
+    fs::path baseBrewPath = m_systemInstallerPath.parent_path().parent_path();
+    baseBrewPath /= "lib";
+    paths.push_back(baseBrewPath);
+    return paths;
 }

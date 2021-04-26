@@ -33,8 +33,8 @@ public:
     void update() override;
     void install(const Dependency & dependency) override;
     bool installed(const Dependency & dependency) override;
-    std::vector<std::string> binPaths(const Dependency & dependency) override;
-    std::vector<std::string> libPaths(const Dependency & dependency) override;
+    std::vector<fs::path> binPaths([[maybe_unused]] const Dependency & dependency) override;
+    std::vector<fs::path> libPaths([[maybe_unused]] const Dependency & dependency) override;
 
 private:
     std::string computeToolRef( const Dependency &  dependency) override;

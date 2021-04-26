@@ -1,5 +1,7 @@
 #include "OsTools.h"
 #include "Constants.h"
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 #ifdef BOOST_OS_WINDOWS_AVAILABLE
 #include <wbemidl.h>
@@ -24,18 +26,18 @@ bool OsTools::isElevated()
 #endif
 #ifdef BOOST_OS_WINDOWS_AVAILABLE
     BOOL fRet = FALSE;
-       HANDLE hToken = NULL;
-       if( OpenProcessToken( GetCurrentProcess( ),TOKEN_QUERY,&hToken ) ) {
-           TOKEN_ELEVATION Elevation;
-           DWORD cbSize = sizeof( TOKEN_ELEVATION );
-           if( GetTokenInformation( hToken, TokenElevation, &Elevation, sizeof( Elevation ), &cbSize ) ) {
-               fRet = Elevation.TokenIsElevated;
-           }
-       }
-       if( hToken ) {
-           CloseHandle( hToken );
-       }
-       return fRet;
+    HANDLE hToken = NULL;
+    if( OpenProcessToken( GetCurrentProcess( ),TOKEN_QUERY,&hToken ) ) {
+        TOKEN_ELEVATION Elevation;
+        DWORD cbSize = sizeof( TOKEN_ELEVATION );
+        if( GetTokenInformation( hToken, TokenElevation, &Elevation, sizeof( Elevation ), &cbSize ) ) {
+            fRet = Elevation.TokenIsElevated;
+        }
+    }
+    if( hToken ) {
+        CloseHandle( hToken );
+    }
+    return fRet;
 #endif
 #ifdef BOOST_OS_BSD_FREE_AVAILABLE
     return true;
@@ -61,6 +63,15 @@ static const std::map<const std::string_view,const  std::string_view> os2staticS
     {"linux",".a"}
 };
 
+static const std::map<const std::string_view,const  std::string_view> os2sharedPathEnv = {
+    {"mac","DYLD_LIBRARY_PATH"},
+    {"win","PATH"},
+    {"unix","LD_LIBRARY_PATH"},
+    {"android","LD_LIBRARY_PATH"},
+    {"ios","DYLD_LIBRARY_PATH"},
+    {"linux","LD_LIBRARY_PATH"}
+};
+
 const std::string_view & OsTools::sharedSuffix(const std::string_view & osStr)
 {
     if (os2sharedSuffix.find(osStr) == os2sharedSuffix.end()) {
@@ -68,6 +79,15 @@ const std::string_view & OsTools::sharedSuffix(const std::string_view & osStr)
     }
     return os2sharedSuffix.at(osStr);
 }
+
+const std::string_view & OsTools::sharedLibraryPathEnvName(const std::string_view & osStr)
+{
+    if (os2sharedPathEnv.find(osStr) == os2sharedPathEnv.end()) {
+        return os2sharedSuffix.at("unix");
+    }
+    return os2sharedPathEnv.at(osStr);
+}
+
 
 
 const std::string_view & OsTools::staticSuffix(const std::string_view & osStr)
@@ -125,4 +145,36 @@ void OsTools::copySharedLibraries(const fs::path & sourceRootFolder, const CmdOp
 void OsTools::copyStaticLibraries(const fs::path & sourceRootFolder, const CmdOptions & options)
 {
     copyLibraries(sourceRootFolder, options, &staticSuffix);
+}
+
+fs::path OsTools::acquireTempFolderPath()
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    boost::uuids::uuid uuid = boost::uuids::random_generator()();
+    fs::path tmpDir(fs::temp_directory_path().generic_string(utf8));
+    tmpDir /= boost::uuids::to_string(uuid);
+
+    try {
+        fs::create_directories(tmpDir);
+    }
+    catch (const fs::filesystem_error & e) {
+        throw std::runtime_error("Unable to create working directory " + tmpDir.generic_string(utf8));
+    }
+    return tmpDir;
+}
+
+void OsTools::releaseTempFolderPath(const fs::path & tmpDir)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    try {
+        for (fs::directory_entry& x : fs::directory_iterator(tmpDir)) {
+            if (is_regular_file(x.path())) {
+                fs::remove(x.path());
+            }
+        }
+        fs::remove(tmpDir);
+    }
+    catch (const fs::filesystem_error & e) {
+        throw std::runtime_error("Unable to cleanup working directory " + tmpDir.generic_string(utf8));
+    }
 }

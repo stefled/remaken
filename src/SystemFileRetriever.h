@@ -37,6 +37,8 @@ public:
 
     fs::path installArtefactImpl(const Dependency & dependency) override;
     fs::path retrieveArtefact(const Dependency & dependency) override;
+    std::vector<fs::path> binPaths(const Dependency & dependency) override;
+    std::vector<fs::path> libPaths(const Dependency & dependency) override;
     std::string computeSourcePath( const Dependency &  dependency) override;
 
 protected:

@@ -1,7 +1,12 @@
 #include "RunCommand.h"
 #include "DependencyManager.h"
 #include "XpcfXmlManager.h"
+#include "tools/OsTools.h"
 #include <boost/log/trivial.hpp>
+#include "FileHandlerFactory.h"
+#include <memory>
+
+using namespace std;
 
 RunCommand::RunCommand(const CmdOptions & options):AbstractCommand(RunCommand::NAME),m_options(options)
 {
@@ -55,13 +60,20 @@ int RunCommand::execute()
         //std::cout<<dependency.toString()<<std::endl;
         depsMap.insert_or_assign(dependency.getName()+dependency.getVersion(), dependency);
     }
- /*   std::cout<<"Filtered deps list:"<<std::endl;
-    for (auto [name,dependency]: depsMap) {
-         std::cout<<dependency.toString()<<std::endl;
-    }*/
 
     if (m_options.environmentOnly()) {
+        std::vector<std::string> libPaths;
+        for (auto [name,dependency]: depsMap) {
+             shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(dependency, m_options);
+             std::vector<std::string> paths = fileRetriever->libPaths(dependency);
+             libPaths.insert(libPaths.end(),paths.begin(), paths.end());
+        }
     // display results
+        std::cout<<OsTools::sharedLibraryPathEnvName(m_options.getOS())<<"=";
+        for (auto path: libPaths) {
+            std::cout<<":"<<path;
+        }
+        std::cout<<":$"<<OsTools::sharedLibraryPathEnvName(m_options.getOS())<<std::endl;
         return 0;
     }
     if (!m_options.getApplicationFile().empty()) {

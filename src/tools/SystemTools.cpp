@@ -137,14 +137,14 @@ std::string BaseSystemTool::computeSourcePath( const Dependency &  dependency)
     return computeToolRef(dependency);
 }
 
-std::vector<std::string> BaseSystemTool::binPaths(const Dependency & dependency)
+std::vector<fs::path> BaseSystemTool::binPaths([[maybe_unused]] const Dependency & dependency)
 {
-    return std::vector<std::string>();
+    return std::vector<fs::path>();
 }
 
-std::vector<std::string> BaseSystemTool::libPaths(const Dependency & dependency)
+std::vector<fs::path> BaseSystemTool::libPaths([[maybe_unused]] const Dependency & dependency)
 {
-    return std::vector<std::string>();
+    return std::vector<fs::path>();
 }
 
 std::string SystemTools::getToolIdentifier()

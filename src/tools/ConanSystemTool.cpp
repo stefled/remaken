@@ -22,6 +22,16 @@ static const std::map<std::string,std::string> conanArchTranslationMap ={{"x86_6
                                                                         };
 
 
+static const std::map<ConanSystemTool::ConanNode,std::string> conanNodeMap ={{ConanSystemTool::ConanNode::BIN_PATHS, "bin_paths"},
+                                                                             #ifdef BOOST_OS_WINDOWS_AVAILABLE
+                                                                             {ConanSystemTool::ConanNode::LIB_PATHS, "bin_paths"}
+                                                                             #else
+                                                                             {ConanSystemTool::ConanNode::LIB_PATHS, "lib_paths"}
+                                                                             #endif
+                                                                            };
+
+
+
 #ifdef BOOST_OS_WINDOWS_AVAILABLE
 #define OSSHAREDLIBNODEPATH "bin_paths"
 #else
@@ -34,63 +44,14 @@ void ConanSystemTool::update()
 
 void ConanSystemTool::bundle(const Dependency & dependency)
 {
-    std::string source = computeToolRef(dependency);
-    std::string buildType = "build_type=Debug";
     fs::path destination = m_options.getDestinationRoot();
     destination /= ".conan";
 
-    if (m_options.getConfig() == "release") {
-        buildType = "build_type=Release";
-    }
-    std::string cppStd="compiler.cppstd=";
-    cppStd += m_options.getCppVersion();
-    int result = -1;
-    std::vector<std::string> options;
-    std::vector<std::string> optionsArgs;
-    std::vector<std::string> settingsArgs;
-    if (mapContains(conanArchTranslationMap, m_options.getArchitecture())) {
-        settingsArgs.push_back("-s");
-        settingsArgs.push_back("arch=" + conanArchTranslationMap.at(m_options.getArchitecture()));
-    }
-    if (dependency.hasOptions()) {
-        boost::split(options, dependency.getToolOptions(), [](char c){return c == '#';});
-        for (const auto & option: options) {
-            optionsArgs.push_back("-o " + option);
-        }
-    }
-    if (dependency.getMode() == "na") {
-        result = bp::system(m_systemInstallerPath, "install", bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if", destination, bp::args(optionsArgs), "-g", "json", source.c_str());
-    }
-    else {
-        std::string buildMode = dependency.getName() + ":";
-        if (dependency.getMode() == "static") {
-            buildMode += "shared=False";
-        }
-        else {
-            buildMode += "shared=True";
-        }
-        result = bp::system(m_systemInstallerPath, "install", "-o", buildMode.c_str(), bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if", destination, bp::args(optionsArgs), "-g", "json", source.c_str());
-    }
-    if (result != 0) {
-        throw std::runtime_error("Error bundling conan dependency : " + source);
-    }
-    fs::detail::utf8_codecvt_facet utf8;
-    std::string fileName = dependency.getPackageName() + "_conanbuildinfo.json";
-    fs::path conanBuildInfoJson = destination/fileName;
-    fs::copy_file(destination/"conanbuildinfo.json", conanBuildInfoJson, fs::copy_options::overwrite_existing);
-    fs::remove(destination/"conanbuildinfo.json");
-    if (fs::exists(conanBuildInfoJson)) {
-        std::ifstream ifs1{ conanBuildInfoJson.generic_string(utf8) };
-        nj::json conanBuildData = nj::json::parse(ifs1);
-        for (auto dep : conanBuildData["dependencies"]) {
-            auto root = dep["rootpath"];
-            auto lib_paths = dep[OSSHAREDLIBNODEPATH];
-            for (auto lib_path : lib_paths) {
-                boost::filesystem::path libPath = std::string(lib_path);
-                if (boost::filesystem::exists(libPath)) {
-                    OsTools::copySharedLibraries(libPath, m_options);
-                }
-            }
+    std::vector<fs::path> libPaths = retrievePaths(dependency, ConanNode::LIB_PATHS, destination);
+
+    for (auto libPath : libPaths) {
+        if (boost::filesystem::exists(libPath)) {
+            OsTools::copySharedLibraries(libPath, m_options);
         }
     }
 }
@@ -162,6 +123,70 @@ void ConanSystemTool::invokeGenerator(const fs::path & conanFilePath, ConanSyste
     }
 }
 
+
+std::vector<fs::path> ConanSystemTool::retrievePaths(const Dependency & dependency, ConanSystemTool::ConanNode conanNode, const fs::path & destination)
+{
+    std::vector<fs::path> conanPaths;
+    std::string source = computeToolRef(dependency);
+    std::string buildType = "build_type=Debug";
+
+    if (m_options.getConfig() == "release") {
+        buildType = "build_type=Release";
+    }
+    std::string cppStd="compiler.cppstd=";
+    cppStd += m_options.getCppVersion();
+    int result = -1;
+    std::vector<std::string> options;
+    std::vector<std::string> optionsArgs;
+    std::vector<std::string> settingsArgs;
+    if (mapContains(conanArchTranslationMap, m_options.getArchitecture())) {
+        settingsArgs.push_back("-s");
+        settingsArgs.push_back("arch=" + conanArchTranslationMap.at(m_options.getArchitecture()));
+    }
+    if (dependency.hasOptions()) {
+        boost::split(options, dependency.getToolOptions(), [](char c){return c == '#';});
+        for (const auto & option: options) {
+            optionsArgs.push_back("-o " + option);
+        }
+    }
+    if (dependency.getMode() == "na") {
+        result = bp::system(m_systemInstallerPath, "install", bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if", destination, bp::args(optionsArgs), "-g", "json", source.c_str());
+    }
+    else {
+        std::string buildMode = dependency.getName() + ":";
+        if (dependency.getMode() == "static") {
+            buildMode += "shared=False";
+        }
+        else {
+            buildMode += "shared=True";
+        }
+        result = bp::system(m_systemInstallerPath, "install", "-o", buildMode.c_str(), bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if", destination, bp::args(optionsArgs), "-g", "json", source.c_str());
+    }
+    if (result != 0) {
+        throw std::runtime_error("Error bundling conan dependency : " + source);
+    }
+    fs::detail::utf8_codecvt_facet utf8;
+    std::string fileName = dependency.getPackageName() + "_conanbuildinfo.json";
+    fs::path conanBuildInfoJson = destination/fileName;
+    fs::copy_file(destination/"conanbuildinfo.json", conanBuildInfoJson, fs::copy_options::overwrite_existing);
+    fs::remove(destination/"conanbuildinfo.json");
+    if (fs::exists(conanBuildInfoJson)) {
+        std::ifstream ifs1{ conanBuildInfoJson.generic_string(utf8) };
+        nj::json conanBuildData = nj::json::parse(ifs1);
+        for (auto dep : conanBuildData["dependencies"]) {
+            auto root = dep["rootpath"];
+            auto conan_paths = dep[conanNodeMap.at(conanNode)];
+            for (auto & conan_path : conan_paths) {
+                boost::filesystem::path conanPath = std::string(conan_path);
+                if (boost::filesystem::exists(conanPath)) {
+                    conanPaths.push_back(conanPath);
+                }
+            }
+        }
+    }
+    return conanPaths;
+}
+
 bool ConanSystemTool::installed(const Dependency & dependency)
 {
     return false;
@@ -188,13 +213,19 @@ std::string ConanSystemTool::computeSourcePath(const Dependency &  dependency)
     return sourceURL;
 }
 
-std::vector<std::string> ConanSystemTool::binPaths(const Dependency & dependency)
+std::vector<fs::path> ConanSystemTool::binPaths(const Dependency & dependency)
 {
-    return std::vector<std::string>();
+    fs::path workingDirectory = OsTools::acquireTempFolderPath();
+    std::vector<fs::path> binPaths = retrievePaths(dependency, ConanNode::LIB_PATHS, workingDirectory);
+    OsTools::releaseTempFolderPath(workingDirectory);
+    return binPaths;
 }
 
-std::vector<std::string> ConanSystemTool::libPaths(const Dependency & dependency)
+std::vector<fs::path> ConanSystemTool::libPaths(const Dependency & dependency)
 {
-    return std::vector<std::string>();
+    fs::path workingDirectory = OsTools::acquireTempFolderPath();
+    std::vector<fs::path> libPaths = retrievePaths(dependency, ConanNode::LIB_PATHS, workingDirectory);
+    OsTools::releaseTempFolderPath(workingDirectory);
+    return libPaths;
 }
 

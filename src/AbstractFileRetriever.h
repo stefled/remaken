@@ -34,6 +34,8 @@ public:
     virtual ~AbstractFileRetriever() override;
     virtual fs::path installArtefact(const Dependency & dependency) override final;
     virtual fs::path bundleArtefact(const Dependency & dependency) override;
+    virtual std::vector<fs::path> binPaths(const Dependency & dependency) override;
+    virtual std::vector<fs::path> libPaths(const Dependency & dependency) override;
     virtual std::string computeSourcePath( const Dependency &  dependency) override;
     virtual fs::path computeRootBinDir( const Dependency & dependency) override;
     virtual fs::path computeRootLibDir( const Dependency & dependency) override;
@@ -45,7 +47,6 @@ protected:
     virtual fs::path installArtefactImpl(const Dependency & dependency);
     virtual void processPostInstallActions();
     void copySharedLibraries(const fs::path & sourceRootFolder);
-    void cleanUpWorkingDirectory();
     fs::path m_workingDirectory;
     const CmdOptions & m_options;
     std::shared_ptr<ZipTool> m_zipTool;

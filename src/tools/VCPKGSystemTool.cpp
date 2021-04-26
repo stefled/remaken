@@ -79,13 +79,13 @@ std::string VCPKGSystemTool::computeToolRef( const Dependency &  dependency)
     return sourceURL;
 }
 
-std::vector<std::string> VCPKGSystemTool::binPaths(const Dependency & dependency)
+std::vector<fs::path> VCPKGSystemTool::binPaths(const Dependency & dependency)
 {
-    return std::vector<std::string>();
+    return std::vector<fs::path>();
 }
 
-std::vector<std::string> VCPKGSystemTool::libPaths(const Dependency & dependency)
+std::vector<fs::path> VCPKGSystemTool::libPaths(const Dependency & dependency)
 {
-    return std::vector<std::string>();
+    return std::vector<fs::path>();
 }
 

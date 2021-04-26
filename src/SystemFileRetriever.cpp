@@ -29,3 +29,13 @@ fs::path SystemFileRetriever::retrieveArtefact(const Dependency & dependency)
     fs::path output(source);
     return output;
 }
+
+std::vector<fs::path> SystemFileRetriever::binPaths(const Dependency & dependency)
+{
+    return m_tool->binPaths(dependency);
+}
+
+std::vector<fs::path> SystemFileRetriever::libPaths(const Dependency & dependency)
+{
+    return m_tool->libPaths(dependency);
+}

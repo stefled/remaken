@@ -40,8 +40,8 @@ public:
     }
     virtual void install(const Dependency & dependency) = 0;
     virtual bool installed(const Dependency & dependency) = 0;
-    virtual std::vector<std::string> binPaths(const Dependency & dependency);
-    virtual std::vector<std::string> libPaths(const Dependency & dependency);
+    virtual std::vector<fs::path> binPaths([[maybe_unused]] const Dependency & dependency);
+    virtual std::vector<fs::path> libPaths([[maybe_unused]] const Dependency & dependency);
     virtual std::string computeSourcePath( const Dependency &  dependency);
     virtual fs::path sudo() { return m_sudoCmd; }
 
