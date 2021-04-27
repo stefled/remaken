@@ -216,7 +216,7 @@ std::string ConanSystemTool::computeSourcePath(const Dependency &  dependency)
 std::vector<fs::path> ConanSystemTool::binPaths(const Dependency & dependency)
 {
     fs::path workingDirectory = OsTools::acquireTempFolderPath();
-    std::vector<fs::path> binPaths = retrievePaths(dependency, ConanNode::LIB_PATHS, workingDirectory);
+    std::vector<fs::path> binPaths = retrievePaths(dependency, ConanNode::BIN_PATHS, workingDirectory);
     OsTools::releaseTempFolderPath(workingDirectory);
     return binPaths;
 }
