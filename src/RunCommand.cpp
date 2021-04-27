@@ -23,6 +23,7 @@ int RunCommand::execute()
     // brew, vcpkg, choco, conan -> get libPaths
     // remaken -> get path for each remaken deps (from xml or from pkgdeps parsing)
     std::vector<Dependency> deps;
+    std::vector<fs::path> libPaths;
     if (!m_options.getXpcfXmlFile().empty()) {
         XpcfXmlManager xpcfManager(m_options);
         try {
@@ -37,6 +38,8 @@ int RunCommand::execute()
                 if (!fs::exists(packageRootPath)) {
                     BOOST_LOG_TRIVIAL(warning)<<"Unable to find root package path "<<packageRootPath<<" for module "<<name<<" path="<<modulePath;
                 }
+                // The following line should not be needed mandatory as xpcf loads dynamically the modules
+                // libPaths.push_back(modulePath);
                 if (fs::exists(packageRootPath/"packagedependencies.txt")) {
                     DependencyManager::parseRecurse(packageRootPath/"packagedependencies.txt",m_options,deps);
                 }
@@ -62,7 +65,6 @@ int RunCommand::execute()
     }
 
     if (m_options.environmentOnly()) {
-        std::vector<fs::path> libPaths;
         for (auto & [name,dependency]: depsMap) {
              shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(dependency, m_options);
              std::vector<fs::path> paths = fileRetriever->libPaths(dependency);
