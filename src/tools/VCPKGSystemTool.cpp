@@ -124,6 +124,10 @@ std::vector<fs::path> VCPKGSystemTool::retrievePaths(const Dependency & dependen
     fs::detail::utf8_codecvt_facet utf8;
     fs::path depPath = computeLocalDependencyRootDir(dependency);
     depPath /= vcpkgPathNodeMap.at(pathType);
+    if (!fs::exists(depPath)) {
+        BOOST_LOG_TRIVIAL(warning)<<"VCPKG path doesn't exist : "<<depPath;
+        return paths;
+    }
     paths.push_back(depPath);
     return paths;
 }
