@@ -62,16 +62,17 @@ int RunCommand::execute()
     }
 
     if (m_options.environmentOnly()) {
-        std::vector<std::string> libPaths;
-        for (auto [name,dependency]: depsMap) {
+        std::vector<fs::path> libPaths;
+        for (auto & [name,dependency]: depsMap) {
              shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(dependency, m_options);
-             std::vector<std::string> paths = fileRetriever->libPaths(dependency);
+             std::vector<fs::path> paths = fileRetriever->libPaths(dependency);
              libPaths.insert(libPaths.end(),paths.begin(), paths.end());
         }
     // display results
         std::cout<<OsTools::sharedLibraryPathEnvName(m_options.getOS())<<"=";
         for (auto path: libPaths) {
-            std::cout<<":"<<path;
+            fs::detail::utf8_codecvt_facet utf8;
+            std::cout<<":"<<path.generic_string(utf8);
         }
         std::cout<<":$"<<OsTools::sharedLibraryPathEnvName(m_options.getOS())<<std::endl;
         return 0;

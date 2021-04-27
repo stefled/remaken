@@ -29,7 +29,7 @@ class VCPKGSystemTool : public BaseSystemTool
 {
 public:
     fs::detail::utf8_codecvt_facet utf8;
-    VCPKGSystemTool(const CmdOptions & options):BaseSystemTool(options, options.getRemakenRoot().generic_string(utf8) + "/vcpkg/vcpkg") {}
+    VCPKGSystemTool(const CmdOptions & options):BaseSystemTool(options, "vcpkg") {}
     ~VCPKGSystemTool() override = default;
     void update() override;
     void install(const Dependency & dependency) override;

@@ -119,7 +119,10 @@ private:
 
 BaseSystemTool::BaseSystemTool(const CmdOptions & options, const std::string & installer):m_options(options)
 {
-    m_systemInstallerPath = bp::search_path(installer); //or get it from somewhere else.
+    fs::path p = options.getRemakenRoot() / "vcpkg";
+    std::vector<fs::path> envPath = boost::this_process::path();
+    envPath.push_back(p);
+    m_systemInstallerPath = bp::search_path(installer, envPath); //or get it from somewhere else.
     m_sudoCmd = bp::search_path("sudo"); //or get it from somewhere else.
     if (m_systemInstallerPath.empty()) {
         throw std::runtime_error("Error : " + installer + " command not found on the system. Please install it first.");
@@ -197,8 +200,9 @@ std::string SystemTools::getToolIdentifier()
 
 std::map<std::string,std::vector<std::string>> supportedTools =
 {
-    {"linux",{"brew"}},
-    {"windows",{"scoop"}},
+    {"linux",{"brew","vcpkg"}},
+    {"mac",{"vcpkg"}},
+    {"windows",{"scoop","vcpkg"}},
 };
 
 bool SystemTools::isToolSupported(const std::string & tool)
@@ -237,7 +241,9 @@ bool SystemTools::isToolSupported(const std::string & tool)
 
 std::shared_ptr<BaseSystemTool> SystemTools::createTool(const CmdOptions & options, std::optional<std::reference_wrapper<const Dependency>> dependencyOpt)
 {
-
+    fs::path p = options.getRemakenRoot() / "vcpkg";
+    std::vector<fs::path> envPath = boost::this_process::path();
+    envPath.push_back(p);
     if (dependencyOpt.has_value()) {
         const Dependency & dependency = dependencyOpt.value().get();
         std::string explicitToolName = dependency.getIdentifier();
@@ -245,7 +251,7 @@ std::shared_ptr<BaseSystemTool> SystemTools::createTool(const CmdOptions & optio
             // get tool identifier for current OS
             explicitToolName = getToolIdentifier();
         }
-        boost::filesystem::path p = bp::search_path(explicitToolName);
+        boost::filesystem::path p = bp::search_path(explicitToolName, envPath);
         if (!p.empty()) {
 #ifdef BOOST_OS_ANDROID_AVAILABLE
             return nullptr;// or conan as default? but implies to set conan options
