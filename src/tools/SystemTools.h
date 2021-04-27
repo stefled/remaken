@@ -32,6 +32,10 @@
 class BaseSystemTool
 {
 public:
+    typedef enum {
+       LIB_PATHS,
+       BIN_PATHS
+    } PathType;
     BaseSystemTool(const CmdOptions & options, const std::string & installer);
     virtual ~BaseSystemTool() = default;
     virtual void update() = 0;

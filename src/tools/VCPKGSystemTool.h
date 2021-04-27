@@ -38,7 +38,10 @@ public:
     std::vector<fs::path> libPaths(const Dependency & dependency) override;
 
 protected:
+    fs::path computeLocalDependencyRootDir( const Dependency &  dependency);
+    std::vector<fs::path> retrievePaths(const Dependency & dependency, BaseSystemTool::PathType pathType);
     std::string computeToolRef( const Dependency &  dependency) override;
+
 };
 
 

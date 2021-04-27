@@ -22,11 +22,11 @@ static const std::map<std::string,std::string> conanArchTranslationMap ={{"x86_6
                                                                         };
 
 
-static const std::map<ConanSystemTool::ConanNode,std::string> conanNodeMap ={{ConanSystemTool::ConanNode::BIN_PATHS, "bin_paths"},
+static const std::map<BaseSystemTool::PathType,std::string> conanNodeMap ={{BaseSystemTool::PathType::BIN_PATHS, "bin_paths"},
                                                                              #ifdef BOOST_OS_WINDOWS_AVAILABLE
-                                                                             {ConanSystemTool::ConanNode::LIB_PATHS, "bin_paths"}
+                                                                             {BaseSystemTool::PathType::LIB_PATHS, "bin_paths"}
                                                                              #else
-                                                                             {ConanSystemTool::ConanNode::LIB_PATHS, "lib_paths"}
+                                                                             {BaseSystemTool::PathType::LIB_PATHS, "lib_paths"}
                                                                              #endif
                                                                             };
 
@@ -47,7 +47,7 @@ void ConanSystemTool::bundle(const Dependency & dependency)
     fs::path destination = m_options.getDestinationRoot();
     destination /= ".conan";
 
-    std::vector<fs::path> libPaths = retrievePaths(dependency, ConanNode::LIB_PATHS, destination);
+    std::vector<fs::path> libPaths = retrievePaths(dependency, BaseSystemTool::PathType::LIB_PATHS, destination);
 
     for (auto libPath : libPaths) {
         if (boost::filesystem::exists(libPath)) {
@@ -124,7 +124,7 @@ void ConanSystemTool::invokeGenerator(const fs::path & conanFilePath, ConanSyste
 }
 
 
-std::vector<fs::path> ConanSystemTool::retrievePaths(const Dependency & dependency, ConanSystemTool::ConanNode conanNode, const fs::path & destination)
+std::vector<fs::path> ConanSystemTool::retrievePaths(const Dependency & dependency, BaseSystemTool::PathType conanNode, const fs::path & destination)
 {
     std::vector<fs::path> conanPaths;
     std::string source = computeToolRef(dependency);
@@ -216,7 +216,7 @@ std::string ConanSystemTool::computeSourcePath(const Dependency &  dependency)
 std::vector<fs::path> ConanSystemTool::binPaths(const Dependency & dependency)
 {
     fs::path workingDirectory = OsTools::acquireTempFolderPath();
-    std::vector<fs::path> binPaths = retrievePaths(dependency, ConanNode::BIN_PATHS, workingDirectory);
+    std::vector<fs::path> binPaths = retrievePaths(dependency, BaseSystemTool::PathType::BIN_PATHS, workingDirectory);
     OsTools::releaseTempFolderPath(workingDirectory);
     return binPaths;
 }
@@ -224,7 +224,7 @@ std::vector<fs::path> ConanSystemTool::binPaths(const Dependency & dependency)
 std::vector<fs::path> ConanSystemTool::libPaths(const Dependency & dependency)
 {
     fs::path workingDirectory = OsTools::acquireTempFolderPath();
-    std::vector<fs::path> libPaths = retrievePaths(dependency, ConanNode::LIB_PATHS, workingDirectory);
+    std::vector<fs::path> libPaths = retrievePaths(dependency, BaseSystemTool::PathType::LIB_PATHS, workingDirectory);
     OsTools::releaseTempFolderPath(workingDirectory);
     return libPaths;
 }

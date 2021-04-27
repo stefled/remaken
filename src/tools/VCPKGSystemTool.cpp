@@ -20,6 +20,14 @@ static const std::map<std::string,std::string> options2vcpkg ={{"mac","osx"},
                                                                {"static","static"},
                                                                {"unix","linux"}};
 
+static const std::map<BaseSystemTool::PathType,std::string> vcpkgPathNodeMap ={{BaseSystemTool::PathType::BIN_PATHS, "bin"},
+                                                                             #ifdef BOOST_OS_WINDOWS_AVAILABLE
+                                                                             {BaseSystemTool::PathType::LIB_PATHS, "bin"}
+                                                                             #else
+                                                                             {BaseSystemTool::PathType::LIB_PATHS, "lib"}
+                                                                             #endif
+                                                                            };
+
 void VCPKGSystemTool::update()
 {
 }
@@ -36,6 +44,36 @@ void VCPKGSystemTool::install(const Dependency & dependency)
 bool VCPKGSystemTool::installed(const Dependency & dependency)
 {
     return false;
+}
+
+fs::path VCPKGSystemTool::computeLocalDependencyRootDir( const Dependency &  dependency)
+{
+    std::string mode = dependency.getMode();
+    std::string os =  m_options.getOS();
+    std::string arch =  m_options.getArchitecture();
+    if (options2vcpkg.find(mode) == options2vcpkg.end()) {
+        throw std::runtime_error("Error installing vcpkg dependency : unknown mode " + mode);
+    }
+    if (options2vcpkg.find(os) == options2vcpkg.end()) {
+        throw std::runtime_error("Error installing vcpkg dependency : unsupported operating system " + os);
+    }
+    if (options2vcpkg.find(arch) == options2vcpkg.end()) {
+        throw std::runtime_error("Error installing vcpkg dependency : unsupported architecture " + arch);
+    }
+    std::vector<std::string> options;
+    std::string optionStr;
+
+    os = options2vcpkg.at(os);
+    arch = options2vcpkg.at(arch);
+    mode = options2vcpkg.at(mode);
+    fs::path baseVcpkgPath = m_systemInstallerPath.parent_path();
+    baseVcpkgPath /= "packages";
+    std::string sourceURL = dependency.getPackageName();
+
+    sourceURL += "_" + arch;
+    sourceURL += "-" + os;
+    sourceURL += "-" + mode;
+    return baseVcpkgPath/sourceURL;
 }
 
 std::string VCPKGSystemTool::computeToolRef( const Dependency &  dependency)
@@ -57,6 +95,7 @@ std::string VCPKGSystemTool::computeToolRef( const Dependency &  dependency)
 
     os = options2vcpkg.at(os);
     arch = options2vcpkg.at(arch);
+    mode = options2vcpkg.at(mode);
     std::string sourceURL = dependency.getPackageName();
 
     if (dependency.hasOptions()) {
@@ -79,13 +118,25 @@ std::string VCPKGSystemTool::computeToolRef( const Dependency &  dependency)
     return sourceURL;
 }
 
+std::vector<fs::path> VCPKGSystemTool::retrievePaths(const Dependency & dependency, BaseSystemTool::PathType pathType)
+{
+    std::vector<fs::path> paths;
+    fs::detail::utf8_codecvt_facet utf8;
+    fs::path depPath = computeLocalDependencyRootDir(dependency);
+    depPath /= vcpkgPathNodeMap.at(pathType);
+    paths.push_back(depPath);
+    return paths;
+}
+
 std::vector<fs::path> VCPKGSystemTool::binPaths(const Dependency & dependency)
 {
-    return std::vector<fs::path>();
+    std::vector<fs::path> binPaths = retrievePaths(dependency, BaseSystemTool::PathType::BIN_PATHS);
+    return binPaths;
 }
 
 std::vector<fs::path> VCPKGSystemTool::libPaths(const Dependency & dependency)
 {
-    return std::vector<fs::path>();
+    std::vector<fs::path> libPaths = retrievePaths(dependency, BaseSystemTool::PathType::LIB_PATHS);
+    return libPaths;
 }
 
