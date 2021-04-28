@@ -3,8 +3,12 @@
 #include "XpcfXmlManager.h"
 #include "tools/OsTools.h"
 #include <boost/log/trivial.hpp>
+#include <boost/process.hpp>
 #include "FileHandlerFactory.h"
 #include <memory>
+
+
+namespace bp = boost::process;
 
 using namespace std;
 
@@ -57,31 +61,46 @@ int RunCommand::execute()
     if (!m_options.getDependenciesFile().empty()) {
         DependencyManager::parseRecurse(m_options.getDependenciesFile(), m_options, deps);
     }
-   // std::cout<<"Exhaustive deps list:"<<std::endl;
+    // std::cout<<"Exhaustive deps list:"<<std::endl;
     std::map<std::string,Dependency> depsMap;
     for (auto dependency : deps) {//filter redundant deps
         //std::cout<<dependency.toString()<<std::endl;
         depsMap.insert_or_assign(dependency.getName()+dependency.getVersion(), dependency);
     }
+    for (auto & [name,dependency]: depsMap) {
+        shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(dependency, m_options);
+        std::vector<fs::path> paths = fileRetriever->libPaths(dependency);
+        libPaths.insert(libPaths.end(),paths.begin(), paths.end());
+    }
+
+    std::string SharedLibraryPathEnvName(OsTools::sharedLibraryPathEnvName(m_options.getOS()));
 
     if (m_options.environmentOnly()) {
-        for (auto & [name,dependency]: depsMap) {
-             shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(dependency, m_options);
-             std::vector<fs::path> paths = fileRetriever->libPaths(dependency);
-             libPaths.insert(libPaths.end(),paths.begin(), paths.end());
-        }
-    // display results
-        std::cout<<OsTools::sharedLibraryPathEnvName(m_options.getOS())<<"=";
+        // display results
+        std::cout<<SharedLibraryPathEnvName<<"=";
         for (auto path: libPaths) {
             fs::detail::utf8_codecvt_facet utf8;
             std::cout<<":"<<path.generic_string(utf8);
         }
-        std::cout<<":$"<<OsTools::sharedLibraryPathEnvName(m_options.getOS())<<std::endl;
+        std::cout<<":$"<<SharedLibraryPathEnvName<<std::endl;
         return 0;
     }
-    if (!m_options.getApplicationFile().empty()) {
 
+    int result = 0;
+    if (!m_options.getApplicationFile().empty()) {
+        if (!fs::exists(m_options.getApplicationFile())) {
+            BOOST_LOG_TRIVIAL(error)<<"Unable to find application file "<<m_options.getApplicationFile();
+            return -1;
+        }
+        auto env = boost::this_process::environment();
+        bp::environment runEnv = env;
+        //append two values to a variable in the new env
+        for (auto path: libPaths) {
+            fs::detail::utf8_codecvt_facet utf8;
+            runEnv[SharedLibraryPathEnvName] += path.generic_string(utf8);
+        }
+        result = bp::system(m_options.getApplicationFile(), runEnv);
     }
 
-    return 0;
+    return result;
 }
