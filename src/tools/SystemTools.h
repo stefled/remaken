@@ -27,6 +27,7 @@
 #include "CmdOptions.h"
 #include "Dependency.h"
 #include <list>
+#include <optional>
 #include <boost/log/trivial.hpp>
 
 class BaseSystemTool

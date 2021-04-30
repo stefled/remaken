@@ -83,8 +83,7 @@ bool Dependency::isGenericSystemDependency() const
 bool Dependency::needsPriviledgeElevation() const
 {
 #ifdef BOOST_OS_WINDOWS_AVAILABLE
-
-    return (isSystemDependency(dep) && SystemTools::getToolIdentifier() == "choco");
+    return (isSystemDependency() && SystemTools::getToolIdentifier() == "choco");
 #endif
     return false;
 }
