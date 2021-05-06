@@ -76,7 +76,7 @@ fs::path AbstractFileRetriever::installArtefactImpl(const Dependency & dependenc
     fs::detail::utf8_codecvt_facet utf8;
     fs::path compressedDependency = retrieveArtefact(dependency);
     //zipper::Unzipper unzipper(compressedDependency.generic_string(utf8));
-    fs::path outputDirectory = this->computeRemakenRootDir(dependency);
+    fs::path outputDirectory = OsTools::computeRemakenRootPackageDir(m_options);
     if (dependency.hasIdentifier()) {
         outputDirectory /= dependency.getIdentifier();
     }
@@ -135,7 +135,7 @@ std::vector<fs::path> AbstractFileRetriever::libPaths(const Dependency & depende
 fs::path AbstractFileRetriever::computeLocalDependencyRootDir( const Dependency &  dependency) // not the root output dir
 {
     fs::detail::utf8_codecvt_facet utf8;
-    fs::path depFullPath = computeRemakenRootDir(dependency);
+    fs::path depFullPath = OsTools::computeRemakenRootPackageDir(m_options);
     fs::path depSubPath(dependency.getPackageName() , utf8);
     depSubPath /= dependency.getVersion();
     if (dependency.hasIdentifier()) {
@@ -143,12 +143,4 @@ fs::path AbstractFileRetriever::computeLocalDependencyRootDir( const Dependency 
     }
     depFullPath /= depSubPath;
     return depFullPath;
-}
-
-fs::path AbstractFileRetriever::computeRemakenRootDir( const Dependency &  dependency) // not the root output dir
-{
-    fs::detail::utf8_codecvt_facet utf8;
-    fs::path osSubFolder(m_options.getOS() + "-" + m_options.getBuildToolchain() , utf8);
-    fs::path remakenRootDir = m_options.getRemakenRoot()/osSubFolder;
-    return remakenRootDir;
 }

@@ -21,26 +21,9 @@ DependencyManager::DependencyManager(const CmdOptions & options):m_options(optio
 {
 }
 
-fs::path DependencyManager::buildDependencyPath(const std::string & filePath)
-{
-    fs::detail::utf8_codecvt_facet utf8;
-    fs::path currentPath(boost::filesystem::initial_path().generic_string(utf8));
-
-    fs::path dependenciesFile (filePath, utf8);
-
-    if (!dependenciesFile.is_absolute()){
-        dependenciesFile = currentPath /dependenciesFile;
-    }
-
-    if (!fs::exists(dependenciesFile)) {
-        throw std::runtime_error("The file does not exists " + dependenciesFile.generic_string(utf8));
-    }
-    return dependenciesFile;
-}
-
 fs::path DependencyManager::buildDependencyPath()
 {
-    return DependencyManager::buildDependencyPath(m_options.getDependenciesFile());
+    return OsTools::buildDependencyPath(m_options.getDependenciesFile());
 }
 
 int DependencyManager::retrieve()

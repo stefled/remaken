@@ -32,6 +32,46 @@ void VCPKGSystemTool::update()
 {
 }
 
+void VCPKGSystemTool::bundle (const Dependency & dependency)
+{
+    std::vector<fs::path> libs = libPaths(dependency);
+    for (auto & libPath : libs) {
+        OsTools::copySharedLibraries(libPath,m_options);
+    }
+    // missing sub deps : depend-info must be filtered to use only the package: entry
+
+    std::string source = computeToolRef (dependency);
+    std::future<std::string> depsOutputFut;
+    boost::asio::io_context ios;
+    int result = bp::system(m_systemInstallerPath, "depend-info", source.c_str(), bp::std_out > depsOutputFut, ios);
+    auto depsString  = depsOutputFut.get();
+    std::vector<std::string> deps;
+    boost::split(deps, depsString, [](char c){return c == '\n';});
+    for (auto & dep : deps) {
+        if (!dep.empty()) {
+            std::cout<<dep<<std::endl;
+            bundleLib(dep);
+        }
+    }
+}
+
+void VCPKGSystemTool::bundleLib(const std::string & libPath)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    boost::asio::io_context ios;
+    std::future<std::string> listOutputFut;
+    int result = bp::system(m_systemInstallerPath, "list", libPath.c_str(), bp::std_out > listOutputFut, ios);
+    auto libsString = listOutputFut.get();
+    std::vector<std::string> libsPath;
+    boost::split(libsPath, libsString, [](char c){return c == '\n';});
+    for (auto & lib : libsPath) {
+        fs::path libPath (lib, utf8);
+        if ( libPath.extension().c_str() == OsTools::sharedSuffix(m_options.getOS())) {
+            std::cout<<lib<<std::endl;
+        }
+    }
+}
+
 void VCPKGSystemTool::install(const Dependency & dependency)
 {
     std::string source = this->computeToolRef(dependency);

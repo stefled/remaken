@@ -18,6 +18,9 @@ You can also retrieve the latest qmake rules (latest rules reflects the current 
 All qmake rules are retrieved from [builddefs-qmake](https://github.com/b-com-software-basis/builddefs-qmake/releases/tag/builddefs-qmake-latest)
 
 ### Installing dependencies
+add profile behavior for cross compilation
+add project option description and role (note project mode is also deduced from .pro file presence)
+add conditions configuration description
 ```remaken install [-r  path_to_remaken_root] -i [-o linux] -t github [-l nexus -u http://url_to_root_nexus_repo] [--cpp-std 17] [-c debug] [path_to_remaken_dependencies_description_file.txt] ```
 
 Note: remaken_root defaults to ```$(HOME)/.remaken``` or if ```REMAKEN_ROOT``` environment variable is defined to ```${REMAKEN_ROOT)```. ```REMAKEN_ROOT``` contains ```.remaken``` folder.
@@ -39,6 +42,18 @@ Note: ```remaken_dependencies_description_file``` defaults to current folder ```
 ### Removing installed remaken dependencies
 ```remaken clean```
 
+### Listing dependencies tree for a package
+```remaken info```
+
+### Listing remaken installed packages
+```remaken list```
+
+
+### Running applications
+remaken can be used to ease application run by gathering all shared libraries paths and exposing the paths in the appropriate environment variable (LD_LIBRARY_PATH for unixes, DYLD_LIBRARY_PATH for mac, PATH for windows).
+```remaken run ```
+ -c debug run --env --deps [path_to_remaken_dependencies_description_file.txt] --xpcf [path_to_xpcf_configuration_file.xml] [path_to_executable] args [executable arguments list]
+  
 ## Package formats supported
 ### Cross platforms packaging systems :
 - Conan

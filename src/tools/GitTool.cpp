@@ -34,6 +34,32 @@ int GitTool::clone(const std::string & url, const fs::path & destinationRootFold
     return result;
 }
 
+int GitTool::clone(const std::string & url, const fs::path & destinationRootFolder, const std::string & tag, bool recurseSubModule)
+{
+    if (tag.empty()) {
+        return clone (url, destinationRootFolder, recurseSubModule);
+    }
+
+    fs::detail::utf8_codecvt_facet utf8;
+    int result = -1;
+    std::vector<std::string> settingsArgs;
+    settingsArgs.push_back("--tag");
+    settingsArgs.push_back(tag);
+
+    if (recurseSubModule) {
+        settingsArgs.push_back("--recursive");
+    }
+    if (m_override) {
+        if (fs::exists(destinationRootFolder)) {
+            fs::remove(destinationRootFolder);
+        }
+        settingsArgs.push_back("-o");
+    }
+
+    result = bp::system(m_gitToolPath, "clone", bp::args(settingsArgs), url.c_str(), destinationRootFolder.generic_string(utf8).c_str());
+    return result;
+}
+
 std::string GitTool::getGitToolIdentifier()
 {
 #ifdef BOOST_OS_ANDROID_AVAILABLE

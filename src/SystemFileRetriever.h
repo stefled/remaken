@@ -35,6 +35,8 @@ public:
     SystemFileRetriever(const CmdOptions & options, std::optional<std::reference_wrapper<const Dependency>> dependencyOpt=std::nullopt);
     ~SystemFileRetriever() override = default;
 
+
+    fs::path bundleArtefact(const Dependency & dependency) override;
     fs::path installArtefactImpl(const Dependency & dependency) override;
     fs::path retrieveArtefact(const Dependency & dependency) override;
     std::vector<fs::path> binPaths(const Dependency & dependency) override;

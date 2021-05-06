@@ -31,7 +31,7 @@ int RunCommand::execute()
     if (!m_options.getXpcfXmlFile().empty()) {
         XpcfXmlManager xpcfManager(m_options);
         try {
-            fs::path xpcfConfigFilePath = DependencyManager::buildDependencyPath(m_options.getXpcfXmlFile());
+            fs::path xpcfConfigFilePath = OsTools::buildDependencyPath(m_options.getXpcfXmlFile());
             if ( xpcfConfigFilePath.extension() != ".xml") {
                 return -1;
             }
@@ -99,7 +99,8 @@ int RunCommand::execute()
             fs::detail::utf8_codecvt_facet utf8;
             runEnv[SharedLibraryPathEnvName] += path.generic_string(utf8);
         }
-        result = bp::system(m_options.getApplicationFile(), runEnv);
+
+        result = bp::system(m_options.getApplicationFile(), bp::args(m_options.getApplicationArguments()), runEnv);
     }
 
     return result;

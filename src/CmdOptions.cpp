@@ -8,6 +8,7 @@
 #include <boost/process.hpp>
 #include <boost/predef.h>
 #include <boost/dll.hpp>
+#include "tools/OsTools.h"
 #include "PathBuilder.h"
 namespace bp = boost::process;
 using namespace std;
@@ -168,6 +169,7 @@ CmdOptions::CmdOptions()
     m_qmakeRulesTag = Constants::QMAKE_RULES_DEFAULT_TAG;
     initCommand->add_option("--tag", m_qmakeRulesTag, "the qmake rules tag version to install - either provide a tag or the keyword 'latest' to install latest qmake rules",true);
     CLI::App * initVcpkgCommand = initCommand->add_subcommand("vcpkg", "setup vcpkg repository");
+    initVcpkgCommand->add_option("--tag", m_vcpkgTag, "the vcpkg tag version to install");
 
     // VERSION COMMAND
     CLI::App * versionCommand = m_cliApp.add_subcommand("version", "display remaken version");
@@ -191,12 +193,20 @@ CmdOptions::CmdOptions()
     m_zipTool = ZipTool::getZipToolIdentifier();
     installCommand->add_option("--ziptool,-z", m_zipTool, "unzipper tool name : unzip, compact ...", true);
 
+    // LIST COMMAND
+    CLI::App * listCommand = m_cliApp.add_subcommand("list", "list remaken installed dependencies. If package is provided, list the package available version. If package and version are provided, list the package files");
+    listCommand->add_flag("--regex", m_regex, "enable support for regex for the package name");
+    listCommand->add_option("package", m_listOptions["pkgName"], "the package name");
+    listCommand->add_option("version", m_listOptions["pkgVersion"], "the package version ");
+
     // RUN COMMAND
     CLI::App * runCommand = m_cliApp.add_subcommand("run", "run binary (and set dependencies path depending on the run environment)");
     runCommand->add_option("--xpcf", m_xpcfConfigurationFile, "XPCF xml module declaration file path");
     runCommand->add_flag("--env", m_environment, "don't run executable, only retrieve run environment informations from files (dependencies and/or XPCF xml module declaration file)");
     runCommand->add_option("--deps", m_dependenciesFile, "Remaken dependencies files", true);
     runCommand->add_option("application", m_applicationFile, "executable file path", true);
+    CLI::App * runArgCommand = m_cliApp.add_subcommand("args", "executable args")->fallthrough(false);
+    runArgCommand->add_option("arguments", m_applicationArguments, "executable arguments");
 
     // PACKAGE COMMAND
     CLI::App * packageCommand = m_cliApp.add_subcommand("package","package a build result in remaken format");
@@ -378,6 +388,21 @@ void CmdOptions::displayConfigurationSettings() const
 void CmdOptions::printUsage()
 {
     cout << m_cliApp.help() <<endl;
+}
+
+bool CmdOptions::projectModeEnabled() const
+{
+    if (!m_projectMode) {
+        fs::path depPath = OsTools::buildDependencyPath(m_dependenciesFile);
+        for (fs::directory_entry& x : fs::directory_iterator(depPath)) {
+            if (is_regular_file(x.path())) {
+                if (x.path().extension() == ".pro") {
+                    m_projectMode = true;
+                }
+            }
+        }
+    }
+    return m_projectMode;
 }
 
 void CmdOptions::display()

@@ -41,7 +41,6 @@ public:
     virtual fs::path computeRootBinDir( const Dependency & dependency) = 0;
     virtual fs::path computeRootLibDir( const Dependency & dependency) = 0;
     virtual fs::path computeLocalDependencyRootDir( const Dependency & dependency) = 0;
-    virtual fs::path computeRemakenRootDir( const Dependency & dependency) = 0;
     virtual const std::vector<Dependency> & installedDependencies() const = 0;
 };
 

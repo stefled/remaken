@@ -40,19 +40,19 @@ public:
     BaseSystemTool(const CmdOptions & options, const std::string & installer);
     virtual ~BaseSystemTool() = default;
     virtual void update() = 0;
-    virtual void bundle(const Dependency & dependency) {
+    virtual void bundle ([[maybe_unused]] const Dependency & dependency) {
         BOOST_LOG_TRIVIAL(warning)<<"bundle() not implemented yet for tool "<<m_systemInstallerPath;
     }
-    virtual void install(const Dependency & dependency) = 0;
-    virtual bool installed(const Dependency & dependency) = 0;
-    virtual std::vector<fs::path> binPaths([[maybe_unused]] const Dependency & dependency);
-    virtual std::vector<fs::path> libPaths([[maybe_unused]] const Dependency & dependency);
-    virtual std::string computeSourcePath( const Dependency &  dependency);
-    virtual fs::path sudo() { return m_sudoCmd; }
+    virtual void install (const Dependency & dependency) = 0;
+    virtual bool installed (const Dependency & dependency) = 0;
+    virtual std::vector<fs::path> binPaths ([[maybe_unused]] const Dependency & dependency);
+    virtual std::vector<fs::path> libPaths ([[maybe_unused]] const Dependency & dependency);
+    virtual std::string computeSourcePath (const Dependency &  dependency);
+    virtual fs::path sudo () { return m_sudoCmd; }
 
 
 protected:
-    virtual std::string computeToolRef( const Dependency &  dependency);
+    virtual std::string computeToolRef ( const Dependency &  dependency);
     fs::path m_systemInstallerPath;
     fs::path m_sudoCmd;
     const CmdOptions & m_options;
@@ -61,11 +61,11 @@ protected:
 class SystemTools
 {
 public:
-    SystemTools(const CmdOptions & options) = delete;
-    ~SystemTools() = delete;
-    static std::string getToolIdentifier();
-    static bool isToolSupported(const std::string & tool);
-    static std::shared_ptr<BaseSystemTool> createTool(const CmdOptions & options, std::optional<std::reference_wrapper<const Dependency>> dependencyOpt=std::nullopt);
+    SystemTools (const CmdOptions & options) = delete;
+    ~SystemTools () = delete;
+    static std::string getToolIdentifier ();
+    static bool isToolSupported (const std::string & tool);
+    static std::shared_ptr<BaseSystemTool> createTool (const CmdOptions & options, std::optional<std::reference_wrapper<const Dependency>> dependencyOpt=std::nullopt);
 };
 
 

@@ -49,95 +49,99 @@ public:
     void printUsage();
     void display();
 
-    inline const std::string & getAction() const {
+    const std::string & getAction() const {
         return m_action;
     }
 
-    inline const std::string & getDependenciesFile() const {
+    const std::string & getDependenciesFile() const {
         return m_dependenciesFile;
     }
 
-    inline const std::string & getApplicationFile() const {
+    const std::string & getApplicationFile() const {
         return m_applicationFile;
     }
 
-    inline const std::string & getXpcfXmlFile() const {
+    const std::vector<std::string> & getApplicationArguments() const {
+        return m_applicationArguments;
+    }
+
+    const std::string & getXpcfXmlFile() const {
         return m_xpcfConfigurationFile;
     }
 
-    inline const std::string & getArchitecture() const {
+    const std::string & getArchitecture() const {
         return m_architecture;
     }
 
-    inline const std::string & getMode() const {
+    const std::string & getMode() const {
         return m_mode;
     }
 
-    inline const std::string & getConfig() const {
+    const std::string & getConfig() const {
         return m_config;
     }
 
-    inline const std::string & getApiKey() const {
+    const std::string & getApiKey() const {
         return m_apiKey;
     }
 
-    inline const std::string & getOS() const {
+    const std::string & getOS() const {
         return m_os;
     }
 
-    inline const fs::path & getDestinationRoot() const {
+    const fs::path & getDestinationRoot() const {
         return m_destinationRootPath;
     }
 
-    inline const fs::path & getRemakenRoot() const {
+    const fs::path & getRemakenRoot() const {
         return m_remakenRootPath;
     }
 
-    inline const std::string & getRepositoryType() const {
+    const std::string & getRepositoryType() const {
         return m_repositoryType;
     }
 
-    inline const std::string & getCppVersion() const {
+    const std::string & getCppVersion() const {
         return m_cppVersion;
     }
 
-    inline const std::string & getBuildToolchain() const {
+    const std::string & getBuildToolchain() const {
         return m_toolchain;
     }
 
-    inline const std::string & getZipTool() const {
+    const std::string & getZipTool() const {
         return m_zipTool;
     }
 
-    inline bool getVerbose() const {
+    bool getVerbose() const {
         return m_verbose;
     }
 
-    inline const std::string & getAlternateRepoType() const {
+    const std::string & getAlternateRepoType() const {
         return m_altRepoType;
     }
 
-    inline const std::string & getAlternateRepoUrl() const {
+    const std::string & getAlternateRepoUrl() const {
         return m_altRepoUrl;
     }
 
-    inline const fs::path & getModulesSubfolder() const {
+    const fs::path & getModulesSubfolder() const {
         return m_moduleSubfolderPath;
     }
 
-    inline bool useCache() const {
+    bool useCache() const {
         return !m_ignoreCache;
     }
 
-    inline bool environmentOnly() const {
+    bool environmentOnly() const {
         return m_environment;
     }
 
-    inline bool isXpcfBundle() const {
+    bool isXpcfBundle() const {
         return m_isXpcfBundle;
     }
 
-    inline bool cleanAllEnabled() const {
+    bool cleanAllEnabled() const {
         return m_cleanAll;
     }
 
@@ -153,11 +157,13 @@ public:
         return m_force;
     }
 
-    bool projectModeEnabled() const {
-        return m_projectMode;
+    bool regexEnabled() const {
+        return m_regex;
     }
 
-    inline bool crossCompiling() const {
+    bool projectModeEnabled() const;
+
+    bool crossCompiling() const {
         return m_crossCompile;
     }
 
@@ -171,6 +177,10 @@ public:
 
     const std::string & getQmakeRulesTag() const {
         return m_qmakeRulesTag;
+    }
+
+    const std::string & getVcpkgTag() const {
+        return m_vcpkgTag;
     }
 
     const std::string & getConanProfile() const {
@@ -187,6 +197,10 @@ public:
 
     const std::map<std::string,std::string> & getCompressCommandOptions() const {
         return m_packageCompressOptions;
+    }
+
+    const std::map<std::string,std::string> & getListCommandOptions() const {
+        return m_listOptions;
     }
 
     void writeConfigurationFile() const;
@@ -219,16 +233,20 @@ private:
     std::string m_moduleSubfolder;
     std::map<std::string,std::string> m_packageOptions;
     std::map<std::string,std::string> m_packageCompressOptions;
+    std::map<std::string,std::string> m_listOptions;
+    std::vector<std::string> m_applicationArguments;
     std::string m_buildConfig;
     std::string m_subcommand;
     std::string m_qmakeRulesTag;
+    std::string m_vcpkgTag = "";
     std::string m_conanProfile = "default";
     fs::path m_moduleSubfolderPath;
     bool m_ignoreCache;
     bool m_verbose;
     bool m_recurse;
+    bool m_regex = false;
     bool m_environment = false;
-    bool m_projectMode = false;
+    mutable bool m_projectMode = false;
     bool m_isXpcfBundle = false;
     bool m_cleanAll = true;
     bool m_force = false;

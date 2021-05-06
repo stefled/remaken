@@ -30,13 +30,15 @@ class BrewSystemTool : public BaseSystemTool
 public:
     BrewSystemTool(const CmdOptions & options):BaseSystemTool(options, "brew") {}
     ~BrewSystemTool() override = default;
-    void update() override;
+    void update() override;    
+    void bundle(const Dependency & dependency) override;
     void install(const Dependency & dependency) override;
     bool installed(const Dependency & dependency) override;
     std::vector<fs::path> binPaths([[maybe_unused]] const Dependency & dependency) override;
     std::vector<fs::path> libPaths([[maybe_unused]] const Dependency & dependency) override;
 
 private:
+    void bundleLib(const std::string & libPath);
     std::string computeToolRef( const Dependency &  dependency) override;
 };
 

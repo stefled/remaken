@@ -140,6 +140,7 @@ Dependency::Dependency(const std::string & rawFormat, const std::string & mainMo
 
     if (m_identifier != m_repositoryType) {
         m_bHasIdentifier = !m_identifier.empty();
+        m_type = deduceType(m_identifier);
     }
 
     if (results.size() < 5) {
@@ -195,7 +196,7 @@ static const std::vector<std::string> linkModeValidation = {"static","shared","d
 static const std::map<std::string,std::vector<std::string>> unsupportedLinkModeRelations = {{"na",{"artifactory","nexus","github","path","vcpkg"}}};
 static const std::vector<std::string> systemIdentifierMap = {"system","apt-get","brew","yum","choco","scoop","pkg", "pkgutil", "pacman", "zypper"};
 
-bool Dependency::validate()
+bool Dependency::validate() const
 {
     if (find(repoValidation,m_repositoryType) == std::end(repoValidation)) {
         BOOST_LOG_TRIVIAL(error)<<"Dependency file error : invalid repository type : unsupported value= "<< m_repositoryType<<std::endl<<log(*this);

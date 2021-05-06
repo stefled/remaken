@@ -37,13 +37,13 @@ fs::path installArtefact(const CmdOptions & options, const std::string & source,
     return fs::path();
 }
 
-int setupVCPKG(const fs::path & remakenRootPackagesPath)
+int setupVCPKG(const fs::path & remakenRootPackagesPath, const std::string & tag)
 {
     fs::detail::utf8_codecvt_facet utf8;
     int result = -1;
     GitTool tool;
     BOOST_LOG_TRIVIAL(info)<<"Installing vcpkg to [ "<<remakenRootPackagesPath.generic_string(utf8)<<"/vcpkg ]";
-    result = tool.clone(Constants::VCPKG_REPOURL, remakenRootPackagesPath / "vcpkg");
+    result = tool.clone(Constants::VCPKG_REPOURL, remakenRootPackagesPath / "vcpkg", tag);
     if (result != 0) {
         return result;
     }
@@ -64,7 +64,7 @@ int InitCommand::execute()
     }
     auto subCommand = m_options.getSubcommand();
     if (subCommand == "vcpkg") {
-        return setupVCPKG(m_options.getRemakenRoot());
+        return setupVCPKG(m_options.getRemakenRoot(), m_options.getVcpkgTag());
     }
     // no subcommand, process init command
     fs::path remakenRootPath = PathBuilder::getHomePath() / Constants::REMAKEN_FOLDER;

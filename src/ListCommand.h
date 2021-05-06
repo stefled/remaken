@@ -20,26 +20,24 @@
  * @date 2019-11-15
  */
 
-#ifndef GITTOOL_H
-#define GITTOOL_H
-#include <string>
+#ifndef LISTCOMMAND_H
+#define LISTCOMMAND_H
+
+#include "AbstractCommand.h"
 #include "CmdOptions.h"
-#include <boost/filesystem.hpp>
 
-namespace fs = boost::filesystem;
-
-class GitTool
+class ListCommand : public AbstractCommand
 {
 public:
-    GitTool(bool override= false);
-    virtual ~GitTool() = default;
-    int clone(const std::string & url, const fs::path & destinationRootFolder, bool recurseSubModule = false);
-    int clone(const std::string & url, const fs::path & destinationRootFolder, const std::string & tag, bool recurseSubModule = false);
+    ListCommand(const CmdOptions & options);
+    int execute() override;
+    static constexpr const char * NAME="clean";
 
-protected:
-    static std::string getGitToolIdentifier();
-    fs::path m_gitToolPath;
-    bool m_override;
+private:
+    int listPackages();
+    int listPackageVersions(const std::string & pkgName);
+    int listPackageFiles(const std::string & pkgName, const std::string & pkgVersion);
+    const CmdOptions & m_options;
 };
 
-#endif // GITTOOL_H
+#endif // LISTCOMMAND_H

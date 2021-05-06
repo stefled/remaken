@@ -40,7 +40,6 @@ public:
     virtual fs::path computeRootBinDir( const Dependency & dependency) override;
     virtual fs::path computeRootLibDir( const Dependency & dependency) override;
     virtual fs::path computeLocalDependencyRootDir( const Dependency &  dependency) override;
-    virtual fs::path computeRemakenRootDir( const Dependency &  dependency) override;
     virtual const std::vector<Dependency> & installedDependencies() const override final { return m_installedDeps; }
 
 protected:

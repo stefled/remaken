@@ -4,6 +4,7 @@
 #include "InfoCommand.h"
 #include "InitCommand.h"
 #include "InstallCommand.h"
+#include "ListCommand.h"
 #include "ParseCommand.h"
 #include "PackageCommand.h"
 #include "BundleCommand.h"
@@ -29,6 +30,7 @@ int main(int argc, char** argv)
         dispatcher["init"] = make_shared<InitCommand>(opts);
         dispatcher["info"] = make_shared<InfoCommand>(opts);
         dispatcher["install"] = make_shared<InstallCommand>(opts);
+        dispatcher["list"] = make_shared<ListCommand>(opts);
         dispatcher["run"] = make_shared<RunCommand>(opts);
         dispatcher["parse"] = make_shared<ParseCommand>(opts);
         dispatcher["package"] = make_shared<PackageCommand>(opts);

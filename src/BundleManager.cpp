@@ -23,7 +23,7 @@ BundleManager::BundleManager(const CmdOptions & options):m_xpcfManager(options),
 
 fs::path BundleManager::buildDependencyPath()
 {
-    fs::path dependenciesFile = DependencyManager::buildDependencyPath(m_options.getDependenciesFile());
+    fs::path dependenciesFile = OsTools::buildDependencyPath(m_options.getDependenciesFile());
     parseIgnoreInstall(dependenciesFile);
     return dependenciesFile;
 }
@@ -136,14 +136,14 @@ void BundleManager::bundleDependencies(const fs::path &  dependenciesFile)
     for (fs::path const & depsFile : dependenciesFileList) {
         if (fs::exists(depsFile)) {
             std::vector<Dependency> dependencies = DependencyManager::parse(depsFile, m_options.getMode());
-            for (auto dependency : dependencies) {
+            for (Dependency const & dependency : dependencies) {
                 if (!dependency.validate()) {
                     throw std::runtime_error("Error parsing dependency file : invalid format ");
                 }
-            }
-            std::vector<std::shared_ptr<std::thread>> thread_group;
-            for (Dependency const & dependency : dependencies) {
-                if (dependency.getType() == Dependency::Type::REMAKEN || dependency.getType() == Dependency::Type::CONAN) {
+                if (dependency.getType() == Dependency::Type::REMAKEN
+                        || dependency.getType() == Dependency::Type::CONAN
+                        || dependency.getType() == Dependency::Type::BREW
+                        || dependency.getType() == Dependency::Type::VCPKG) {
                     if (!mapContains(m_ignoredPackages, dependency.getPackageName())) {
                         bundleDependency(dependency);
                     }

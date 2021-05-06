@@ -110,7 +110,7 @@ public:
     bool isSpecificSystemToolDependency() const;
     bool isGenericSystemDependency() const;
     bool needsPriviledgeElevation() const;
-    bool validate();
+    bool validate() const;
 
     friend std::ostream& operator<< (std::ostream& stream, const Dependency& dep);
     std::string toString() const;

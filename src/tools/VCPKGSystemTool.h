@@ -32,12 +32,14 @@ public:
     VCPKGSystemTool(const CmdOptions & options):BaseSystemTool(options, "vcpkg") {}
     ~VCPKGSystemTool() override = default;
     void update() override;
+    void bundle(const Dependency & dependency) override;
     void install(const Dependency & dependency) override;
     bool installed(const Dependency & dependency) override;
     std::vector<fs::path> binPaths(const Dependency & dependency) override;
     std::vector<fs::path> libPaths(const Dependency & dependency) override;
 
 protected:
+    void bundleLib(const std::string & libPath);
     fs::path computeLocalDependencyRootDir( const Dependency &  dependency);
     std::vector<fs::path> retrievePaths(const Dependency & dependency, BaseSystemTool::PathType pathType);
     std::string computeToolRef( const Dependency &  dependency) override;

@@ -47,7 +47,6 @@ public:
     static std::vector<Dependency> parse(const fs::path & dependenciesPath, const std::string & linkMode);
     // parseRecurse appends found dependencies to the deps vector - even duplicates.
     static void parseRecurse(const fs::path & dependenciesPath, const CmdOptions & options, std::vector<Dependency> & deps);
-    static fs::path buildDependencyPath(const std::string & filePath);
 
 private:
     void generateConfigureFile(const fs::path &  rootFolderPath, const std::vector<Dependency> & deps);

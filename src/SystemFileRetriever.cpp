@@ -12,6 +12,13 @@ SystemFileRetriever::SystemFileRetriever(const CmdOptions & options, std::option
     m_tool = SystemTools::createTool(options, dependencyOpt);
 }
 
+fs::path SystemFileRetriever::bundleArtefact(const Dependency & dependency)
+{
+    m_tool->bundle(dependency);
+    fs::path outputDirectory = computeLocalDependencyRootDir(dependency);
+    return outputDirectory;
+}
+
 std::string SystemFileRetriever::computeSourcePath( const Dependency &  dependency)
 {
     return m_tool->computeSourcePath(dependency);

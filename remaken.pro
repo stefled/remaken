@@ -42,6 +42,7 @@ HEADERS += \
     src/Cache.h \
     src/AbstractCommand.h \
 #    src/HttpAsyncDownloader.h \
+    src/ListCommand.h \
     src/XpcfXmlManager.h \
     src/tools/BrewSystemTool.h \
     src/tools/ConanSystemTool.h \
@@ -78,6 +79,7 @@ SOURCES += \
     src/BundleXpcfCommand.cpp \
     src/CleanCommand.cpp \
 #    src/HttpAsyncDownloader.cpp \
+    src/ListCommand.cpp \
     src/XpcfXmlManager.cpp \
     src/tools/BrewSystemTool.cpp \
     src/tools/ConanSystemTool.cpp \
