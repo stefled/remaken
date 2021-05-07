@@ -94,13 +94,22 @@ int RunCommand::execute()
         }
         auto env = boost::this_process::environment();
         bp::environment runEnv = env;
-        //append two values to a variable in the new env
         for (auto path: libPaths) {
             fs::detail::utf8_codecvt_facet utf8;
             runEnv[SharedLibraryPathEnvName] += path.generic_string(utf8);
         }
+        std::vector<std::string> parsedArgs;
+        for (auto & arg : m_options.getApplicationArguments()) {
+            std::string argument = arg;
+            if (arg.length() >= 2) {
+                if ((arg[0] == '\\') && (arg[1]   == '-')) {
+                    argument = arg.substr(1);
+                }
+            }
+            parsedArgs.push_back(argument);
+        }
 
-        result = bp::system(m_options.getApplicationFile(), bp::args(m_options.getApplicationArguments()), runEnv);
+        result = bp::system(m_options.getApplicationFile(), bp::args(parsedArgs), runEnv);
     }
 
     return result;

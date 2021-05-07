@@ -204,9 +204,8 @@ CmdOptions::CmdOptions()
     runCommand->add_option("--xpcf", m_xpcfConfigurationFile, "XPCF xml module declaration file path");
     runCommand->add_flag("--env", m_environment, "don't run executable, only retrieve run environment informations from files (dependencies and/or XPCF xml module declaration file)");
     runCommand->add_option("--deps", m_dependenciesFile, "Remaken dependencies files", true);
-    runCommand->add_option("application", m_applicationFile, "executable file path", true);
-    CLI::App * runArgCommand = m_cliApp.add_subcommand("args", "executable args")->fallthrough(false);
-    runArgCommand->add_option("arguments", m_applicationArguments, "executable arguments");
+    runCommand->add_option("application", m_applicationFile, "executable file path");
+    runCommand->add_option("arguments", m_applicationArguments, "executable arguments");
 
     // PACKAGE COMMAND
     CLI::App * packageCommand = m_cliApp.add_subcommand("package","package a build result in remaken format");
