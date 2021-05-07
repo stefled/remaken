@@ -10,22 +10,32 @@ Remaken also provide its own C++ packaging structure, based on pkg-config descri
 
 ## Command line usage samples
 ### Initialize remaken default folder
-```remaken init```: creates the default .remaken folder.
+- ```remaken init```: creates the default .remaken folder
+- ```remaken init vcpkg```: initializes vcpkg (clone the vcpkg repository and bootstrap vcpkg)
+- ```remaken init vcpkg --tag [tag]```: initializes vcpkg (clone the vcpkg repository for tag [tag] and bootstrap vcpkg)
+
 It also initializes .remaken/rules/qmake with the builddefs-qmake release associated with the current remaken version. To get another version, use  ```remaken init --tag x.y.z```. 
 
 You can also retrieve the latest qmake rules (latest rules reflects the current develop branch status) with ```remaken init --tag latest```.
 
 All qmake rules are retrieved from [builddefs-qmake](https://github.com/b-com-software-basis/builddefs-qmake/releases/tag/builddefs-qmake-latest)
 
+The ```remaken init``` command also supports the ```--force``` (alias ```-f```) to force reinstalling qmake rules and/or ```--override```  (alias ```-e```) to override existing files.
+
 ### Installing dependencies
-add profile behavior for cross compilation
 add project option description and role (note project mode is also deduced from .pro file presence)
 add conditions configuration description
-```remaken install [-r  path_to_remaken_root] -i [-o linux] -t github [-l nexus -u http://url_to_root_nexus_repo] [--cpp-std 17] [-c debug] [path_to_remaken_dependencies_description_file.txt] ```
+```remaken install --conan_profile [conan profile name] [-r  path_to_remaken_root] -i [-o linux] -t github [-l nexus -u http://url_to_root_nexus_repo] [--cpp-std 17] [-c debug] [path_to_remaken_dependencies_description_file.txt] ```
 
-Note: remaken_root defaults to ```$(HOME)/.remaken``` or if ```REMAKEN_ROOT``` environment variable is defined to ```${REMAKEN_ROOT)```. ```REMAKEN_ROOT``` contains ```.remaken``` folder.
+**Notes:**
+ 
+- remaken_root defaults to ```$(HOME)/.remaken``` or if ```REMAKEN_ROOT``` environment variable is defined to ```${REMAKEN_ROOT)```. ```REMAKEN_ROOT``` contains ```.remaken``` folder.
+- ```remaken_dependencies_description_file``` defaults to current folder ```packagedependencies.txt```file.
+- ```--conan_profile [conan profile name] ``` allows to specify a specific conan profile
 
-Note: ```remaken_dependencies_description_file``` defaults to current folder ```packagedependencies.txt```file.
+   When ```--conan_profile ``` is not specified:
+  -  for native compilation: the ```default``` conan profile is used
+  -  for cross compilation: remaken expects a ```[os]-[build-toolchain]-[architecture]``` profile to be available - for instance for android build, expects a ```android-clang-armv8``` profile
  
 ### Bundling dependencies together
 ```remaken bundle -d ~/tmp/conanDeployed/ --cpp-std 17 [-c debug] [path_to_remaken_dependencies_description_file.txt]```
@@ -46,18 +56,25 @@ Note: ```remaken_dependencies_description_file``` defaults to current folder ```
 ```remaken info```
 
 ### Listing remaken installed packages
-```remaken list```
+The **list** command allows to :
 
+- ```remaken list```: list all remaken installed packages
+- ```remaken list [package name]```: list all installed versions of a remaken package 
+- ```remaken list [package name regular expression]```: list all installed versions of remaken packages whose names match a regex 
+- ```remaken list [package name] [package version]```: list all files for a specific version of a remaken package 
 
 ### Running applications
-remaken can be used to ease application run by gathering all shared libraries paths and exposing the paths in the appropriate environment variable (LD_LIBRARY_PATH for unixes, DYLD_LIBRARY_PATH for mac, PATH for windows).
-```remaken run ```
- -c debug run --env --deps [path_to_remaken_dependencies_description_file.txt] --xpcf [path_to_xpcf_configuration_file.xml] [path_to_executable] args [executable arguments list]
+remaken can be used to ease application run by gathering all shared libraries paths and exposing the paths in the appropriate environment variable (LD_LIBRARY_PATH for unixes, DYLD_LIBRARY_PATH for mac and PATH for windows)
+
+```remaken run -c [debug|release] run --env --deps [path_to_remaken_dependencies_description_file.txt] --xpcf [path_to_xpcf_configuration_file.xml] [path_to_executable] [executable arguments list]```
+
+**Note** : options in **[executable arguments list]** starting with a dash (-) must be surrounded with quotes and prefixed with \ for instance **"\\-f"** to forward **-f** option to the application (this is due to CLI11 interpretation of options).
   
 ## Package formats supported
 ### Cross platforms packaging systems :
 - Conan
 - vcpkg
+- brew (mac OS X and linux)
 - Remaken (pkg-config based)
 
 ### Dedicated system tools :
@@ -67,8 +84,9 @@ remaken can be used to ease application run by gathering all shared libraries pa
 - zypper (openSUSE)
 - pkg (freebsd)
 - pkgutil (solaris)
-- brew (mac OS X)
 - chocolatey (windows)
+- scoop
+- [others to come]
 
 ## Dependency file syntax
 
@@ -76,10 +94,10 @@ For each project, a packagedependencies.txt file can be created in the root proj
 
 Each line follows the pattern :
 
-```framework#channel | version | [condition]#library name | identifier@repository_type | repository_url | link_mode | options```
+```framework#channel | version | [condition]%library name | identifier@repository_type | repository_url | link_mode | options```
 
 
-| ```framework#channel``` | ```version``` | ```[condition]#library name``` | ```repository_type``` | ```repository_url``` | ```link_mode``` | ```options```|
+| ```framework#channel``` | ```version``` | ```[condition]%library name``` | ```repository_type``` | ```repository_url``` | ```link_mode``` | ```options```|
 |---|---|---|---|---|---|---|
 |---|---|---| a value in: [ artifactory, nexus, github, vcpkg, conan, system, path : local or network filesystem root path hosting the dependencies ]|---|optional value in : [ static, shared, default (inherits the project's link mode), na (not applicable) ]|---|
 
@@ -105,10 +123,8 @@ when identifier is not specified :
 
 when channel is not specified, it defaults to stable for conan dependencies.
 
-Note:
+**Note:**
 To comment a line (and thus ignore a dependency) start the line with ```//``` (spaces and tabs before the ```//``` are ignored).
-
-
 
 NOT IMPLEMENTED :
 For artifactory, nexus and github repositories, channel is a named scope describing a common combination of compile options from the remaken packaging manifests. The combination of values become a named scope. (TODO : manage named scopes)
