@@ -12,7 +12,7 @@ Remaken also provide its own C++ packaging structure, based on pkg-config descri
 ### Initialize remaken default folder
 - ```remaken init```: creates the default .remaken folder
 - ```remaken init vcpkg```: initializes vcpkg (clone the vcpkg repository and bootstrap vcpkg)
-- ```remaken init vcpkg --tag [tag]```: initializes vcpkg (clone the vcpkg repository for tag [tag] and bootstrap vcpkg)
+- ```remaken init vcpkg [--tag tag]```: initializes vcpkg (clone the vcpkg repository for tag [tag] and bootstrap vcpkg)
 
 It also initializes .remaken/rules/qmake with the builddefs-qmake release associated with the current remaken version. To get another version, use  ```remaken init --tag x.y.z```. 
 
@@ -25,20 +25,20 @@ The ```remaken init``` command also supports the ```--force``` (alias ```-f```) 
 ### Installing dependencies
 add project option description and role (note project mode is also deduced from .pro file presence)
 add conditions configuration description
-```remaken install --conan_profile [conan profile name] [-r  path_to_remaken_root] -i [-o linux] -t github [-l nexus -u http://url_to_root_nexus_repo] [--cpp-std 17] [-c debug] [path_to_remaken_dependencies_description_file.txt] ```
+```remaken install [--conan_profile conan_profile_name] [-r  path_to_remaken_root] -i [-o linux] -t github [-l nexus -u http://url_to_root_nexus_repo] [--cpp-std 17] [-c debug|release] [path_to_remaken_dependencies_description_file.txt] ```
 
 **Notes:**
  
 - remaken_root defaults to ```$(HOME)/.remaken``` or if ```REMAKEN_ROOT``` environment variable is defined to ```${REMAKEN_ROOT)```. ```REMAKEN_ROOT``` contains ```.remaken``` folder.
 - ```remaken_dependencies_description_file``` defaults to current folder ```packagedependencies.txt```file.
-- ```--conan_profile [conan profile name] ``` allows to specify a specific conan profile
+- ```[--conan_profile conan_profile_name] ``` allows to specify a specific conan profile
 
    When ```--conan_profile ``` is not specified:
   -  for native compilation: the ```default``` conan profile is used
   -  for cross compilation: remaken expects a ```[os]-[build-toolchain]-[architecture]``` profile to be available - for instance for android build, expects a ```android-clang-armv8``` profile
  
 ### Bundling dependencies together
-```remaken bundle -d ~/tmp/conanDeployed/ --cpp-std 17 [-c debug] [path_to_remaken_dependencies_description_file.txt]```
+```remaken bundle [--recurse] [-d path_to_bundle_destination] [--cpp-std 11|14|17|20] [-c debug|release] [path_to_remaken_dependencies_description_file.txt]```
 
 Note: ```remaken_dependencies_description_file``` defaults to current folder ```packagedependencies.txt```file.
 
@@ -66,7 +66,7 @@ The **list** command allows to :
 ### Running applications
 remaken can be used to ease application run by gathering all shared libraries paths and exposing the paths in the appropriate environment variable (LD_LIBRARY_PATH for unixes, DYLD_LIBRARY_PATH for mac and PATH for windows)
 
-```remaken run -c [debug|release] run --env --deps [path_to_remaken_dependencies_description_file.txt] --xpcf [path_to_xpcf_configuration_file.xml] [path_to_executable] [executable arguments list]```
+```remaken run [-c debug|release] run --env [--deps path_to_remaken_dependencies_description_file.txt] [--xpcf path_to_xpcf_configuration_file.xml] [path_to_executable] [executable arguments list]```
 
 **Note** : options in **[executable arguments list]** starting with a dash (-) must be surrounded with quotes and prefixed with \ for instance **"\\-f"** to forward **-f** option to the application (this is due to CLI11 interpretation of options).
   
