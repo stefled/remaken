@@ -161,6 +161,10 @@ public:
         return m_regex;
     }
 
+    bool treeEnabled() const {
+        return m_tree;
+    }
+
     bool projectModeEnabled() const;
 
     bool crossCompiling() const {
@@ -245,6 +249,7 @@ private:
     bool m_verbose;
     bool m_recurse;
     bool m_regex = false;
+    bool m_tree = false;
     bool m_environment = false;
     mutable bool m_projectMode = false;
     bool m_isXpcfBundle = false;

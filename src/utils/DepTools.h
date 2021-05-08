@@ -44,6 +44,7 @@ public:
     static std::vector<Dependency> parse(const fs::path & dependenciesPath, const std::string & linkMode);
     // parseRecurse appends found dependencies to the deps vector - even duplicates.
     static void parseRecurse(const fs::path & dependenciesPath, const CmdOptions & options, std::vector<Dependency> & deps);
+    static void readInfos(const fs::path &  dependenciesFile, const CmdOptions & options, uint32_t indentLevel = 0);
 };
 
 #endif // DEPTOOLS_H

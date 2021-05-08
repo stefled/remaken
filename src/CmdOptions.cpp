@@ -196,6 +196,7 @@ CmdOptions::CmdOptions()
     // LIST COMMAND
     CLI::App * listCommand = m_cliApp.add_subcommand("list", "list remaken installed dependencies. If package is provided, list the package available version. If package and version are provided, list the package files");
     listCommand->add_flag("--regex", m_regex, "enable support for regex for the package name");
+    listCommand->add_flag("--tree", m_tree, "display dependencies treeview for each package");
     listCommand->add_option("package", m_listOptions["pkgName"], "the package name");
     listCommand->add_option("version", m_listOptions["pkgVersion"], "the package version ");
 

@@ -54,16 +54,18 @@ Note: ```remaken_dependencies_description_file``` defaults to current folder ```
 ### Removing installed remaken dependencies
 ```remaken clean```
 
-### Listing dependencies tree for a package
-```remaken info```
+### Listing dependencies tree from a packagedependencies.txt file
+```remaken info [path_to_remaken_dependencies_description_file.txt]```: displays the recursive dependency tree from the file.
 
 ### Listing remaken installed packages
 The **list** command allows to :
 
 - ```remaken list```: list all remaken installed packages
 - ```remaken list [package name]```: list all installed versions of a remaken package 
-- ```remaken list [package name regular expression]```: list all installed versions of remaken packages whose names match a regex 
+- ```remaken list --regex [package name regular expression]```: list all installed versions of remaken packages whose names match a regex 
 - ```remaken list [package name] [package version]```: list all files for a specific version of a remaken package 
+
+```remaken list``` also has a ```--tree```flag. When this flag is set, ```remaken list``` displays packages informations and their dependencies tree.
 
 ### Running applications
 remaken can be used to ease application run by gathering all shared libraries paths and exposing the paths in the appropriate environment variable (LD_LIBRARY_PATH for unixes, DYLD_LIBRARY_PATH for mac and PATH for windows)

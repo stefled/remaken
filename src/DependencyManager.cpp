@@ -111,45 +111,9 @@ int DependencyManager::clean()
     return 0;
 }
 
-const std::string indentStr = "    ";
-
-std::string indent(uint32_t indentLevel) {
-    std::string ind;
-    for (uint32_t i = 0; i<indentLevel; i++) {
-        ind += indentStr;
-    }
-    return ind;
-}
-
-void displayInfo(const Dependency& d, uint32_t indentLevel)
-{
-
-    std::cout<<indent(indentLevel)<<"`-- "<<d.getName()<<":"<<d.getVersion()<<"  "<<d.getRepositoryType()<<" ("<<d.getIdentifier()<<")"<<std::endl;
-}
-
 void DependencyManager::readInfos(const fs::path &  dependenciesFile)
 {
-    m_indentLevel ++;
-    std::vector<fs::path> dependenciesFileList = DepTools::getChildrenDependencies(dependenciesFile.parent_path(), m_options.getOS());
-    for (fs::path depsFile : dependenciesFileList) {
-        if (fs::exists(depsFile)) {
-            std::vector<Dependency> dependencies = DepTools::parse(depsFile, m_options.getMode());
-            for (auto dep : dependencies) {
-                if (!dep.validate()) {
-                    throw std::runtime_error("Error parsing dependency file : invalid format ");
-                     m_indentLevel --;
-                }
-            }
-            for (Dependency & dependency : dependencies) {
-                displayInfo(dependency, m_indentLevel);
-                fs::detail::utf8_codecvt_facet utf8;
-                shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(dependency, m_options);
-                fs::path outputDirectory = fileRetriever->computeLocalDependencyRootDir(dependency);
-                readInfos(outputDirectory/"packagedependencies.txt");
-            }
-        }
-    }
-    m_indentLevel --;
+    DepTools::readInfos(dependenciesFile, m_options);
 }
 
 

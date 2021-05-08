@@ -3,6 +3,7 @@
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 #include "utils/PathBuilder.h"
 #include "HttpFileRetriever.h"
+#include "utils/DepTools.h"
 #include "utils/OsTools.h"
 #include "tools/GitTool.h"
 #include <boost/log/trivial.hpp>
@@ -28,10 +29,15 @@ int ListCommand::listPackages()
 
             std::regex versionRegex(versionRegexStr, std::regex_constants::extended);
             fs::path leafFolder = x.path().filename();
-            std::string parentFolderStr = leafFolder.generic_string(utf8);
+            std::string leafFolderStr = leafFolder.generic_string(utf8);
+            std::string parentFolderStr = x.path().parent_path().filename().generic_string(utf8);
             std::smatch sm;
-            if (std::regex_search(parentFolderStr, sm, versionRegex, std::regex_constants::match_any)) {
-                std::cout<< x.path().parent_path().filename().generic_string(utf8)<<":"<<leafFolder.generic_string(utf8)<<std::endl;
+            if (std::regex_search(leafFolderStr, sm, versionRegex, std::regex_constants::match_any)) {
+                std::cout<< parentFolderStr<<":"<<leafFolderStr<<std::endl;
+                if (m_options.treeEnabled()) {
+                    DepTools::readInfos(x.path()/"packagedependencies.txt", m_options);
+                    std::cout<<std::endl;
+                }
             }
         }
     }
@@ -68,6 +74,10 @@ int ListCommand::listPackageVersions(const std::string & pkgName)
             if (std::regex_search(leafFolderStr, sm, versionRegex, std::regex_constants::match_any)) {
                 if (pkgCondition) {
                     std::cout<< parentFolderStr <<":"<<leafFolder.generic_string(utf8)<<std::endl;
+                    if (m_options.treeEnabled()) {
+                        DepTools::readInfos(x.path()/"packagedependencies.txt", m_options);
+                        std::cout<<std::endl;
+                    }
                 }
             }
         }
@@ -86,8 +96,12 @@ int ListCommand::listPackageFiles(const std::string & pkgName, const std::string
         if (fs::is_directory(x.path())) {
             fs::path leafFolder = x.path().filename();
             std::string leafFolderStr = leafFolder.generic_string(utf8);
-             std::string parentFolderStr = x.path().parent_path().filename().generic_string(utf8);
+            std::string parentFolderStr = x.path().parent_path().filename().generic_string(utf8);
             if (parentFolderStr == pkgName && leafFolderStr == pkgVersion) {
+                if (m_options.treeEnabled()) {
+                    DepTools::readInfos(x.path()/"packagedependencies.txt", m_options);
+                }
+                std::cout<<std::endl;
                 for (fs::directory_entry& pathElt : fs::recursive_directory_iterator(x.path())) {
                     if (fs::is_regular_file(pathElt.path())) {
                         std::cout<< pathElt.path().generic_string(utf8)<<std::endl;
