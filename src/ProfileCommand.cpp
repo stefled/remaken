@@ -1,9 +1,9 @@
 #include "ProfileCommand.h"
 #include "DependencyManager.h"
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
-#include "PathBuilder.h"
+#include "utils/PathBuilder.h"
 #include "HttpFileRetriever.h"
-#include "tools/OsTools.h"
+#include "utils/OsTools.h"
 #include <boost/log/trivial.hpp>
 
 ProfileCommand::ProfileCommand(const CmdOptions & options):AbstractCommand(ProfileCommand::NAME),m_options(options)

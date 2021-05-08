@@ -1,7 +1,7 @@
 #include "PackageCommand.h"
 #include "DependencyManager.h"
 #include "tools/ZipTool.h"
-#include "tools/OsTools.h"
+#include "utils/OsTools.h"
 
 PackageCommand::PackageCommand(const CmdOptions & options):AbstractCommand(PackageCommand::NAME),m_options(options)
 {

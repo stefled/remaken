@@ -8,9 +8,9 @@
 //#include <zipper/unzipper.h>
 #include <future>
 #include "tools/SystemTools.h"
-#include "tools/OsTools.h"
+#include "utils/OsTools.h"
 #include <boost/log/trivial.hpp>
-#include "PathBuilder.h"
+#include "utils/PathBuilder.h"
 #include "DependencyManager.h"
 #include <regex>
 

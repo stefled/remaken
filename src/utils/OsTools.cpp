@@ -147,23 +147,6 @@ void OsTools::copyStaticLibraries(const fs::path & sourceRootFolder, const CmdOp
     copyLibraries(sourceRootFolder, options, &staticSuffix);
 }
 
-fs::path OsTools::buildDependencyPath(const std::string & filePath)
-{
-    fs::detail::utf8_codecvt_facet utf8;
-    fs::path currentPath(boost::filesystem::initial_path().generic_string(utf8));
-
-    fs::path dependenciesFile (filePath, utf8);
-
-    if (!dependenciesFile.is_absolute()){
-        dependenciesFile = currentPath /dependenciesFile;
-    }
-
-    if (!fs::exists(dependenciesFile)) {
-        throw std::runtime_error("The file does not exists " + dependenciesFile.generic_string(utf8));
-    }
-    return dependenciesFile;
-}
-
 fs::path OsTools::computeRemakenRootPackageDir(const CmdOptions & options)
 {
     fs::detail::utf8_codecvt_facet utf8;

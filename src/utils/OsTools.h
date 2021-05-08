@@ -42,7 +42,6 @@ public:
     static const std::string_view & sharedSuffix(const std::string_view & osStr);
     static const std::string_view & staticSuffix(const std::string_view & osStr);
     static const std::string_view & sharedLibraryPathEnvName(const std::string_view & osStr);
-    static fs::path buildDependencyPath(const std::string & filePath);
     static fs::path computeRemakenRootPackageDir(const CmdOptions & options);
 
 

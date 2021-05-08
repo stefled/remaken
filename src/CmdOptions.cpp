@@ -8,8 +8,8 @@
 #include <boost/process.hpp>
 #include <boost/predef.h>
 #include <boost/dll.hpp>
-#include "tools/OsTools.h"
-#include "PathBuilder.h"
+#include "utils/DepTools.h"
+#include "utils/PathBuilder.h"
 namespace bp = boost::process;
 using namespace std;
 
@@ -392,7 +392,7 @@ void CmdOptions::printUsage()
 bool CmdOptions::projectModeEnabled() const
 {
     if (!m_projectMode) {
-        fs::path depPath = OsTools::buildDependencyPath(m_dependenciesFile);
+        fs::path depPath = DepTools::buildDependencyPath(m_dependenciesFile);
         for (fs::directory_entry& x : fs::directory_iterator(depPath)) {
             if (is_regular_file(x.path())) {
                 if (x.path().extension() == ".pro") {

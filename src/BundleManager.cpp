@@ -8,9 +8,9 @@
 //#include <zipper/unzipper.h>
 #include <future>
 #include "tools/SystemTools.h"
-#include "tools/OsTools.h"
+#include "utils/DepTools.h"
+#include "utils/OsTools.h"
 #include <boost/log/trivial.hpp>
-#include "DependencyManager.h"
 #include <regex>
 
 using namespace std;
@@ -23,15 +23,15 @@ BundleManager::BundleManager(const CmdOptions & options):m_xpcfManager(options),
 
 fs::path BundleManager::buildDependencyPath()
 {
-    fs::path dependenciesFile = OsTools::buildDependencyPath(m_options.getDependenciesFile());
+    fs::path dependenciesFile = DepTools::buildDependencyPath(m_options.getDependenciesFile());
     parseIgnoreInstall(dependenciesFile);
     return dependenciesFile;
 }
 
 void BundleManager::parseIgnoreInstall(const fs::path &  filepath)
 {
-    std::vector<fs::path> ignoreFileList = DependencyManager::getChildrenDependencies(filepath.parent_path(), m_options.getOS(), "packageignoreinstall");
-    for (fs::path ignoreFile : ignoreFileList) {
+    std::vector<fs::path> ignoreFileList = DepTools::getChildrenDependencies(filepath.parent_path(), m_options.getOS(), "packageignoreinstall");
+    for (fs::path & ignoreFile : ignoreFileList) {
         if (fs::exists(ignoreFile)) {
             ifstream fis(ignoreFile.generic_string(),ios::in);
             while (!fis.eof()) {
@@ -132,10 +132,10 @@ void BundleManager::bundleDependency(const Dependency & dependency)
 
 void BundleManager::bundleDependencies(const fs::path &  dependenciesFile)
 {
-    std::vector<fs::path> dependenciesFileList = DependencyManager::getChildrenDependencies(dependenciesFile.parent_path(), m_options.getOS());
+    std::vector<fs::path> dependenciesFileList = DepTools::getChildrenDependencies(dependenciesFile.parent_path(), m_options.getOS());
     for (fs::path const & depsFile : dependenciesFileList) {
         if (fs::exists(depsFile)) {
-            std::vector<Dependency> dependencies = DependencyManager::parse(depsFile, m_options.getMode());
+            std::vector<Dependency> dependencies = DepTools::parse(depsFile, m_options.getMode());
             for (Dependency const & dependency : dependencies) {
                 if (!dependency.validate()) {
                     throw std::runtime_error("Error parsing dependency file : invalid format ");

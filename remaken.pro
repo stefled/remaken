@@ -51,7 +51,7 @@ HEADERS += \
     src/InitCommand.h \
     src/InstallCommand.h \
     src/PackageCommand.h \
-    src/PathBuilder.h \
+    src/utils/PathBuilder.h \
     src/ProfileCommand.h \
     src/RunCommand.h \
     src/VersionCommand.h \
@@ -70,7 +70,8 @@ HEADERS += \
     src/BundleCommand.h \
     src/tools/VCPKGSystemTool.h \
     src/tools/ZipTool.h \
-    src/tools/OsTools.h \
+    src/utils/DepTools.h \
+    src/utils/OsTools.h \
     src/tinyxml2.h \
     src/tinyxmlhelper.h
 
@@ -87,7 +88,7 @@ SOURCES += \
     src/InfoCommand.cpp \
     src/PackageCommand.cpp \
     src/InitCommand.cpp \
-    src/PathBuilder.cpp \
+    src/utils/PathBuilder.cpp \
     src/ProfileCommand.cpp \
     src/RunCommand.cpp \
     src/tools/VCPKGSystemTool.cpp \
@@ -111,7 +112,8 @@ SOURCES += \
     src/tools/SystemTools.cpp \
     src/ParseCommand.cpp \
     src/BundleCommand.cpp \
-    src/tools/OsTools.cpp \
+    src/utils/DepTools.cpp \
+    src/utils/OsTools.cpp \
     src/tinyxml2.cpp \
     src/tinyxmlhelper.cpp
 

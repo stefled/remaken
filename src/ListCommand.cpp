@@ -1,9 +1,9 @@
 #include "ListCommand.h"
 #include "DependencyManager.h"
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
-#include "PathBuilder.h"
+#include "utils/PathBuilder.h"
 #include "HttpFileRetriever.h"
-#include "tools/OsTools.h"
+#include "utils/OsTools.h"
 #include "tools/GitTool.h"
 #include <boost/log/trivial.hpp>
 #include <boost/process.hpp>

@@ -8,9 +8,10 @@
 //#include <zipper/unzipper.h>
 #include <future>
 #include "tools/SystemTools.h"
-#include "tools/OsTools.h"
+#include "utils/DepTools.h"
+#include "utils/OsTools.h"
 #include <boost/log/trivial.hpp>
-#include "PathBuilder.h"
+#include "utils/PathBuilder.h"
 #include <regex>
 
 using namespace std;
@@ -23,7 +24,7 @@ DependencyManager::DependencyManager(const CmdOptions & options):m_options(optio
 
 fs::path DependencyManager::buildDependencyPath()
 {
-    return OsTools::buildDependencyPath(m_options.getDependenciesFile());
+    return DepTools::buildDependencyPath(m_options.getDependenciesFile());
 }
 
 int DependencyManager::retrieve()
@@ -56,7 +57,7 @@ int DependencyManager::parse()
     bool bValid = true;
     bool bNeedElevation = false;
     fs::path depPath = buildDependencyPath();
-    std::vector<Dependency> dependencies = parse(depPath, m_options.getMode());
+    std::vector<Dependency> dependencies = DepTools::parse(depPath, m_options.getMode());
     for (auto dep : dependencies) {
         if (!dep.validate()) {
             bValid = false;
@@ -129,10 +130,10 @@ void displayInfo(const Dependency& d, uint32_t indentLevel)
 void DependencyManager::readInfos(const fs::path &  dependenciesFile)
 {
     m_indentLevel ++;
-    std::vector<fs::path> dependenciesFileList = getChildrenDependencies(dependenciesFile.parent_path(), m_options.getOS());
+    std::vector<fs::path> dependenciesFileList = DepTools::getChildrenDependencies(dependenciesFile.parent_path(), m_options.getOS());
     for (fs::path depsFile : dependenciesFileList) {
         if (fs::exists(depsFile)) {
-            std::vector<Dependency> dependencies = parse(depsFile, m_options.getMode());
+            std::vector<Dependency> dependencies = DepTools::parse(depsFile, m_options.getMode());
             for (auto dep : dependencies) {
                 if (!dep.validate()) {
                     throw std::runtime_error("Error parsing dependency file : invalid format ");
@@ -162,85 +163,6 @@ int DependencyManager::info()
         return -1;
     }
     return 0;
-}
-
-
-std::vector<Dependency> removeRedundantDependencies(const std::multimap<std::string,Dependency> & dependencies)
-{
-    std::multimap<std::string,std::pair<std::size_t,Dependency>> dependencyMap;
-    std::vector<Dependency> depVector;
-    for (auto const & node : dependencies) {
-        if (!node.second.isSystemDependency()) {
-            depVector.push_back(std::move(node.second));
-        }
-        else {// System dependency
-            if (dependencies.count(node.first) == 1) {
-                // only one system dependency was found : generic or dedicated tool dependency is added to the dependencies vector
-                depVector.push_back(std::move(node.second));
-            }
-            else {
-                if (node.second.isSpecificSystemToolDependency()) {
-                    // there must be one dedicated tool when the dependency appears twice : add only the dedicated dependency
-                    depVector.push_back(std::move(node.second));
-                }
-            }
-        }
-    }
-    return depVector;
-}
-
-std::vector<Dependency> DependencyManager::parse(const fs::path &  dependenciesPath, const std::string & linkMode)
-{
-    std::multimap<std::string,Dependency> libraries;
-    if (fs::exists(dependenciesPath)) {
-        ifstream fis(dependenciesPath.generic_string(),ios::in);
-        while (!fis.eof()) {
-            string curStr;
-            getline(fis,curStr);
-            if (!curStr.empty()) {
-                std::string commentRegexStr = "^[ \t]*//";
-                std::regex commentRegex(commentRegexStr, std::regex_constants::extended);
-                std::smatch sm;
-                // parsing finds commented lines
-                if (!std::regex_search(curStr, sm, commentRegex, std::regex_constants::match_any)) {
-                    // Dependency line is not commented: parsing the dependency
-                    Dependency dep(curStr, linkMode);
-
-                    if (dep.isGenericSystemDependency()
-                        ||dep.isSpecificSystemToolDependency()
-                        ||!dep.isSystemDependency()) {
-                        // only add "generic" system or tool@system or other deps
-                        libraries.insert(std::make_pair(dep.getName(), std::move(dep)));
-                    }
-                }
-                else {
-                    std::cout<<"[IGNORED]: Dependency line '"<<curStr<<"' is commented !"<<std::endl;
-                }
-            }
-        }
-        fis.close();
-    }
-    return removeRedundantDependencies(libraries);
-}
-
-void DependencyManager::parseRecurse(const fs::path &  dependenciesPath, const CmdOptions & options, std::vector<Dependency> & deps)
-{
-    std::vector<fs::path> dependenciesFileList = getChildrenDependencies(dependenciesPath.parent_path(), options.getOS());
-    for (fs::path & depsFile : dependenciesFileList) {
-        if (fs::exists(depsFile)) {
-            std::vector<Dependency> dependencies = parse(depsFile, options.getMode());
-            deps.insert(std::end(deps), std::begin(dependencies), std::end(dependencies));
-            for (auto dep : dependencies) {
-                if (!dep.validate()) {
-                    throw std::runtime_error("Error parsing dependency file : invalid format ");
-                }
-                fs::detail::utf8_codecvt_facet utf8;
-                shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(dep, options);
-                fs::path outputDirectory = fileRetriever->computeLocalDependencyRootDir(dep);
-                parseRecurse(outputDirectory/"packagedependencies.txt", options,deps);
-            }
-        }
-    }
 }
 
 bool DependencyManager::installDep(Dependency &  dependency, const std::string & source,
@@ -434,12 +356,12 @@ std::vector<Dependency> DependencyManager::filterConditionDependencies(const std
 
 void DependencyManager::retrieveDependencies(const fs::path &  dependenciesFile)
 {
-    std::vector<fs::path> dependenciesFileList = getChildrenDependencies(dependenciesFile.parent_path(), m_options.getOS());
+    std::vector<fs::path> dependenciesFileList = DepTools::getChildrenDependencies(dependenciesFile.parent_path(), m_options.getOS());
     parseConditionsFile(dependenciesFile.parent_path());
     std::vector<Dependency> conditionsDependencies;
     for (fs::path depsFile : dependenciesFileList) {
         if (fs::exists(depsFile)) {
-            std::vector<Dependency> dependencies = filterConditionDependencies( parse(depsFile, m_options.getMode()) );
+            std::vector<Dependency> dependencies = filterConditionDependencies( DepTools::parse(depsFile, m_options.getMode()) );
             for (auto dep : dependencies) {
                 if (!dep.validate()) {
                     throw std::runtime_error("Error parsing dependency file : invalid format ");
@@ -467,20 +389,6 @@ void DependencyManager::retrieveDependencies(const fs::path &  dependenciesFile)
         }
     }
     generateConfigureFile(dependenciesFile.parent_path(), conditionsDependencies);
-}
-
-std::vector<fs::path> DependencyManager::getChildrenDependencies(const fs::path &  outputDirectory, const std::string & osPlatform, const std::string & filePrefix)
-{
-    auto platformFiles = list<std::string>{filePrefix + ".txt"};
-    platformFiles.push_back(filePrefix + "-"+ osPlatform + ".txt");
-    std::vector<fs::path> filePaths;
-    for (std::string file : platformFiles) {
-        fs::path chidrenPackageDependenciesPath = outputDirectory / file;
-        if (fs::exists(chidrenPackageDependenciesPath)) {
-            filePaths.push_back(fs::absolute(chidrenPackageDependenciesPath));
-        }
-    }
-    return filePaths;
 }
 
 
