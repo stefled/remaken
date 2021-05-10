@@ -36,7 +36,7 @@ void BrewSystemTool::bundleLib(const std::string & libPath)
     boost::split(libsPath, libsString, [](char c){return c == '\n';});
     for (auto & lib : libsPath) {
         fs::path libPath (lib, utf8);
-        if ( libPath.extension().c_str() == OsTools::sharedSuffix(m_options.getOS())) {
+        if ( libPath.extension().generic_string((utf8)) == OsTools::sharedSuffix(m_options.getOS())) {
             std::cout<<lib<<std::endl;
         }
     }
