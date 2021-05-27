@@ -394,7 +394,7 @@ bool CmdOptions::projectModeEnabled() const
 {
     if (!m_projectMode) {
         fs::path depPath = DepTools::buildDependencyPath(m_dependenciesFile);
-        for (fs::directory_entry& x : fs::directory_iterator(depPath)) {
+        for (fs::directory_entry& x : fs::directory_iterator(depPath.parent_path())) {
             if (is_regular_file(x.path())) {
                 if (x.path().extension() == ".pro") {
                     m_projectMode = true;
