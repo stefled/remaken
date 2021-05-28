@@ -181,7 +181,7 @@ CmdOptions::CmdOptions()
     installCommand->add_option("--apiKey,-k", m_apiKey, "Artifactory api key");
     installCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files", true);
     installCommand->add_option("--conan_profile", m_conanProfile, "force conan profile name to use (overrides detected profile)",true);
-    installCommand->add_flag("--project_mode,-p", m_projectMode, "enable project mode to generate project build files from packaging tools (conanbuildinfo ...).\nProject mode is enabled automatically when the folder containing the packagedependencies file also contains a QT project file");
+    installCommand->add_flag("--project_mode,-p", m_projectMode, "enable project mode to generate project build files from packaging tools (conanbuildinfo ...).");//\nProject mode is enabled automatically when the folder containing the packagedependencies file also contains a QT project file");
 
 
     m_ignoreCache = false;
@@ -392,7 +392,7 @@ void CmdOptions::printUsage()
 
 bool CmdOptions::projectModeEnabled() const
 {
-    if (!m_projectMode) {
+    /*if (!m_projectMode) {
         fs::path depPath = DepTools::buildDependencyPath(m_dependenciesFile);
         for (fs::directory_entry& x : fs::directory_iterator(depPath.parent_path())) {
             if (is_regular_file(x.path())) {
@@ -401,7 +401,7 @@ bool CmdOptions::projectModeEnabled() const
                 }
             }
         }
-    }
+    }*/
     return m_projectMode;
 }
 

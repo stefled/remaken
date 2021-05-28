@@ -107,10 +107,9 @@ Each line follows the pattern :
 
 When link_mode is not provided :
 
-- For remaken package format (artifactory, nexus and github), system and vcpkg dependencies link_mode is set to "default"
-- For conan, link_mode is set to "na"
+- For remaken package format (artifactory, nexus and github), conan, system and vcpkg dependencies link_mode is set to current config link_mode
 
-(Conan note : link_mode is mandatory if the targeted dependency needs the option. When link_mode is not provided or is set to "na", it is not forwarded to conan, has some packages (typically header only libraries) don't define this option and setting the option leads to an error).
+(Conan note : link_mode is mandatory if the targeted dependency needs the option. When link_mode is set to "na", it is not forwarded to conan, has some packages (typically header only libraries) don't define this option and setting the option leads to an error).
 
 when repository_type is not specified :
 
