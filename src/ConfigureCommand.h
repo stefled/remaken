@@ -16,28 +16,24 @@
  * @author Loïc Touraine
  *
  * @file
- * @brief description of file
- * @date 2019-11-15
+ * @date 2021-02-24
  */
 
-#ifndef CONANFILERETRIEVER_H
-#define CONANFILERETRIEVER_H
+#ifndef CONFIGURECOMMAND_H
+#define CONFIGURECOMMAND_H
 
-#include "SystemFileRetriever.h"
-#include "tools/ConanSystemTool.h"
+#include "AbstractCommand.h"
+#include "CmdOptions.h"
 
-class ConanFileRetriever : public SystemFileRetriever
+class ConfigureCommand : public AbstractCommand
 {
 public:
-    ConanFileRetriever(const CmdOptions & options);
-    ~ConanFileRetriever() override = default;
-    fs::path bundleArtefact(const Dependency & dependency) override;
-    fs::path createConanFile(const fs::path & projectFolderPath);
-    fs::path invokeGenerator(const std::vector<Dependency> & deps, GeneratorType generator) override;
+    ConfigureCommand(const CmdOptions & options);
+    int execute() override;
+    static constexpr const char * NAME="info";
 
-protected:
-    std::vector<std::string> buildOptions(const Dependency & dep);
-
+private:
+    const CmdOptions & m_options;
 };
 
-#endif // CONANFILERETRIEVER_H
+#endif

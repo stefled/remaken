@@ -40,6 +40,12 @@ public:
     static constexpr const char * VCPKG_REPOURL = "https://github.com/microsoft/vcpkg";
 };
 
+typedef enum {
+    cmake = 0x01,
+    qmake = 0x20,
+    pkg_config = 0x40,
+} GeneratorType;
+
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 

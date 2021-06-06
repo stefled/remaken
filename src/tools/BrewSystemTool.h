@@ -34,10 +34,14 @@ public:
     void bundle(const Dependency & dependency) override;
     void install(const Dependency & dependency) override;
     bool installed(const Dependency & dependency) override;
+    fs::path invokeGenerator(const std::vector<Dependency> & deps, GeneratorType generator) override;
     std::vector<fs::path> binPaths([[maybe_unused]] const Dependency & dependency) override;
     std::vector<fs::path> libPaths([[maybe_unused]] const Dependency & dependency) override;
 
 private:
+    std::vector<std::string> split(const std::string & str, char splitChar = '\n');
+    std::string run(const std::string & command, const std::string & depName, const std::vector<std::string> & options = {});
+    fs::path generateQmake(const std::vector<std::string>&  cflags, const std::vector<std::string>&  libs);
     void bundleLib(const std::string & libPath);
     std::string computeToolRef( const Dependency &  dependency) override;
 };

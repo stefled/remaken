@@ -35,6 +35,7 @@ HEADERS += \
     src/BundleManager.h \
     src/BundleXpcfCommand.h \
     src/CleanCommand.h \
+    src/ConfigureCommand.h \
     src/Dependency.h \
     src/DependencyManager.h \
     src/CmdOptions.h \
@@ -80,6 +81,7 @@ SOURCES += \
     src/BundleXpcfCommand.cpp \
     src/CleanCommand.cpp \
 #    src/HttpAsyncDownloader.cpp \
+    src/ConfigureCommand.cpp \
     src/ListCommand.cpp \
     src/XpcfXmlManager.cpp \
     src/tools/BrewSystemTool.cpp \

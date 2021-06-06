@@ -151,6 +151,9 @@ CmdOptions::CmdOptions()
 
     CLI::App * cleanCommand = m_cliApp.add_subcommand("clean", "WARNING : remove every remaken installed packages");
 
+    // CONFIGURE COMMAND
+    CLI::App * configureCommand = m_cliApp.add_subcommand("configure", "configure project dependencies");
+    configureCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files - must be located in project root", true);
 
     // INFO COMMAND
     CLI::App * infoCommand = m_cliApp.add_subcommand("info", "Read package dependencies informations");
@@ -288,7 +291,7 @@ void CmdOptions::validateOptions()
             message += " was used without subcommand" ;
             throw std::runtime_error(message);
         }
-     }
+    }
     fs::path zipToolPath = bp::search_path(m_zipTool); //or get it from somewhere else.
     if (zipToolPath.empty()) {
         throw std::runtime_error("Error : " + m_zipTool + " command not found on the system. Please install it first.");
@@ -318,6 +321,20 @@ CmdOptions::OptionResult CmdOptions::parseArguments(int argc, char** argv)
                         return OptionResult::RESULT_ERROR;
                     }
                 }
+            }
+        }
+        if (sub->get_name() == "configure") {
+            fs::path depPath = DepTools::buildDependencyPath(m_dependenciesFile);
+            for (fs::directory_entry& x : fs::directory_iterator(depPath.parent_path())) {
+                if (is_regular_file(x.path())) {// searched project extension/file will depend on generator asked
+                    if (x.path().extension() == ".pro") {
+                        m_projectMode = true;
+                    }
+                }
+            }
+            if (!m_projectMode) {
+                cout << "Error : configure subcommand must be run with a packagedependencies.txt file located within a project folder.  No project file found in "<<depPath<<endl;
+                return OptionResult::RESULT_ERROR;
             }
         }
         if (sub->get_name() == "init") {

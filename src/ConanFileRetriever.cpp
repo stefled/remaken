@@ -78,7 +78,7 @@ std::vector<std::string> ConanFileRetriever::buildOptions(const Dependency & dep
     }
     return results;
 }
-
+/*
 fs::path ConanFileRetriever::createConanFile(const fs::path & projectFolderPath)
 {
     fs::detail::utf8_codecvt_facet utf8;
@@ -102,19 +102,18 @@ fs::path ConanFileRetriever::createConanFile(const fs::path & projectFolderPath)
     }
     fos.close();
     return conanFilePath;
-}
+}*/
 
+/*
 void ConanFileRetriever::invokeGenerator(const fs::path & conanFilePath, ConanSystemTool::GeneratorType generator)
 {
     ConanSystemTool tool(m_options);
     tool.invokeGenerator(conanFilePath, generator);
 //conan install $$_PRO_FILE_PWD_/build/$$OUTPUTDIR/conanfile.txt -s $${conanArch} -s compiler.cppstd=$${conanCppStd} -s build_type=$${CONANBUILDTYPE} --build=missing -if $$_PRO_FILE_PWD_/build/$$OUTPUTDIR
+}*/
+
+fs::path ConanFileRetriever::invokeGenerator(const std::vector<Dependency> & deps, GeneratorType generator)
+{
+    return m_tool->invokeGenerator(deps, generator);
 }
 
-void ConanFileRetriever::processPostInstallActions()
-{
-    if (m_options.projectModeEnabled()) {
-        fs::path conanFilePath = createConanFile(m_options.getProjectRootPath());
-        invokeGenerator(conanFilePath, ConanSystemTool::GeneratorType::qmake);
-    }
-}

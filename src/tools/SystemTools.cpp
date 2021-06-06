@@ -150,8 +150,23 @@ std::vector<fs::path> BaseSystemTool::libPaths([[maybe_unused]] const Dependency
     return std::vector<fs::path>();
 }
 
-std::string SystemTools::getToolIdentifier()
+const std::map<Dependency::Type,std::string> typeToStringMap =
 {
+    {Dependency::Type::BREW,"brew"},
+     {Dependency::Type::CHOCO,"choco"},
+     {Dependency::Type::CONAN,"conan"},
+     {Dependency::Type::SCOOP,"scoop"},
+     {Dependency::Type::VCPKG,"vcpkg"}
+};
+
+std::string SystemTools::getToolIdentifier(Dependency::Type type)
+{
+    if (type != Dependency::Type::SYSTEM) {
+        if (!mapContains(typeToStringMap, type)) {
+            throw std::runtime_error("Error: unable to find tool identifier for type " + std::to_string(static_cast<uint32_t>(type)));
+        }
+        return typeToStringMap.at(type);
+    }
 #ifdef BOOST_OS_ANDROID_AVAILABLE
     return string();// or conan as default? but implies to set conan options
 #endif
@@ -198,7 +213,7 @@ std::string SystemTools::getToolIdentifier()
     return "";
 }
 
-std::map<std::string,std::vector<std::string>> supportedTools =
+const std::map<std::string,std::vector<std::string>> supportedTools =
 {
     {"linux",{"brew","vcpkg"}},
     {"mac",{"vcpkg"}},
@@ -239,18 +254,14 @@ bool SystemTools::isToolSupported(const std::string & tool)
     return false;
 }
 
-std::shared_ptr<BaseSystemTool> SystemTools::createTool(const CmdOptions & options, std::optional<std::reference_wrapper<const Dependency>> dependencyOpt)
+std::shared_ptr<BaseSystemTool> SystemTools::createTool(const CmdOptions & options, std::optional<Dependency::Type> dependencyTypeOpt)
 {
     fs::path p = options.getRemakenRoot() / "vcpkg";
     std::vector<fs::path> envPath = boost::this_process::path();
     envPath.push_back(p);
-    if (dependencyOpt.has_value()) {
-        const Dependency & dependency = dependencyOpt.value().get();
-        std::string explicitToolName = dependency.getIdentifier();
-        if (explicitToolName == "system") {
-            // get tool identifier for current OS
-            explicitToolName = getToolIdentifier();
-        }
+    if (dependencyTypeOpt.has_value()) {
+        Dependency::Type depType = dependencyTypeOpt.value();
+        std::string explicitToolName = getToolIdentifier(depType);
         boost::filesystem::path p = bp::search_path(explicitToolName, envPath);
         if (!p.empty()) {
 #ifdef BOOST_OS_ANDROID_AVAILABLE
@@ -259,47 +270,21 @@ std::shared_ptr<BaseSystemTool> SystemTools::createTool(const CmdOptions & optio
 #ifdef BOOST_OS_IOS_AVAILABLE
             return nullptr;// or conan as default? but implies to set conan options
 #endif
-#ifdef BOOST_OS_LINUX_AVAILABLE
-            if (explicitToolName == "apt-get") {
-                return std::make_shared<AptSystemTool>(options);
-            }
-            if (explicitToolName == "yum") {
-                return std::make_shared<YumSystemTool>(options);
-            }
-            if (explicitToolName == "pacman") {
-                return std::make_shared<PacManSystemTool>(options);
-            }
-            if (explicitToolName == "zypper") {
-                return std::make_shared<ZypperSystemTool>(options);
-            }
-            if (explicitToolName == "pkgutil") {
-                return std::make_shared<PkgUtilSystemTool>(options);
-            }
-#endif
 #if defined(BOOST_OS_MACOS_AVAILABLE) || defined(BOOST_OS_LINUX_AVAILABLE)
-            if (explicitToolName == "brew") {
+            if (depType == Dependency::Type::BREW) {
                 return std::make_shared<BrewSystemTool>(options);
             }
 #endif
 #ifdef BOOST_OS_WINDOWS_AVAILABLE
-            if (explicitToolName == "choco") {
-                return std::make_shared<ChocoSystemTool>(options);
-            }
-            if (explicitToolName == "scoop") {
+            if (depType == Dependency::Type::SCOOP) {
                 return std::make_shared<ZypperSystemTool>(options);
             }
 #endif
-
-#ifdef BOOST_OS_BSD_FREE_AVAILABLE
-            if (explicitToolName == "pkg") {
-                return std::make_shared<PkgToolSystemTool>(options);
-            }
-#endif
-            if (explicitToolName == "vcpkg") {
+            if (depType == Dependency::Type::VCPKG) {
                 return std::make_shared<VCPKGSystemTool>(options);
             }
         }
-        throw std::runtime_error("Error: unable to find " + explicitToolName + " tool for dependency [" +dependency.getPackageName() + ":" + dependency.getVersion() +  "]. Please check your configuration and environment.");
+        throw std::runtime_error("Error: unable to find " + explicitToolName + " tool. Please check your configuration and environment.");
     }
     return nullptr;
 }

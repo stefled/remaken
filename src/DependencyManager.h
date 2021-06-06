@@ -46,8 +46,6 @@ public:
 
 private:
     void generateConfigureFile(const fs::path &  rootFolderPath, const std::vector<Dependency> & deps);
-    void parseConditionsFile(const fs::path &  rootFolderPath);
-    std::vector<Dependency> filterConditionDependencies(const std::vector<Dependency> & depCollection);
     void retrieveDependencies(const fs::path & dependenciesFiles);
     void retrieveDependency(Dependency &  dependency);
     bool installDep(Dependency &  dependency, const std::string & source,

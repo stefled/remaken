@@ -8,6 +8,7 @@
 #include "ParseCommand.h"
 #include "PackageCommand.h"
 #include "BundleCommand.h"
+#include "ConfigureCommand.h"
 #include "CleanCommand.h"
 #include "BundleXpcfCommand.h"
 #include "VersionCommand.h"
@@ -27,6 +28,7 @@ int main(int argc, char** argv)
             return static_cast<int>(result);
         }
         dispatcher["clean"] = make_shared<CleanCommand>(opts);
+        dispatcher["configure"] = make_shared<ConfigureCommand>(opts);
         dispatcher["init"] = make_shared<InitCommand>(opts);
         dispatcher["info"] = make_shared<InfoCommand>(opts);
         dispatcher["install"] = make_shared<InstallCommand>(opts);

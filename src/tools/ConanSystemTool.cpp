@@ -6,7 +6,7 @@
 #include <string>
 #include <map>
 #include <nlohmann/json.hpp>
-#include <map>
+#include <fstream>
 
 namespace bp = boost::process;
 namespace nj = nlohmann;
@@ -99,29 +99,84 @@ void ConanSystemTool::install(const Dependency & dependency)
     }
 }
 
-void ConanSystemTool::invokeGenerator(const fs::path & conanFilePath, ConanSystemTool::GeneratorType generator)
+std::vector<std::string> ConanSystemTool::buildOptions(const Dependency & dep)
+{
+    std::vector<std::string> options;
+    std::vector<std::string> results;
+    if (dep.getMode() != "na") {
+        std::string modeValue = "False";
+        if (dep.getMode() == "shared") {
+            modeValue = "True";
+        }
+        results.push_back(dep.getPackageName() + ":" + dep.getMode() + "=" + modeValue);
+    }
+    if (dep.hasOptions()) {
+        boost::split(options, dep.getToolOptions(), [](char c){return c == '#';});
+        for (const auto & option: options) {
+            results.push_back(dep.getPackageName() + ":" + option);
+        }
+    }
+    return results;
+}
+
+fs::path ConanSystemTool::createConanFile(const std::vector<Dependency> & deps)
 {
     fs::detail::utf8_codecvt_facet utf8;
-    fs::path targetPath = m_options.getProjectRootPath() / "build" / m_options.getConfig();
+    fs::path conanFilePath = DepTools::getProjectBuildSubFolder(m_options)/ "conanfile.txt";
+    std::ofstream fos(conanFilePath.generic_string(utf8),std::ios::out);
+    fos<<"[requires]"<<'\n';
+    for (auto & dependency : deps) {
+        std::string sourceURL = dependency.getPackageName();
+        sourceURL += "/" + dependency.getVersion();
+        fos<<sourceURL<<'\n';
+    }
+    fos<<'\n';
+    fos<<"[generators]"<<'\n';
+    fos<<"qmake"<<'\n';
+    fos<<"\n";
+    fos<<"[options]"<<'\n';
+    for (auto & dependency : deps) {
+        for (auto & option : buildOptions(dependency)) {
+            fos<<option<<'\n';
+        }
+    }
+    fos.close();
+    return conanFilePath;
+}
+
+fs::path ConanSystemTool::invokeGenerator(const std::vector<Dependency> & deps, GeneratorType generator)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    fs::path destination = DepTools::getProjectBuildSubFolder(m_options);
+    fs::path conanFilePath = createConanFile(deps);
     std::string buildType = "build_type=Debug";
 
     if (m_options.getConfig() == "release") {
         buildType = "build_type=Release";
     }
+    std::vector<std::string> options;
+    std::vector<std::string> optionsArgs;
     std::vector<std::string> settingsArgs;
     if (mapContains(conanArchTranslationMap, m_options.getArchitecture())) {
         settingsArgs.push_back("-s");
         settingsArgs.push_back("arch=" + conanArchTranslationMap.at(m_options.getArchitecture()));
     }
+    std::string profileName = m_options.getConanProfile();
+    if (m_options.crossCompiling() && m_options.getConanProfile() == "default") {
+        std::string profileName = m_options.getOS() + "-" + m_options.getBuildToolchain() + "-" + m_options.getArchitecture();
+    }
     std::string cppStd="compiler.cppstd=";
     cppStd += m_options.getCppVersion();
-
     int result = -1;
-    result = bp::system(m_systemInstallerPath, "install", conanFilePath.generic_string(utf8).c_str(), bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if",  targetPath.generic_string(utf8).c_str());
-    if (result != 0) {
-        throw std::runtime_error("Error calling conan generator : ");
+    result = bp::system(m_systemInstallerPath, "install", bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-pr", profileName.c_str(),  "-if", destination, "-g", "qmake", conanFilePath);
+        //result = bp::system(m_systemInstallerPath, "install", conanFilePath.generic_string(utf8).c_str(), bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if",  targetPath.generic_string(utf8).c_str());
+
+   if (result != 0) {
+        throw std::runtime_error("Error installing conan dependencies");
     }
+    return destination/"conanbuildinfo.pri";
 }
+
 
 
 std::vector<fs::path> ConanSystemTool::retrievePaths(const Dependency & dependency, BaseSystemTool::PathType conanNode, const fs::path & destination)

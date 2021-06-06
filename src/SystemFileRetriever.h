@@ -32,7 +32,7 @@
 class SystemFileRetriever : public AbstractFileRetriever
 {
 public:
-    SystemFileRetriever(const CmdOptions & options, std::optional<std::reference_wrapper<const Dependency>> dependencyOpt=std::nullopt);
+    SystemFileRetriever(const CmdOptions & options, std::optional<Dependency::Type> dependencyTypeOpt=std::nullopt);
     ~SystemFileRetriever() override = default;
 
 
@@ -42,6 +42,8 @@ public:
     std::vector<fs::path> binPaths(const Dependency & dependency) override;
     std::vector<fs::path> libPaths(const Dependency & dependency) override;
     std::string computeSourcePath( const Dependency &  dependency) override;
+    fs::path invokeGenerator(const std::vector<Dependency> & deps, GeneratorType generator) override;
+
 
 protected:
     std::shared_ptr<BaseSystemTool> m_tool;

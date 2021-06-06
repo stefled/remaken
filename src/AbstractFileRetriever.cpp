@@ -62,13 +62,13 @@ fs::path AbstractFileRetriever::installArtefact(const Dependency & dependency)
 {
     fs::path folder = installArtefactImpl(dependency);
     m_installedDeps.push_back(dependency);
-    processPostInstallActions();
     return folder;
 }
 
-void AbstractFileRetriever::processPostInstallActions()
+
+fs::path AbstractFileRetriever::invokeGenerator(const std::vector<Dependency> & deps, GeneratorType generator)
 {
-    return;
+    return fs::path();
 }
 
 fs::path AbstractFileRetriever::installArtefactImpl(const Dependency & dependency)

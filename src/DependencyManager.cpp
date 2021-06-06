@@ -82,20 +82,6 @@ int DependencyManager::parse()
     return 0;
 }
 
-bool yesno_prompt(char const* prompt) {
-    using namespace std;
-    while (true) {
-        cout << prompt << " [y/n] ";
-        string line;
-        if (!getline(cin, line)) {
-            throw std::runtime_error("unexpected input error");
-        }
-        else if (line.size() == 1 && line.find_first_of("YyNn") != line.npos) {
-            return line == "Y" || line == "y";
-        }
-    }
-}
-
 int DependencyManager::clean()
 {
     try {
@@ -263,69 +249,14 @@ void DependencyManager::generateConfigureFile(const fs::path &  rootFolderPath, 
     configureFile.close();
 }
 
-void DependencyManager::parseConditionsFile(const fs::path &  rootFolderPath)
-{
-    fs::detail::utf8_codecvt_facet utf8;
-    fs::path configureFilePath = rootFolderPath/"configure_conditions.pri";
-    if (!fs::exists(configureFilePath)) {
-        return ;
-    }
-
-    std::ifstream configureFile(configureFilePath.generic_string(utf8).c_str(), std::ios::in);
-    while (!configureFile.eof()) {
-        std::vector<std::string> results;
-        string curStr;
-        getline(configureFile,curStr);
-        std::string formatRegexStr = "^[\t\s]*DEFINES[\t\s]*+=[\t\s]*[a-zA-Z0-9_-]*";
-        //std::regex formatRegexr(formatRegexStr, std::regex_constants::extended);
-        std::smatch sm;
-        //check string format is ^[\t\s]*DEFINES[\t\s]*+=[\t\s]*[a-zA-Z0-9_-]*
-       // if (std::regex_search(curStr, sm, formatRegexr, std::regex_constants::match_any)) {
-            boost::split(results, curStr, [](char c){return c == '=';});
-            if (results.size() == 2) {
-                std::string conditionValue = results[1];
-                boost::trim(conditionValue);
-                m_defaultConditionsMap.insert({conditionValue,true});
-            }
-       // }
-    }
-    configureFile.close();
-}
-
-std::vector<Dependency> DependencyManager::filterConditionDependencies(const std::vector<Dependency> & depCollection)
-{
-    std::vector<Dependency> filteredDepCollection;
-    for (auto const & dep : depCollection) {
-        bool conditionsFullfilled = true;
-        if (dep.hasConditions()) {
-            for (auto & condition : dep.getConditions()) {
-                if (!mapContains(m_defaultConditionsMap, condition)) {
-                    std::string msg = "configure project with [" + condition + "] (=> " + dep.getPackageName() +":"+dep.getVersion() +") ?";
-                    if (!yesno_prompt(msg.c_str()))  {
-                        conditionsFullfilled = false;
-                        std::cout<<"Dependency not configured "<<dep.toString()<<std::endl;
-                    }
-                }
-                else {
-                    std::cout<<"Configuring project with [" + condition + "] (=> " + dep.getPackageName() +":"+dep.getVersion() +")"<<std::endl;
-                }
-            }
-        }
-        if (conditionsFullfilled) {
-            filteredDepCollection.push_back(dep);
-        }
-    }
-    return filteredDepCollection;
-}
-
 void DependencyManager::retrieveDependencies(const fs::path &  dependenciesFile)
 {
     std::vector<fs::path> dependenciesFileList = DepTools::getChildrenDependencies(dependenciesFile.parent_path(), m_options.getOS());
-    parseConditionsFile(dependenciesFile.parent_path());
+    std::map<std::string,bool> conditionsMap = DepTools::parseConditionsFile(dependenciesFile.parent_path());
     std::vector<Dependency> conditionsDependencies;
     for (fs::path depsFile : dependenciesFileList) {
         if (fs::exists(depsFile)) {
-            std::vector<Dependency> dependencies = filterConditionDependencies( DepTools::parse(depsFile, m_options.getMode()) );
+            std::vector<Dependency> dependencies = DepTools::filterConditionDependencies(conditionsMap, DepTools::parse(depsFile, m_options.getMode()) );
             for (auto dep : dependencies) {
                 if (!dep.validate()) {
                     throw std::runtime_error("Error parsing dependency file : invalid format ");

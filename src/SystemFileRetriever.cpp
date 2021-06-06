@@ -7,9 +7,9 @@
 namespace fs = boost::filesystem;
 namespace bp = boost::process;
 
-SystemFileRetriever::SystemFileRetriever(const CmdOptions & options, std::optional<std::reference_wrapper<const Dependency>> dependencyOpt):AbstractFileRetriever (options)
+SystemFileRetriever::SystemFileRetriever(const CmdOptions & options, std::optional<Dependency::Type> dependencyTypeOpt):AbstractFileRetriever (options)
 {
-    m_tool = SystemTools::createTool(options, dependencyOpt);
+    m_tool = SystemTools::createTool(options, dependencyTypeOpt);
 }
 
 fs::path SystemFileRetriever::bundleArtefact(const Dependency & dependency)
@@ -45,4 +45,9 @@ std::vector<fs::path> SystemFileRetriever::binPaths(const Dependency & dependenc
 std::vector<fs::path> SystemFileRetriever::libPaths(const Dependency & dependency)
 {
     return m_tool->libPaths(dependency);
+}
+
+fs::path SystemFileRetriever::invokeGenerator(const std::vector<Dependency> & deps, GeneratorType generator)
+{
+    return m_tool->invokeGenerator(deps,generator);
 }

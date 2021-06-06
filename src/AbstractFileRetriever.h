@@ -41,10 +41,10 @@ public:
     virtual fs::path computeRootLibDir( const Dependency & dependency) override;
     virtual fs::path computeLocalDependencyRootDir( const Dependency &  dependency) override;
     virtual const std::vector<Dependency> & installedDependencies() const override final { return m_installedDeps; }
+    virtual fs::path invokeGenerator(const std::vector<Dependency> & deps, GeneratorType generator) override;
 
 protected:
     virtual fs::path installArtefactImpl(const Dependency & dependency);
-    virtual void processPostInstallActions();
     void copySharedLibraries(const fs::path & sourceRootFolder);
     fs::path m_workingDirectory;
     const CmdOptions & m_options;

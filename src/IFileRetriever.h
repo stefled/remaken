@@ -25,6 +25,7 @@
 #include <boost/filesystem.hpp>
 #include <exception>
 #include "Dependency.h"
+#include "Constants.h"
 
 namespace fs = boost::filesystem;
 
@@ -37,11 +38,14 @@ public:
     virtual fs::path retrieveArtefact(const Dependency & dependency) = 0;
     virtual std::vector<fs::path> binPaths(const Dependency & dependency) = 0;
     virtual std::vector<fs::path> libPaths(const Dependency & dependency) = 0;
+//    virtual std::vector<fs::path> libs(const Dependency & dependency) = 0;
+//    virtual std::vector<fs::path> cflags(const Dependency & dependency) = 0;
     virtual std::string computeSourcePath( const Dependency &  dependency) = 0;
     virtual fs::path computeRootBinDir( const Dependency & dependency) = 0;
     virtual fs::path computeRootLibDir( const Dependency & dependency) = 0;
     virtual fs::path computeLocalDependencyRootDir( const Dependency & dependency) = 0;
     virtual const std::vector<Dependency> & installedDependencies() const = 0;
+    virtual fs::path invokeGenerator(const std::vector<Dependency> & deps , GeneratorType generator = GeneratorType::qmake) = 0;
 };
 
 #endif // IFILERETRIEVER_H

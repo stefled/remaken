@@ -29,6 +29,7 @@
 #include <list>
 #include <optional>
 #include <boost/log/trivial.hpp>
+#include "utils/DepTools.h"
 
 class BaseSystemTool
 {
@@ -49,7 +50,7 @@ public:
     virtual std::vector<fs::path> libPaths ([[maybe_unused]] const Dependency & dependency);
     virtual std::string computeSourcePath (const Dependency &  dependency);
     virtual fs::path sudo () { return m_sudoCmd; }
-
+    virtual fs::path invokeGenerator([[maybe_unused]] const std::vector<Dependency> & deps, [[maybe_unused]] GeneratorType generator) { return fs::path(); }
 
 protected:
     virtual std::string computeToolRef ( const Dependency &  dependency);
@@ -63,9 +64,9 @@ class SystemTools
 public:
     SystemTools (const CmdOptions & options) = delete;
     ~SystemTools () = delete;
-    static std::string getToolIdentifier ();
+    static std::string getToolIdentifier (Dependency::Type type = Dependency::Type::SYSTEM);
     static bool isToolSupported (const std::string & tool);
-    static std::shared_ptr<BaseSystemTool> createTool (const CmdOptions & options, std::optional<std::reference_wrapper<const Dependency>> dependencyOpt=std::nullopt);
+    static std::shared_ptr<BaseSystemTool> createTool (const CmdOptions & options, std::optional<Dependency::Type> dependencyTypeOpt=std::nullopt);
 };
 
 
