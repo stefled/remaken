@@ -33,10 +33,16 @@ class PkgConfigTool
 public:
     PkgConfigTool();
     virtual ~PkgConfigTool() = default;
+    void addPath(const fs::path & pkgConfigPath);
+    std::string libs(const std::string & name);
+    std::string cflags(const std::string & name);
+    fs::path generateQmake(const std::vector<std::string>&  cflags, const std::vector<std::string>&  libs,
+                           const std::string & prefix, const fs::path & destination);
 
 protected:
     static std::string getPkgConfigToolIdentifier();
     fs::path m_pkgConfigToolPath;
+    std::string m_pkgConfigPaths;
 };
 
 #endif // GITTOOL_H

@@ -1,6 +1,6 @@
 #include "BrewSystemTool.h"
 #include "utils/OsUtils.h"
-
+#include "tools/PkgConfigTool.h"
 #include <boost/process.hpp>
 #include <boost/process/async.hpp>
 #include <boost/predef.h>
@@ -87,63 +87,6 @@ void BrewSystemTool::install (const Dependency & dependency)
     }
 }
 
-fs::path BrewSystemTool::generateQmake(const std::vector<std::string>&  cflags, const std::vector<std::string>&  libs)
-{
-    fs::detail::utf8_codecvt_facet utf8;
-    fs::path filePath = DepUtils::getProjectBuildSubFolder(m_options)/ "brewbuildinfo.pri";
-    std::ofstream fos(filePath.generic_string(utf8),std::ios::out);
-    std::string libdirs, libsStr;
-    for (auto & cflagInfos : cflags) {
-        std::vector<std::string> cflagsVect;
-        boost::split(cflagsVect, cflagInfos, [&](char c){return c == ' ';});
-        for (auto & cflag: cflagsVect) {
-            // remove -I
-            cflag.erase(0,2);
-            boost::trim(cflag);
-            fos<<"BREW_INCLUDEPATH += \""<<cflag<<"\""<<std::endl;
-        }
-    }
-    for (auto & libInfos : libs) {
-        std::vector<std::string> optionsVect;
-        boost::split(optionsVect, libInfos, [&](char c){return c == ' ';});
-        for (auto & option: optionsVect) {
-            std::string prefix = option.substr(0,2);
-            if (prefix == "-L") {
-                option.erase(0,2);
-                libdirs += " -L\"" + option + "\"";
-            }
-            //TODO : extract lib paths from libdefs and put quotes around libs path
-            else {
-                libsStr += " " + option;
-            }
-        }
-    }
-    fos<<"BREW_LIBS +="<<libsStr<<std::endl;
-    fos<<"BREW_SYSTEMLIBS += "<<std::endl;
-    fos<<"BREW_FRAMEWORKS += "<<std::endl;
-    fos<<"BREW_FRAMEWORKS_PATH += "<<std::endl;
-    fos<<"BREW_LIBDIRS +="<<libdirs<<std::endl;
-    fos<<"BREW_BINDIRS +="<<std::endl;
-    fos<<"BREW_DEFINES +="<<std::endl;
-    fos<<"BREW_DEFINES +="<<std::endl;
-    fos<<"BREW_QMAKE_CXXFLAGS +="<<std::endl;
-    fos<<"BREW_QMAKE_CFLAGS +="<<std::endl;
-    fos<<"BREW_QMAKE_LFLAGS +="<<std::endl;
-    fos<<std::endl;
-    fos<<"INCLUDEPATH += $$BREW_INCLUDEPATH"<<std::endl;
-    fos<<"LIBS += $$BREW_LIBS"<<std::endl;
-    fos<<"LIBS += $$BREW_LIBDIRS"<<std::endl;
-    fos<<"BINDIRS += $$BREW_BINDIRS"<<std::endl;
-    fos<<"DEFINES += $$BREW_DEFINES"<<std::endl;
-    fos<<"LIBS += $$BREW_FRAMEWORKS"<<std::endl;
-    fos<<"LIBS += $$BREW_FRAMEWORK_PATHS"<<std::endl;
-    fos<<"QMAKE_CXXFLAGS += $$BREW_QMAKE_CXXFLAGS"<<std::endl;
-    fos<<"QMAKE_CFLAGS += $$BREW_QMAKE_CFLAGS"<<std::endl;
-    fos<<"QMAKE_LFLAGS += $$BREW_QMAKE_LFLAGS"<<std::endl;
-    fos.close();
-    return filePath;
-}
-
 fs::path BrewSystemTool::invokeGenerator(const std::vector<Dependency> & deps, GeneratorType generator)
 {
     static const std::map<std::string,std::string> brewRootPathMap = {
@@ -154,18 +97,15 @@ fs::path BrewSystemTool::invokeGenerator(const std::vector<Dependency> & deps, G
     if (!mapContains(brewRootPathMap, m_options.getOS())) {
         throw std::runtime_error("Error: brew not supported for OS : " + m_options.getOS());
     }
-    boost::filesystem::path pkgConfigToolPath = bp::search_path("pkg-config");
-    if (pkgConfigToolPath.empty()) {
-        throw std::runtime_error("Error: pkg-config tool not available: please install pkg-config !");
-    }
+
     fs::detail::utf8_codecvt_facet utf8;
     fs::path globalBrewPkgConfigPath(brewRootPathMap.at(m_options.getOS()), utf8);
     globalBrewPkgConfigPath /= "lib";
     globalBrewPkgConfigPath /= "pkgconfig";
-    auto env = boost::this_process::environment();
-    // add to PKG_CONFIG_PATH default pkg-config path for brew
-    std::string brewPkgconfigPaths = globalBrewPkgConfigPath.generic_string(utf8);
 
+    // add to PKG_CONFIG_PATH default pkg-config path for brew
+    PkgConfigTool pkgConfig;
+    pkgConfig.addPath(globalBrewPkgConfigPath);
     for ( auto & dep : deps) {
         std::cout<<"===> Adding '"<<dep.getName()<<":"<<dep.getVersion()<<"' dependency"<<std::endl;
         // retrieve brew sub-dependencies for 'dep'
@@ -185,34 +125,23 @@ fs::path BrewSystemTool::invokeGenerator(const std::vector<Dependency> & deps, G
                     }
                 }
                 if (!localPkgConfigPath.empty()) { // add found pkgconfig to pkgConfigPath variable
-                    brewPkgconfigPaths += ":" + localPkgConfigPath.parent_path().generic_string(utf8);
+                    pkgConfig.addPath(localPkgConfigPath);
                 }
             }
         }
     }
 
     // call pkg-config on dep and populate libs and cflags variables
-    env["PKG_CONFIG_PATH"] = brewPkgconfigPaths;
     std::vector<std::string> cflags, libs;
     for ( auto & dep : deps) {
-        boost::asio::io_context ios;
-        std::future<std::string> listOutputFut;
-        int result = bp::system(pkgConfigToolPath, "--cflags", env,  dep.getName(), bp::std_out > listOutputFut, ios);
-        if (result != 0) {
-            throw std::runtime_error("Error running pkg-config --cflags on '" + dep.getName() + "'");
-        }
-        cflags.push_back(listOutputFut.get());
-        ios.reset();
-        result = bp::system(pkgConfigToolPath, "--libs", env,  dep.getName(), bp::std_out > listOutputFut, ios);
-        if (result != 0) {
-            throw std::runtime_error("Error running pkg-config --libs on '" + dep.getName() + "'");
-        }
-        libs.push_back(listOutputFut.get());
+        cflags.push_back(pkgConfig.cflags(dep.getName()));
+        libs.push_back(pkgConfig.libs(dep.getName()));
     }
 
     // format CFLAGS and LIBS results
     if (generator == GeneratorType::qmake) {
-        return generateQmake(cflags, libs);
+        fs::path filePath = DepUtils::getProjectBuildSubFolder(m_options)/ "brewbuildinfo.pri";
+        return pkgConfig.generateQmake(cflags, libs,"BREW",filePath);
     }
     else {
         throw std::runtime_error("Only qmake generator is supported, other generators' support coming in future releases");

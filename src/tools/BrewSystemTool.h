@@ -41,7 +41,6 @@ public:
 private:
     std::vector<std::string> split(const std::string & str, char splitChar = '\n');
     std::string run(const std::string & command, const std::string & depName, const std::vector<std::string> & options = {});
-    fs::path generateQmake(const std::vector<std::string>&  cflags, const std::vector<std::string>&  libs);
     void bundleLib(const std::string & libPath);
     std::string computeToolRef( const Dependency &  dependency) override;
 };
