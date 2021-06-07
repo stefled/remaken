@@ -1,9 +1,9 @@
 #include "FileHandlerFactory.h"
-#include "CredentialsFileRetriever.h"
-#include "ConanFileRetriever.h"
-#include "FSFileRetriever.h"
-#include "SystemFileRetriever.h"
-#include "HttpFileRetriever.h"
+#include "retrievers/CredentialsFileRetriever.h"
+#include "retrievers/ConanFileRetriever.h"
+#include "retrievers/FSFileRetriever.h"
+#include "retrievers/SystemFileRetriever.h"
+#include "retrievers/HttpFileRetriever.h"
 #include <chrono>
 
 std::atomic<FileHandlerFactory*> FileHandlerFactory::m_instance;

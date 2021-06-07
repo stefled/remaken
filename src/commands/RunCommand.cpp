@@ -1,6 +1,6 @@
 #include "RunCommand.h"
 #include "utils/DepUtils.h"
-#include "XpcfXmlManager.h"
+#include "managers/XpcfXmlManager.h"
 #include "utils/OsUtils.h"
 #include <boost/log/trivial.hpp>
 #include <boost/process.hpp>
