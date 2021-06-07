@@ -126,8 +126,8 @@ fs::path ConanSystemTool::createConanFile(const std::vector<Dependency> & deps)
     std::ofstream fos(conanFilePath.generic_string(utf8),std::ios::out);
     fos<<"[requires]"<<'\n';
     for (auto & dependency : deps) {
-        std::string sourceURL = dependency.getPackageName();
-        sourceURL += "/" + dependency.getVersion();
+        std::string sourceURL = computeConanRef(dependency);
+        std::cout<<"===> Adding '"<<sourceURL<<"' dependency"<<std::endl;
         fos<<sourceURL<<'\n';
     }
     fos<<'\n';
@@ -247,17 +247,24 @@ bool ConanSystemTool::installed(const Dependency & dependency)
     return false;
 }
 
-std::string ConanSystemTool::computeToolRef(const Dependency &  dependency)
+std::string ConanSystemTool::computeConanRef( const Dependency &  dependency, bool cliMode )
 {
     std::string sourceURL = dependency.getPackageName();
     sourceURL += "/" + dependency.getVersion();
-    sourceURL += "@";
+    if (cliMode) {
+        sourceURL += "@";
+    }
     // decorate url for remotes other than conan-center index
     if (dependency.getBaseRepository() != "conan-center") {
         sourceURL +=  dependency.getIdentifier();
         sourceURL += "/" + dependency.getChannel();
     }
     return sourceURL;
+}
+
+std::string ConanSystemTool::computeToolRef(const Dependency &  dependency)
+{
+    return computeConanRef(dependency, true);
 }
 
 std::string ConanSystemTool::computeSourcePath(const Dependency &  dependency)

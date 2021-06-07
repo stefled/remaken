@@ -153,6 +153,8 @@ CmdOptions::CmdOptions()
 
     // CONFIGURE COMMAND
     CLI::App * configureCommand = m_cliApp.add_subcommand("configure", "configure project dependencies");
+    m_recurse = false;
+    configureCommand->add_flag("--recurse", m_recurse, "recursive mode : configure dependencies recursively");
     configureCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files - must be located in project root", true);
 
     // INFO COMMAND

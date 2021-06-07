@@ -92,23 +92,37 @@ fs::path BrewSystemTool::generateQmake(const std::vector<std::string>&  cflags, 
     fs::detail::utf8_codecvt_facet utf8;
     fs::path filePath = DepTools::getProjectBuildSubFolder(m_options)/ "brewbuildinfo.pri";
     std::ofstream fos(filePath.generic_string(utf8),std::ios::out);
-
+    std::string libdirs, libsStr;
     for (auto & cflagInfos : cflags) {
         std::vector<std::string> cflagsVect;
         boost::split(cflagsVect, cflagInfos, [&](char c){return c == ' ';});
         for (auto & cflag: cflagsVect) {
             // remove -I
             cflag.erase(0,2);
-            fos<<"BREW_INCLUDEPATH += "<<cflagInfos<<std::endl;
+            boost::trim(cflag);
+            fos<<"BREW_INCLUDEPATH += \""<<cflag<<"\""<<std::endl;
         }
     }
     for (auto & libInfos : libs) {
-        fos<<"BREW_LIBS += "<<libInfos<<std::endl;
+        std::vector<std::string> optionsVect;
+        boost::split(optionsVect, libInfos, [&](char c){return c == ' ';});
+        for (auto & option: optionsVect) {
+            std::string prefix = option.substr(0,2);
+            if (prefix == "-L") {
+                option.erase(0,2);
+                libdirs += " -L\"" + option + "\"";
+            }
+            //TODO : extract lib paths from libdefs and put quotes around libs path
+            else {
+                libsStr += " " + option;
+            }
+        }
     }
+    fos<<"BREW_LIBS +="<<libsStr<<std::endl;
     fos<<"BREW_SYSTEMLIBS += "<<std::endl;
     fos<<"BREW_FRAMEWORKS += "<<std::endl;
     fos<<"BREW_FRAMEWORKS_PATH += "<<std::endl;
-    fos<<"BREW_LIBDIRS +="<<std::endl;
+    fos<<"BREW_LIBDIRS +="<<libdirs<<std::endl;
     fos<<"BREW_BINDIRS +="<<std::endl;
     fos<<"BREW_DEFINES +="<<std::endl;
     fos<<"BREW_DEFINES +="<<std::endl;
@@ -153,11 +167,15 @@ fs::path BrewSystemTool::invokeGenerator(const std::vector<Dependency> & deps, G
     std::string brewPkgconfigPaths = globalBrewPkgConfigPath.generic_string(utf8);
 
     for ( auto & dep : deps) {
+        std::cout<<"===> Adding '"<<dep.getName()<<":"<<dep.getVersion()<<"' dependency"<<std::endl;
         // retrieve brew sub-dependencies for 'dep'
         std::vector<std::string> depsList = split( run ("deps", dep.getPackageName()) );
+        // add base dependency to check for keg-only
+        depsList.push_back(dep.getPackageName());
         // search for keg-only formulae
         for (auto & subDep : depsList) {
             std::string jsonInfos = run ("info", subDep, {"--json=v1"});
+            //todo : ignore keg-only on linux
             if (jsonInfos.find("\"keg_only\":true") != std::string::npos) { // found keg-only formulae
                 std::vector<std::string> filesList = split( run ("list", subDep) );
                 fs::path localPkgConfigPath;

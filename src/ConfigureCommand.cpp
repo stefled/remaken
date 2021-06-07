@@ -13,7 +13,8 @@
 namespace bp = boost::process;
 
 using namespace std;
-
+// TODO recurse ou non
+// TODO more information while installing
 ConfigureCommand::ConfigureCommand(const CmdOptions & options):AbstractCommand(ConfigureCommand::NAME),m_options(options)
 {
 }
@@ -33,13 +34,14 @@ int ConfigureCommand::execute()
     std::map<Dependency::Type,std::vector<Dependency>> depsVectMap;
 
     std::vector<fs::path> libPaths;
-
+    std::cout<<"--------- Starting dependencies build configuration ---------"<<std::endl;
     if (!m_options.getDependenciesFile().empty()) {
         bool projectFolder = false;
         fs::path depPath = DepTools::buildDependencyPath(m_options.getDependenciesFile());
-        std::map<std::string,bool> conditionsMap = DepTools::parseConditionsFile(depPath.parent_path());
+        fs::path depFolder = depPath.parent_path();
+        std::map<std::string,bool> conditionsMap = DepTools::parseConditionsFile(depFolder);
         if (m_options.projectModeEnabled()) {
-            m_options.setProjectRootPath(depPath.parent_path());
+            m_options.setProjectRootPath(depFolder);
         }
         for (fs::directory_entry& x : fs::directory_iterator(depPath.parent_path())) {
             if (is_regular_file(x.path())) {
@@ -52,6 +54,31 @@ int ConfigureCommand::execute()
             BOOST_LOG_TRIVIAL(error)<<"packagedependencies.txt parent folder is not a project folder : no .pro file found in "<<depPath.parent_path().generic_string(utf8);
             return -1;
         }
+
+        fs::path timestampPath = DepTools::getProjectBuildSubFolder(m_options)/ ".timestamp";
+        std::chrono::duration nsDuration = std::chrono::duration_cast<std::chrono::nanoseconds> (std::chrono::system_clock::now().time_since_epoch());
+        // check timestamp exists
+        if (fs::exists(timestampPath) && !m_options.force()) {
+            std::time_t timestampFileTime = fs::last_write_time(timestampPath);
+            std::time_t pkgDepFileTime = fs::last_write_time(depPath);
+
+            if (timestampFileTime > pkgDepFileTime) {// timestamp wrote after last pkgdep file
+                std::cout<<"=> Build options are already up to date: exiting !"<<std::endl;
+                return 0;
+            }
+        }
+        // timestamp obsolete or absent
+        if (!m_options.force()) {
+            std::cout<<"=> File " << depPath.generic_string(utf8) << " has recent changes: cleaning up and starting a fresh build configuration"<<std::endl;
+        }
+        else {
+            std::cout<<"=> Force generation: cleaning up and starting a fresh build configuration ---------"<<std::endl;
+        }
+
+        fs::remove_all(DepTools::getProjectBuildSubFolder(m_options));
+        fs::create_directories(DepTools::getProjectBuildSubFolder(m_options));
+        fs::detail::utf8_codecvt_facet utf8;
+
         std::vector<Dependency> depsVect;
         DepTools::parseRecurse(depPath, m_options, depsVect);
         std::vector<Dependency> dependencies = DepTools::filterConditionDependencies(conditionsMap, depsVect);
@@ -60,28 +87,32 @@ int ConfigureCommand::execute()
             depsVectMap[dep.getType()].push_back(dep);
         }
         if (mapContains(depsVectMap, Dependency::Type::CONAN)) {
-            BOOST_LOG_TRIVIAL(info)<<"Conan dependencies build information generation in progress ... please wait";
+            std::cout<<std::endl<<"=> Conan dependencies build information generation in progress ... please wait"<<std::endl;
             auto & depVect = depsVectMap[Dependency::Type::CONAN];
             shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(depVect[0], m_options);
             generatedFiles.push_back(fileRetriever->invokeGenerator(depVect));
         }
         if (mapContains(depsVectMap, Dependency::Type::BREW)) {
-            BOOST_LOG_TRIVIAL(info)<<"Brew dependencies build information generation in progress ... please wait";
+            std::cout<<std::endl<<"=> Brew dependencies build information generation in progress ... please wait"<<std::endl;
             auto & depVect = depsVectMap[Dependency::Type::BREW];
             shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(depVect[0], m_options);
             generatedFiles.push_back(fileRetriever->invokeGenerator(depVect));
         }
+        std::cout<<std::endl<<"=> Generating main dependenciesBuildInfo file"<<std::endl;
 
         fs::path buildSubFolderPath = DepTools::getProjectBuildSubFolder(m_options);
-        fs::path conanFilePath = buildSubFolderPath / "dependenciesBuildInfo.pri"; // extension should later depend on generator type
-        ofstream fos(conanFilePath.generic_string(utf8),ios::out);
+        fs::path depsInfoFilePath = buildSubFolderPath / "dependenciesBuildInfo.pri"; // extension should later depend on generator type
+        ofstream depsOstream(depsInfoFilePath.generic_string(utf8),ios::out);
         for (auto & file : generatedFiles) {
-            fos<<"include($$_PRO_FILE_PWD_/build/$$OUTPUTDIR/"<<file.filename().generic_string(utf8)<<")\n";
+            depsOstream<<"include($$_PRO_FILE_PWD_/build/"<<m_options.getConfig()<<"/"<<file.filename().generic_string(utf8)<<")\n";
         }
+        depsOstream.close();
+        std::ofstream fos(timestampPath.generic_string(utf8),std::ios::out);
+        int64_t nanoSeconds = nsDuration.count();
+        fos<<std::to_string(nanoSeconds)<<std::endl;
         fos.close();
+        std::cout<<"====> Configure done successfully !"<<std::endl;
         return 0;
-
     }
-
     return -1;
 }

@@ -60,6 +60,7 @@ public:
 private:
     fs::path createConanFile(const std::vector<Dependency> & deps);
     std::string computeToolRef( const Dependency &  dependency) override;
+    std::string computeConanRef( const Dependency &  dependency, bool cliMode = false);
 };
 
 #endif
