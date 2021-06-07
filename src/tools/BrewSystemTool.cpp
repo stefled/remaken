@@ -1,5 +1,5 @@
 #include "BrewSystemTool.h"
-#include "utils/OsTools.h"
+#include "utils/OsUtils.h"
 
 #include <boost/process.hpp>
 #include <boost/process/async.hpp>
@@ -58,7 +58,7 @@ void BrewSystemTool::bundleLib(const std::string & libPath)
     for (auto & lib : libsPath) {
         fs::detail::utf8_codecvt_facet utf8;
         fs::path libPath (lib, utf8);
-        if ( libPath.extension().generic_string((utf8)) == OsTools::sharedSuffix(m_options.getOS())) {
+        if ( libPath.extension().generic_string((utf8)) == OsUtils::sharedSuffix(m_options.getOS())) {
             std::cout<<lib<<std::endl;
         }
     }
@@ -90,7 +90,7 @@ void BrewSystemTool::install (const Dependency & dependency)
 fs::path BrewSystemTool::generateQmake(const std::vector<std::string>&  cflags, const std::vector<std::string>&  libs)
 {
     fs::detail::utf8_codecvt_facet utf8;
-    fs::path filePath = DepTools::getProjectBuildSubFolder(m_options)/ "brewbuildinfo.pri";
+    fs::path filePath = DepUtils::getProjectBuildSubFolder(m_options)/ "brewbuildinfo.pri";
     std::ofstream fos(filePath.generic_string(utf8),std::ios::out);
     std::string libdirs, libsStr;
     for (auto & cflagInfos : cflags) {

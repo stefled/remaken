@@ -1,4 +1,4 @@
-#include "DepTools.h"
+#include "DepUtils.h"
 #include "Constants.h"
 #include "FileHandlerFactory.h"
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
@@ -22,7 +22,7 @@ bool yesno_prompt(char const* prompt) {
     }
 }
 
-fs::path DepTools::buildDependencyPath(const std::string & filePath)
+fs::path DepUtils::buildDependencyPath(const std::string & filePath)
 {
     fs::detail::utf8_codecvt_facet utf8;
     fs::path currentPath(boost::filesystem::initial_path().generic_string(utf8));
@@ -39,7 +39,7 @@ fs::path DepTools::buildDependencyPath(const std::string & filePath)
     return dependenciesFile;
 }
 
-fs::path DepTools::getProjectBuildSubFolder(const CmdOptions & options)
+fs::path DepUtils::getProjectBuildSubFolder(const CmdOptions & options)
 {
     fs::path targetPath = options.getProjectRootPath() / "build" / options.getConfig();
     return targetPath;
@@ -69,7 +69,7 @@ std::vector<Dependency> removeRedundantDependencies(const std::multimap<std::str
     return depVector;
 }
 
-std::map<std::string,bool>  DepTools::parseConditionsFile(const fs::path &  rootFolderPath)
+std::map<std::string,bool>  DepUtils::parseConditionsFile(const fs::path &  rootFolderPath)
 {
     fs::detail::utf8_codecvt_facet utf8;
     fs::path configureFilePath = rootFolderPath/"configure_conditions.pri";
@@ -101,7 +101,7 @@ std::map<std::string,bool>  DepTools::parseConditionsFile(const fs::path &  root
     return conditionsMap;
 }
 
-std::vector<Dependency> DepTools::filterConditionDependencies(const std::map<std::string,bool> & conditions, const std::vector<Dependency> & depCollection)
+std::vector<Dependency> DepUtils::filterConditionDependencies(const std::map<std::string,bool> & conditions, const std::vector<Dependency> & depCollection)
 {
     std::vector<Dependency> filteredDepCollection;
     for (auto const & dep : depCollection) {
@@ -127,7 +127,7 @@ std::vector<Dependency> DepTools::filterConditionDependencies(const std::map<std
     return filteredDepCollection;
 }
 
-std::vector<Dependency> DepTools::parse(const fs::path &  dependenciesPath, const std::string & linkMode)
+std::vector<Dependency> DepUtils::parse(const fs::path &  dependenciesPath, const std::string & linkMode)
 {
     std::multimap<std::string,Dependency> libraries;
     if (fs::exists(dependenciesPath)) {
@@ -161,7 +161,7 @@ std::vector<Dependency> DepTools::parse(const fs::path &  dependenciesPath, cons
     return removeRedundantDependencies(libraries);
 }
 
-void DepTools::parseRecurse(const fs::path &  dependenciesPath, const CmdOptions & options, std::vector<Dependency> & deps)
+void DepUtils::parseRecurse(const fs::path &  dependenciesPath, const CmdOptions & options, std::vector<Dependency> & deps)
 {
     std::vector<fs::path> dependenciesFileList = getChildrenDependencies(dependenciesPath.parent_path(), options.getOS());
     for (fs::path & depsFile : dependenciesFileList) {
@@ -181,7 +181,7 @@ void DepTools::parseRecurse(const fs::path &  dependenciesPath, const CmdOptions
     }
 }
 
-std::vector<fs::path> DepTools::getChildrenDependencies(const fs::path &  outputDirectory, const std::string & osPlatform, const std::string & filePrefix)
+std::vector<fs::path> DepUtils::getChildrenDependencies(const fs::path &  outputDirectory, const std::string & osPlatform, const std::string & filePrefix)
 {
     auto platformFiles = list<std::string>{filePrefix + ".txt"};
     platformFiles.push_back(filePrefix + "-"+ osPlatform + ".txt");
@@ -211,13 +211,13 @@ void displayInfo(const Dependency& d, uint32_t indentLevel)
     std::cout<<indent(indentLevel)<<"`-- "<<d.getName()<<":"<<d.getVersion()<<"  "<<d.getRepositoryType()<<" ("<<d.getIdentifier()<<")"<<std::endl;
 }
 
-void DepTools::readInfos(const fs::path &  dependenciesFile, const CmdOptions & options, uint32_t indentLevel)
+void DepUtils::readInfos(const fs::path &  dependenciesFile, const CmdOptions & options, uint32_t indentLevel)
 {
     indentLevel ++;
-    std::vector<fs::path> dependenciesFileList = DepTools::getChildrenDependencies(dependenciesFile.parent_path(), options.getOS());
+    std::vector<fs::path> dependenciesFileList = DepUtils::getChildrenDependencies(dependenciesFile.parent_path(), options.getOS());
     for (fs::path depsFile : dependenciesFileList) {
         if (fs::exists(depsFile)) {
-            std::vector<Dependency> dependencies = DepTools::parse(depsFile, options.getMode());
+            std::vector<Dependency> dependencies = DepUtils::parse(depsFile, options.getMode());
             for (auto dep : dependencies) {
                 if (!dep.validate()) {
                     throw std::runtime_error("Error parsing dependency file : invalid format ");

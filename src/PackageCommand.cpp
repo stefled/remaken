@@ -1,7 +1,7 @@
 #include "PackageCommand.h"
 #include "DependencyManager.h"
 #include "tools/ZipTool.h"
-#include "utils/OsTools.h"
+#include "utils/OsUtils.h"
 
 PackageCommand::PackageCommand(const CmdOptions & options):AbstractCommand(PackageCommand::NAME),m_options(options)
 {
@@ -88,8 +88,8 @@ int PackageCommand::compress()
                                                     fs::create_directories(tmpFolder/Constants::PKGINFO_FOLDER);
                                                     try {
                                                         fs::copy(pkgVersionFolder.path()/"interfaces", tmpFolder/"interfaces", fs::copy_options::recursive);
-                                                        //OsTools::copyLibraries(configFolder.path(),tmpFolder/,OsTools::sharedSuffix(m_options.getOS()));
-                                                        //OsTools::copyLibraries(configFolder.path(),tmpFolder/,OsTools::staticSuffix(m_options.getOS()));
+                                                        //OsUtils::copyLibraries(configFolder.path(),tmpFolder/,OsUtils::sharedSuffix(m_options.getOS()));
+                                                        //OsUtils::copyLibraries(configFolder.path(),tmpFolder/,OsUtils::staticSuffix(m_options.getOS()));
                                                     }
                                                     catch (std::exception& e) { // Not using fs::filesystem_error since std::bad_alloc can throw too.
                                                         // Handle exception or use error code overload of fs::copy.

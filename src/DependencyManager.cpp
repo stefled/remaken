@@ -8,8 +8,8 @@
 //#include <zipper/unzipper.h>
 #include <future>
 #include "tools/SystemTools.h"
-#include "utils/DepTools.h"
-#include "utils/OsTools.h"
+#include "utils/DepUtils.h"
+#include "utils/OsUtils.h"
 #include <boost/log/trivial.hpp>
 #include "utils/PathBuilder.h"
 #include <regex>
@@ -24,7 +24,7 @@ DependencyManager::DependencyManager(const CmdOptions & options):m_options(optio
 
 fs::path DependencyManager::buildDependencyPath()
 {
-    return DepTools::buildDependencyPath(m_options.getDependenciesFile());
+    return DepUtils::buildDependencyPath(m_options.getDependenciesFile());
 }
 
 int DependencyManager::retrieve()
@@ -57,7 +57,7 @@ int DependencyManager::parse()
     bool bValid = true;
     bool bNeedElevation = false;
     fs::path depPath = buildDependencyPath();
-    std::vector<Dependency> dependencies = DepTools::parse(depPath, m_options.getMode());
+    std::vector<Dependency> dependencies = DepUtils::parse(depPath, m_options.getMode());
     for (auto dep : dependencies) {
         if (!dep.validate()) {
             bValid = false;
@@ -99,7 +99,7 @@ int DependencyManager::clean()
 
 void DependencyManager::readInfos(const fs::path &  dependenciesFile)
 {
-    DepTools::readInfos(dependenciesFile, m_options);
+    DepUtils::readInfos(dependenciesFile, m_options);
 }
 
 
@@ -251,18 +251,18 @@ void DependencyManager::generateConfigureFile(const fs::path &  rootFolderPath, 
 
 void DependencyManager::retrieveDependencies(const fs::path &  dependenciesFile)
 {
-    std::vector<fs::path> dependenciesFileList = DepTools::getChildrenDependencies(dependenciesFile.parent_path(), m_options.getOS());
-    std::map<std::string,bool> conditionsMap = DepTools::parseConditionsFile(dependenciesFile.parent_path());
+    std::vector<fs::path> dependenciesFileList = DepUtils::getChildrenDependencies(dependenciesFile.parent_path(), m_options.getOS());
+    std::map<std::string,bool> conditionsMap = DepUtils::parseConditionsFile(dependenciesFile.parent_path());
     std::vector<Dependency> conditionsDependencies;
     for (fs::path depsFile : dependenciesFileList) {
         if (fs::exists(depsFile)) {
-            std::vector<Dependency> dependencies = DepTools::filterConditionDependencies(conditionsMap, DepTools::parse(depsFile, m_options.getMode()) );
+            std::vector<Dependency> dependencies = DepUtils::filterConditionDependencies(conditionsMap, DepUtils::parse(depsFile, m_options.getMode()) );
             for (auto dep : dependencies) {
                 if (!dep.validate()) {
                     throw std::runtime_error("Error parsing dependency file : invalid format ");
                 }
 #ifdef BOOST_OS_WINDOWS_AVAILABLE
-                if (dep.needsPriviledgeElevation() && !OsTools::isElevated()) {
+                if (dep.needsPriviledgeElevation() && !OsUtils::isElevated()) {
                     throw std::runtime_error("Remaken needs elevated privileges to install system Windows " + SystemTools::getToolIdentifier() + " dependencies");
                 }
 #endif

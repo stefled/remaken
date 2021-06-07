@@ -1,5 +1,5 @@
 #include "AbstractFileRetriever.h"
-#include "utils/OsTools.h"
+#include "utils/OsUtils.h"
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -7,13 +7,13 @@
 
 AbstractFileRetriever::AbstractFileRetriever(const CmdOptions & options):m_options(options)
 {
-    m_workingDirectory = OsTools::acquireTempFolderPath();
+    m_workingDirectory = OsUtils::acquireTempFolderPath();
     m_zipTool = ZipTool::createZipTool(m_options);
 }
 
 AbstractFileRetriever::~AbstractFileRetriever()
 {
-    OsTools::releaseTempFolderPath(m_workingDirectory);
+    OsUtils::releaseTempFolderPath(m_workingDirectory);
 }
 
 std::string AbstractFileRetriever::computeSourcePath( const Dependency &  dependency)
@@ -76,7 +76,7 @@ fs::path AbstractFileRetriever::installArtefactImpl(const Dependency & dependenc
     fs::detail::utf8_codecvt_facet utf8;
     fs::path compressedDependency = retrieveArtefact(dependency);
     //zipper::Unzipper unzipper(compressedDependency.generic_string(utf8));
-    fs::path outputDirectory = OsTools::computeRemakenRootPackageDir(m_options);
+    fs::path outputDirectory = OsUtils::computeRemakenRootPackageDir(m_options);
     if (dependency.hasIdentifier()) {
         outputDirectory /= dependency.getIdentifier();
     }
@@ -99,7 +99,7 @@ fs::path AbstractFileRetriever::installArtefactImpl(const Dependency & dependenc
 
 void AbstractFileRetriever::copySharedLibraries(const fs::path & sourceRootFolder)
 {
-    OsTools::copySharedLibraries(sourceRootFolder, m_options);
+    OsUtils::copySharedLibraries(sourceRootFolder, m_options);
 }
 
 fs::path AbstractFileRetriever::bundleArtefact(const Dependency & dependency)
@@ -135,7 +135,7 @@ std::vector<fs::path> AbstractFileRetriever::libPaths(const Dependency & depende
 fs::path AbstractFileRetriever::computeLocalDependencyRootDir( const Dependency &  dependency) // not the root output dir
 {
     fs::detail::utf8_codecvt_facet utf8;
-    fs::path depFullPath = OsTools::computeRemakenRootPackageDir(m_options);
+    fs::path depFullPath = OsUtils::computeRemakenRootPackageDir(m_options);
     fs::path depSubPath(dependency.getPackageName() , utf8);
     depSubPath /= dependency.getVersion();
     if (dependency.hasIdentifier()) {

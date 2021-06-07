@@ -1,7 +1,7 @@
 #include "RunCommand.h"
-#include "utils/DepTools.h"
+#include "utils/DepUtils.h"
 #include "XpcfXmlManager.h"
-#include "utils/OsTools.h"
+#include "utils/OsUtils.h"
 #include <boost/log/trivial.hpp>
 #include <boost/process.hpp>
 #include "FileHandlerFactory.h"
@@ -31,7 +31,7 @@ int RunCommand::execute()
     if (!m_options.getXpcfXmlFile().empty()) {
         XpcfXmlManager xpcfManager(m_options);
         try {
-            fs::path xpcfConfigFilePath = DepTools::buildDependencyPath(m_options.getXpcfXmlFile());
+            fs::path xpcfConfigFilePath = DepUtils::buildDependencyPath(m_options.getXpcfXmlFile());
             if ( xpcfConfigFilePath.extension() != ".xml") {
                 return -1;
             }
@@ -45,7 +45,7 @@ int RunCommand::execute()
                 // The following line should not be needed mandatory as xpcf loads dynamically the modules
                 // libPaths.push_back(modulePath);
                 if (fs::exists(packageRootPath/"packagedependencies.txt")) {
-                    DepTools::parseRecurse(packageRootPath/"packagedependencies.txt",m_options,deps);
+                    DepUtils::parseRecurse(packageRootPath/"packagedependencies.txt",m_options,deps);
                 }
                 else {
                     BOOST_LOG_TRIVIAL(warning)<<"Unable to find packagedependencies.txt file in package path"<<packageRootPath<<" for module "<<name;
@@ -59,7 +59,7 @@ int RunCommand::execute()
     }
 
     if (!m_options.getDependenciesFile().empty()) {
-        DepTools::parseRecurse(m_options.getDependenciesFile(), m_options, deps);
+        DepUtils::parseRecurse(m_options.getDependenciesFile(), m_options, deps);
     }
     // std::cout<<"Exhaustive deps list:"<<std::endl;
     std::map<std::string,Dependency> depsMap;
@@ -73,7 +73,7 @@ int RunCommand::execute()
         libPaths.insert(libPaths.end(),paths.begin(), paths.end());
     }
 
-    std::string SharedLibraryPathEnvName(OsTools::sharedLibraryPathEnvName(m_options.getOS()));
+    std::string SharedLibraryPathEnvName(OsUtils::sharedLibraryPathEnvName(m_options.getOS()));
 
     if (m_options.environmentOnly()) {
         // display results

@@ -8,8 +8,8 @@
 //#include <zipper/unzipper.h>
 #include <future>
 #include "tools/SystemTools.h"
-#include "utils/DepTools.h"
-#include "utils/OsTools.h"
+#include "utils/DepUtils.h"
+#include "utils/OsUtils.h"
 #include <boost/log/trivial.hpp>
 #include <regex>
 
@@ -23,14 +23,14 @@ BundleManager::BundleManager(const CmdOptions & options):m_xpcfManager(options),
 
 fs::path BundleManager::buildDependencyPath()
 {
-    fs::path dependenciesFile = DepTools::buildDependencyPath(m_options.getDependenciesFile());
+    fs::path dependenciesFile = DepUtils::buildDependencyPath(m_options.getDependenciesFile());
     parseIgnoreInstall(dependenciesFile);
     return dependenciesFile;
 }
 
 void BundleManager::parseIgnoreInstall(const fs::path &  filepath)
 {
-    std::vector<fs::path> ignoreFileList = DepTools::getChildrenDependencies(filepath.parent_path(), m_options.getOS(), "packageignoreinstall");
+    std::vector<fs::path> ignoreFileList = DepUtils::getChildrenDependencies(filepath.parent_path(), m_options.getOS(), "packageignoreinstall");
     for (fs::path & ignoreFile : ignoreFileList) {
         if (fs::exists(ignoreFile)) {
             ifstream fis(ignoreFile.generic_string(),ios::in);
@@ -91,11 +91,11 @@ int BundleManager::bundleXpcf()
         const std::map<std::string, fs::path> & modulesPathMap = m_xpcfManager.parseXpcfModulesConfiguration(xpcfConfigFilePath);
         m_xpcfManager.updateXpcfModulesPath(m_options.getDestinationRoot()/xpcfConfigFilePath.filename());
         for (auto & [name,modulePath] : modulesPathMap) {
-            OsTools::copySharedLibraries(modulePath,m_options);
+            OsUtils::copySharedLibraries(modulePath,m_options);
         }
 
         for (auto & [name,modulePath] : modulesPathMap) {
-            OsTools::copySharedLibraries(modulePath,m_options);
+            OsUtils::copySharedLibraries(modulePath,m_options);
             fs::path packageRootPath = XpcfXmlManager::findPackageRoot(modulePath);
             if (!fs::exists(packageRootPath)) {
                 BOOST_LOG_TRIVIAL(warning)<<"Unable to find root package path "<<packageRootPath<<" for module "<<name;
@@ -132,10 +132,10 @@ void BundleManager::bundleDependency(const Dependency & dependency)
 
 void BundleManager::bundleDependencies(const fs::path &  dependenciesFile)
 {
-    std::vector<fs::path> dependenciesFileList = DepTools::getChildrenDependencies(dependenciesFile.parent_path(), m_options.getOS());
+    std::vector<fs::path> dependenciesFileList = DepUtils::getChildrenDependencies(dependenciesFile.parent_path(), m_options.getOS());
     for (fs::path const & depsFile : dependenciesFileList) {
         if (fs::exists(depsFile)) {
-            std::vector<Dependency> dependencies = DepTools::parse(depsFile, m_options.getMode());
+            std::vector<Dependency> dependencies = DepUtils::parse(depsFile, m_options.getMode());
             for (Dependency const & dependency : dependencies) {
                 if (!dependency.validate()) {
                     throw std::runtime_error("Error parsing dependency file : invalid format ");

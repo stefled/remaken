@@ -1,5 +1,5 @@
 #include "VCPKGSystemTool.h"
-#include "utils/OsTools.h"
+#include "utils/OsUtils.h"
 
 #include <boost/process.hpp>
 #include <boost/predef.h>
@@ -36,7 +36,7 @@ void VCPKGSystemTool::bundle (const Dependency & dependency)
 {
     std::vector<fs::path> libs = libPaths(dependency);
     for (auto & libPath : libs) {
-        OsTools::copySharedLibraries(libPath,m_options);
+        OsUtils::copySharedLibraries(libPath,m_options);
     }
     // missing sub deps : depend-info must be filtered to use only the package: entry
 
@@ -66,7 +66,7 @@ void VCPKGSystemTool::bundleLib(const std::string & libPath)
     boost::split(libsPath, libsString, [](char c){return c == '\n';});
     for (auto & lib : libsPath) {
         fs::path libPath (lib, utf8);
-        if ( libPath.extension().generic_string(utf8) == OsTools::sharedSuffix(m_options.getOS())) {
+        if ( libPath.extension().generic_string(utf8) == OsUtils::sharedSuffix(m_options.getOS())) {
             std::cout<<lib<<std::endl;
         }
     }

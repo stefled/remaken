@@ -1,7 +1,7 @@
 #include "ConfigureCommand.h"
-#include "utils/DepTools.h"
+#include "utils/DepUtils.h"
 #include "XpcfXmlManager.h"
-#include "utils/OsTools.h"
+#include "utils/OsUtils.h"
 #include <boost/log/trivial.hpp>
 #include <boost/process.hpp>
 #include "FileHandlerFactory.h"
@@ -37,9 +37,9 @@ int ConfigureCommand::execute()
     std::cout<<"--------- Starting dependencies build configuration ---------"<<std::endl;
     if (!m_options.getDependenciesFile().empty()) {
         bool projectFolder = false;
-        fs::path depPath = DepTools::buildDependencyPath(m_options.getDependenciesFile());
+        fs::path depPath = DepUtils::buildDependencyPath(m_options.getDependenciesFile());
         fs::path depFolder = depPath.parent_path();
-        std::map<std::string,bool> conditionsMap = DepTools::parseConditionsFile(depFolder);
+        std::map<std::string,bool> conditionsMap = DepUtils::parseConditionsFile(depFolder);
         if (m_options.projectModeEnabled()) {
             m_options.setProjectRootPath(depFolder);
         }
@@ -55,7 +55,7 @@ int ConfigureCommand::execute()
             return -1;
         }
 
-        fs::path timestampPath = DepTools::getProjectBuildSubFolder(m_options)/ ".timestamp";
+        fs::path timestampPath = DepUtils::getProjectBuildSubFolder(m_options)/ ".timestamp";
         std::chrono::duration nsDuration = std::chrono::duration_cast<std::chrono::nanoseconds> (std::chrono::system_clock::now().time_since_epoch());
         // check timestamp exists
         if (fs::exists(timestampPath) && !m_options.force()) {
@@ -75,34 +75,41 @@ int ConfigureCommand::execute()
             std::cout<<"=> Force generation: cleaning up and starting a fresh build configuration ---------"<<std::endl;
         }
 
-        fs::remove_all(DepTools::getProjectBuildSubFolder(m_options));
-        fs::create_directories(DepTools::getProjectBuildSubFolder(m_options));
+        fs::remove_all(DepUtils::getProjectBuildSubFolder(m_options));
+        fs::create_directories(DepUtils::getProjectBuildSubFolder(m_options));
         fs::detail::utf8_codecvt_facet utf8;
 
         std::vector<Dependency> depsVect;
-        DepTools::parseRecurse(depPath, m_options, depsVect);
-        std::vector<Dependency> dependencies = DepTools::filterConditionDependencies(conditionsMap, depsVect);
-        std::vector<fs::path> generatedFiles;
+        DepUtils::parseRecurse(depPath, m_options, depsVect);
+        std::vector<Dependency> dependencies = DepUtils::filterConditionDependencies(conditionsMap, depsVect);
+
         for (auto & dep : dependencies) {
             depsVectMap[dep.getType()].push_back(dep);
         }
+        std::vector<fs::path> generatedFiles;
+        std::vector<std::string> setups;
         if (mapContains(depsVectMap, Dependency::Type::CONAN)) {
             std::cout<<std::endl<<"=> Conan dependencies build information generation in progress ... please wait"<<std::endl;
             auto & depVect = depsVectMap[Dependency::Type::CONAN];
             shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(depVect[0], m_options);
             generatedFiles.push_back(fileRetriever->invokeGenerator(depVect));
+            setups.push_back("conan_basic_setup");
         }
         if (mapContains(depsVectMap, Dependency::Type::BREW)) {
             std::cout<<std::endl<<"=> Brew dependencies build information generation in progress ... please wait"<<std::endl;
             auto & depVect = depsVectMap[Dependency::Type::BREW];
             shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(depVect[0], m_options);
             generatedFiles.push_back(fileRetriever->invokeGenerator(depVect));
+            setups.push_back("brew_basic_setup");
         }
         std::cout<<std::endl<<"=> Generating main dependenciesBuildInfo file"<<std::endl;
 
-        fs::path buildSubFolderPath = DepTools::getProjectBuildSubFolder(m_options);
+        fs::path buildSubFolderPath = DepUtils::getProjectBuildSubFolder(m_options);
         fs::path depsInfoFilePath = buildSubFolderPath / "dependenciesBuildInfo.pri"; // extension should later depend on generator type
         ofstream depsOstream(depsInfoFilePath.generic_string(utf8),ios::out);
+        for (auto & config : setups) {
+            depsOstream<<"CONFIG += "<<config<<std::endl;
+        }
         for (auto & file : generatedFiles) {
             depsOstream<<"include($$_PRO_FILE_PWD_/build/"<<m_options.getConfig()<<"/"<<file.filename().generic_string(utf8)<<")\n";
         }

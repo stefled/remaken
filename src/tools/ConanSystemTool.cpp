@@ -1,5 +1,5 @@
 #include "ConanSystemTool.h"
-#include "utils/OsTools.h"
+#include "utils/OsUtils.h"
 
 #include <boost/process.hpp>
 #include <boost/predef.h>
@@ -51,7 +51,7 @@ void ConanSystemTool::bundle(const Dependency & dependency)
 
     for (auto libPath : libPaths) {
         if (boost::filesystem::exists(libPath)) {
-            OsTools::copySharedLibraries(libPath, m_options);
+            OsUtils::copySharedLibraries(libPath, m_options);
         }
     }
 }
@@ -122,7 +122,7 @@ std::vector<std::string> ConanSystemTool::buildOptions(const Dependency & dep)
 fs::path ConanSystemTool::createConanFile(const std::vector<Dependency> & deps)
 {
     fs::detail::utf8_codecvt_facet utf8;
-    fs::path conanFilePath = DepTools::getProjectBuildSubFolder(m_options)/ "conanfile.txt";
+    fs::path conanFilePath = DepUtils::getProjectBuildSubFolder(m_options)/ "conanfile.txt";
     std::ofstream fos(conanFilePath.generic_string(utf8),std::ios::out);
     fos<<"[requires]"<<'\n';
     for (auto & dependency : deps) {
@@ -147,7 +147,7 @@ fs::path ConanSystemTool::createConanFile(const std::vector<Dependency> & deps)
 fs::path ConanSystemTool::invokeGenerator(const std::vector<Dependency> & deps, GeneratorType generator)
 {
     fs::detail::utf8_codecvt_facet utf8;
-    fs::path destination = DepTools::getProjectBuildSubFolder(m_options);
+    fs::path destination = DepUtils::getProjectBuildSubFolder(m_options);
     fs::path conanFilePath = createConanFile(deps);
     std::string buildType = "build_type=Debug";
 
@@ -277,17 +277,17 @@ std::string ConanSystemTool::computeSourcePath(const Dependency &  dependency)
 
 std::vector<fs::path> ConanSystemTool::binPaths(const Dependency & dependency)
 {
-    fs::path workingDirectory = OsTools::acquireTempFolderPath();
+    fs::path workingDirectory = OsUtils::acquireTempFolderPath();
     std::vector<fs::path> binPaths = retrievePaths(dependency, BaseSystemTool::PathType::BIN_PATHS, workingDirectory);
-    OsTools::releaseTempFolderPath(workingDirectory);
+    OsUtils::releaseTempFolderPath(workingDirectory);
     return binPaths;
 }
 
 std::vector<fs::path> ConanSystemTool::libPaths(const Dependency & dependency)
 {
-    fs::path workingDirectory = OsTools::acquireTempFolderPath();
+    fs::path workingDirectory = OsUtils::acquireTempFolderPath();
     std::vector<fs::path> libPaths = retrievePaths(dependency, BaseSystemTool::PathType::LIB_PATHS, workingDirectory);
-    OsTools::releaseTempFolderPath(workingDirectory);
+    OsUtils::releaseTempFolderPath(workingDirectory);
     return libPaths;
 }
 

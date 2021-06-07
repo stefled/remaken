@@ -1,4 +1,4 @@
-#include "OsTools.h"
+#include "OsUtils.h"
 #include "Constants.h"
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -7,7 +7,7 @@
 #include <wbemidl.h>
 #endif
 
-bool OsTools::isElevated()
+bool OsUtils::isElevated()
 {
 #ifdef BOOST_OS_ANDROID_AVAILABLE
     return true;
@@ -72,7 +72,7 @@ static const std::map<const std::string_view,const  std::string_view> os2sharedP
     {"linux","LD_LIBRARY_PATH"}
 };
 
-const std::string_view & OsTools::sharedSuffix(const std::string_view & osStr)
+const std::string_view & OsUtils::sharedSuffix(const std::string_view & osStr)
 {
     if (os2sharedSuffix.find(osStr) == os2sharedSuffix.end()) {
         return os2sharedSuffix.at("unix");
@@ -80,7 +80,7 @@ const std::string_view & OsTools::sharedSuffix(const std::string_view & osStr)
     return os2sharedSuffix.at(osStr);
 }
 
-const std::string_view & OsTools::sharedLibraryPathEnvName(const std::string_view & osStr)
+const std::string_view & OsUtils::sharedLibraryPathEnvName(const std::string_view & osStr)
 {
     if (os2sharedPathEnv.find(osStr) == os2sharedPathEnv.end()) {
         return os2sharedSuffix.at("unix");
@@ -90,7 +90,7 @@ const std::string_view & OsTools::sharedLibraryPathEnvName(const std::string_vie
 
 
 
-const std::string_view & OsTools::staticSuffix(const std::string_view & osStr)
+const std::string_view & OsUtils::staticSuffix(const std::string_view & osStr)
 {
     if (os2staticSuffix.find(osStr) == os2staticSuffix.end()) {
         return os2staticSuffix.at("unix");
@@ -99,7 +99,7 @@ const std::string_view & OsTools::staticSuffix(const std::string_view & osStr)
 }
 
 
-void OsTools::copyLibraries(const fs::path & sourceRootFolder, const fs::path & destinationFolderPath, const std::string_view & suffix)
+void OsUtils::copyLibraries(const fs::path & sourceRootFolder, const fs::path & destinationFolderPath, const std::string_view & suffix)
 {
     fs::detail::utf8_codecvt_facet utf8;
     for (fs::directory_entry& x : fs::directory_iterator(sourceRootFolder)) {
@@ -126,7 +126,7 @@ void OsTools::copyLibraries(const fs::path & sourceRootFolder, const fs::path & 
 }
 
 
-void OsTools::copyLibraries(const fs::path & sourceRootFolder, const CmdOptions & options, std::function<const std::string_view &(const std::string_view &)> suffixFunction)
+void OsUtils::copyLibraries(const fs::path & sourceRootFolder, const CmdOptions & options, std::function<const std::string_view &(const std::string_view &)> suffixFunction)
 {
     fs::path destinationFolderPath = options.getDestinationRoot();
     if (options.isXpcfBundle()) {
@@ -136,18 +136,18 @@ void OsTools::copyLibraries(const fs::path & sourceRootFolder, const CmdOptions 
 }
 
 
-void OsTools::copySharedLibraries(const fs::path & sourceRootFolder, const CmdOptions & options)
+void OsUtils::copySharedLibraries(const fs::path & sourceRootFolder, const CmdOptions & options)
 {
     copyLibraries(sourceRootFolder, options, &sharedSuffix);
 }
 
 
-void OsTools::copyStaticLibraries(const fs::path & sourceRootFolder, const CmdOptions & options)
+void OsUtils::copyStaticLibraries(const fs::path & sourceRootFolder, const CmdOptions & options)
 {
     copyLibraries(sourceRootFolder, options, &staticSuffix);
 }
 
-fs::path OsTools::computeRemakenRootPackageDir(const CmdOptions & options)
+fs::path OsUtils::computeRemakenRootPackageDir(const CmdOptions & options)
 {
     fs::detail::utf8_codecvt_facet utf8;
     fs::path osSubFolder(options.getOS() + "-" + options.getBuildToolchain() , utf8);
@@ -156,7 +156,7 @@ fs::path OsTools::computeRemakenRootPackageDir(const CmdOptions & options)
 }
 
 
-fs::path OsTools::acquireTempFolderPath()
+fs::path OsUtils::acquireTempFolderPath()
 {
     fs::detail::utf8_codecvt_facet utf8;
     boost::uuids::uuid uuid = boost::uuids::random_generator()();
@@ -172,7 +172,7 @@ fs::path OsTools::acquireTempFolderPath()
     return tmpDir;
 }
 
-void OsTools::releaseTempFolderPath(const fs::path & tmpDir)
+void OsUtils::releaseTempFolderPath(const fs::path & tmpDir)
 {
     fs::detail::utf8_codecvt_facet utf8;
     try {

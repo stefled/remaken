@@ -8,7 +8,7 @@
 #include <boost/process.hpp>
 #include <boost/predef.h>
 #include <boost/dll.hpp>
-#include "utils/DepTools.h"
+#include "utils/DepUtils.h"
 #include "utils/PathBuilder.h"
 namespace bp = boost::process;
 using namespace std;
@@ -326,7 +326,7 @@ CmdOptions::OptionResult CmdOptions::parseArguments(int argc, char** argv)
             }
         }
         if (sub->get_name() == "configure") {
-            fs::path depPath = DepTools::buildDependencyPath(m_dependenciesFile);
+            fs::path depPath = DepUtils::buildDependencyPath(m_dependenciesFile);
             for (fs::directory_entry& x : fs::directory_iterator(depPath.parent_path())) {
                 if (is_regular_file(x.path())) {// searched project extension/file will depend on generator asked
                     if (x.path().extension() == ".pro") {
@@ -412,7 +412,7 @@ void CmdOptions::printUsage()
 bool CmdOptions::projectModeEnabled() const
 {
     /*if (!m_projectMode) {
-        fs::path depPath = DepTools::buildDependencyPath(m_dependenciesFile);
+        fs::path depPath = DepUtils::buildDependencyPath(m_dependenciesFile);
         for (fs::directory_entry& x : fs::directory_iterator(depPath.parent_path())) {
             if (is_regular_file(x.path())) {
                 if (x.path().extension() == ".pro") {

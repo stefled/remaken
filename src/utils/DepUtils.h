@@ -20,8 +20,8 @@
  * @date 2019-11-15
  */
 
-#ifndef DEPTOOLS_H
-#define DEPTOOLS_H
+#ifndef DEPUTILS_H
+#define DEPUTILS_H
 
 #include <string>
 #include <vector>
@@ -34,11 +34,11 @@
 
 namespace fs = boost::filesystem;
 
-class DepTools
+class DepUtils
 {
 public:
-    DepTools() = delete;
-    ~DepTools() = delete;
+    DepUtils() = delete;
+    ~DepUtils() = delete;
     static fs::path buildDependencyPath(const std::string & filePath);
     static fs::path getProjectBuildSubFolder(const CmdOptions & options);
     static std::vector<fs::path> getChildrenDependencies(const fs::path & outputDirectory, const std::string & osPlatform, const std::string & filePrefix = "packagedependencies");
@@ -52,4 +52,4 @@ public:
 
 bool yesno_prompt(char const* prompt);
 
-#endif // DEPTOOLS_H
+#endif // DEPUTILS_H

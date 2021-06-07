@@ -3,7 +3,7 @@
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 #include "utils/PathBuilder.h"
 #include "HttpFileRetriever.h"
-#include "utils/OsTools.h"
+#include "utils/OsUtils.h"
 #include "tools/GitTool.h"
 #include <boost/log/trivial.hpp>
 #include <boost/process.hpp>

@@ -3,8 +3,8 @@
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 #include "utils/PathBuilder.h"
 #include "HttpFileRetriever.h"
-#include "utils/DepTools.h"
-#include "utils/OsTools.h"
+#include "utils/DepUtils.h"
+#include "utils/OsUtils.h"
 #include "tools/GitTool.h"
 #include <boost/log/trivial.hpp>
 #include <boost/process.hpp>
@@ -19,7 +19,7 @@ ListCommand::ListCommand(const CmdOptions & options):AbstractCommand(ListCommand
 int ListCommand::listPackages()
 {
     fs::detail::utf8_codecvt_facet utf8;
-    fs::path remakenRootPackagesPath = OsTools::computeRemakenRootPackageDir(m_options);
+    fs::path remakenRootPackagesPath = OsUtils::computeRemakenRootPackageDir(m_options);
     if (!fs::exists(remakenRootPackagesPath)) {
         return -1;
     }
@@ -35,7 +35,7 @@ int ListCommand::listPackages()
             if (std::regex_search(leafFolderStr, sm, versionRegex, std::regex_constants::match_any)) {
                 std::cout<< parentFolderStr<<":"<<leafFolderStr<<std::endl;
                 if (m_options.treeEnabled()) {
-                    DepTools::readInfos(x.path()/"packagedependencies.txt", m_options);
+                    DepUtils::readInfos(x.path()/"packagedependencies.txt", m_options);
                     std::cout<<std::endl;
                 }
             }
@@ -48,7 +48,7 @@ int ListCommand::listPackages()
 int ListCommand::listPackageVersions(const std::string & pkgName)
 {
     fs::detail::utf8_codecvt_facet utf8;
-    fs::path remakenRootPackagesPath = OsTools::computeRemakenRootPackageDir(m_options);
+    fs::path remakenRootPackagesPath = OsUtils::computeRemakenRootPackageDir(m_options);
     if (!fs::exists(remakenRootPackagesPath)) {
         return -1;
     }
@@ -75,7 +75,7 @@ int ListCommand::listPackageVersions(const std::string & pkgName)
                 if (pkgCondition) {
                     std::cout<< parentFolderStr <<":"<<leafFolder.generic_string(utf8)<<std::endl;
                     if (m_options.treeEnabled()) {
-                        DepTools::readInfos(x.path()/"packagedependencies.txt", m_options);
+                        DepUtils::readInfos(x.path()/"packagedependencies.txt", m_options);
                         std::cout<<std::endl;
                     }
                 }
@@ -88,7 +88,7 @@ int ListCommand::listPackageVersions(const std::string & pkgName)
 int ListCommand::listPackageFiles(const std::string & pkgName, const std::string & pkgVersion)
 {
     fs::detail::utf8_codecvt_facet utf8;
-    fs::path remakenRootPackagesPath = OsTools::computeRemakenRootPackageDir(m_options);
+    fs::path remakenRootPackagesPath = OsUtils::computeRemakenRootPackageDir(m_options);
     if (!fs::exists(remakenRootPackagesPath)) {
         return -1;
     }
@@ -99,7 +99,7 @@ int ListCommand::listPackageFiles(const std::string & pkgName, const std::string
             std::string parentFolderStr = x.path().parent_path().filename().generic_string(utf8);
             if (parentFolderStr == pkgName && leafFolderStr == pkgVersion) {
                 if (m_options.treeEnabled()) {
-                    DepTools::readInfos(x.path()/"packagedependencies.txt", m_options);
+                    DepUtils::readInfos(x.path()/"packagedependencies.txt", m_options);
                 }
                 std::cout<<std::endl;
                 for (fs::directory_entry& pathElt : fs::recursive_directory_iterator(x.path())) {

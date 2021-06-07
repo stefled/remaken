@@ -20,8 +20,8 @@
  * @date 2019-11-15
  */
 
-#ifndef OSTOOLS_H
-#define OSTOOLS_H
+#ifndef OSUTILS_H
+#define OSUTILS_H
 
 #include "CmdOptions.h"
 
@@ -29,11 +29,11 @@
 
 namespace fs = boost::filesystem;
 
-class OsTools
+class OsUtils
 {
 public:
-    OsTools() = delete;
-    ~OsTools() = delete;
+    OsUtils() = delete;
+    ~OsUtils() = delete;
     static bool isElevated();
     static void copySharedLibraries(const fs::path & sourceRootFolder, const CmdOptions & options);
     static void copyStaticLibraries(const fs::path & sourceRootFolder, const CmdOptions & options);
@@ -49,4 +49,4 @@ public:
     static void releaseTempFolderPath(const fs::path & tmpDir);
 };
 
-#endif // OSTOOLS_H
+#endif // OSUTILS_H
