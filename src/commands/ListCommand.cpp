@@ -1,8 +1,8 @@
 #include "ListCommand.h"
-#include "DependencyManager.h"
+#include "managers/DependencyManager.h"
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 #include "utils/PathBuilder.h"
-#include "HttpFileRetriever.h"
+#include "retrievers/HttpFileRetriever.h"
 #include "utils/DepUtils.h"
 #include "utils/OsUtils.h"
 #include "tools/GitTool.h"

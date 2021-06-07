@@ -1,5 +1,5 @@
 #include "PackageCommand.h"
-#include "DependencyManager.h"
+#include "managers/DependencyManager.h"
 #include "tools/ZipTool.h"
 #include "utils/OsUtils.h"
 

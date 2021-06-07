@@ -1,8 +1,8 @@
 #include "InitCommand.h"
-#include "DependencyManager.h"
+#include "managers/DependencyManager.h"
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 #include "utils/PathBuilder.h"
-#include "HttpFileRetriever.h"
+#include "retrievers/HttpFileRetriever.h"
 #include "utils/OsUtils.h"
 #include "tools/GitTool.h"
 #include <boost/log/trivial.hpp>
