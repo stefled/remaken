@@ -27,11 +27,12 @@ void PkgConfigTool::addPath(const fs::path & pkgConfigPath)
 
 std::string PkgConfigTool::libs(const std::string & name)
 {
+    fs::detail::utf8_codecvt_facet utf8;
     boost::asio::io_context ios;
     std::future<std::string> listOutputFut;
     auto env = boost::this_process::environment();
     env["PKG_CONFIG_PATH"] = m_pkgConfigPaths;
-    int result = bp::system(m_pkgConfigToolPath, "--libs", env,  name, bp::std_out > listOutputFut, ios);
+    int result = bp::system(m_pkgConfigToolPath.generic_string(utf8), "--libs", env,  name, bp::std_out > listOutputFut, ios);
     if (result != 0) {
         throw std::runtime_error("Error running pkg-config --libs on '" + name + "'");
     }
@@ -40,11 +41,12 @@ std::string PkgConfigTool::libs(const std::string & name)
 
 std::string PkgConfigTool::cflags(const std::string & name)
 {
+    fs::detail::utf8_codecvt_facet utf8;
     boost::asio::io_context ios;
     std::future<std::string> listOutputFut;
     auto env = boost::this_process::environment();
     env["PKG_CONFIG_PATH"] = m_pkgConfigPaths;
-    int result = bp::system(m_pkgConfigToolPath, "--cflags", env,  name, bp::std_out > listOutputFut, ios);
+    int result = bp::system(m_pkgConfigToolPath.generic_string(utf8), "--cflags", env,  name, bp::std_out > listOutputFut, ios);
     if (result != 0) {
         throw std::runtime_error("Error running pkg-config --cflags on '" + name + "'");
     }
