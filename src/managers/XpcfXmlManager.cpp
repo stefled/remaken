@@ -90,7 +90,7 @@ void XpcfXmlManager::declareModule(tinyxml2::XMLElement * xmlModuleElt)
         moduleDescription = xmlModuleElt->Attribute("description");
     }
     std::string moduleUuid =  xmlModuleElt->Attribute("uuid");
-    fs::path modulePath = PathBuilder::buildModuleFolderPath(xmlModuleElt->Attribute("path"), m_options.getConfig());
+    fs::path modulePath = PathBuilder::buildModuleFolderPath(xmlModuleElt->Attribute("path"), m_options);
     if (! mapContains(m_modulesUUiDMap, moduleName)) {
         m_modulesUUiDMap[moduleName] = moduleUuid;
     }
