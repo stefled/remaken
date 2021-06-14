@@ -24,6 +24,7 @@
 #define ORG_BCOM_XPCF_PATHBUILDER_H
 
 #include <boost/filesystem.hpp>
+#include "CmdOptions.h"
 namespace fs = boost::filesystem;
 
 class PathBuilder
@@ -33,9 +34,9 @@ public:
     fs::path findRegistries();
     static fs::path getUTF8PathObserver(const std::string & sourcePath);
     static fs::path getUTF8PathObserver(const char * sourcePath);
-    static fs::path replaceRootEnvVars(const std::string & sourcePath);
-    static fs::path buildModuleFilePath(const std::string & moduleName,const std::string & filePath, const std::string & buildConfig);
-    static fs::path buildModuleFolderPath(const std::string & filePath, const std::string & buildConfig);
+    static fs::path replaceRootEnvVars(const std::string & sourcePath, const CmdOptions & options);
+    static fs::path buildModuleFilePath(const std::string & moduleName,const std::string & filePath, const CmdOptions & options);
+    static fs::path buildModuleFolderPath(const std::string & filePath, const CmdOptions & options);
     static fs::path getHomePath();
     static fs::path getXPCFHomePath();
     static fs::path appendModuleDecorations(const fs::path & sl);

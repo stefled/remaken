@@ -23,6 +23,7 @@
 #include "utils/PathBuilder.h"
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 #include <boost/predef/os.h>
+#include "Constants.h"
 
 #ifdef WIN32
 #include <stdlib.h>
@@ -59,7 +60,7 @@ fs::path PathBuilder::getUTF8PathObserver(const std::string & sourcePath)
     return getUTF8PathObserver(sourcePath.c_str());
 }
 
-fs::path PathBuilder::replaceRootEnvVars(const std::string & sourcePath)
+fs::path PathBuilder::replaceRootEnvVars(const std::string & sourcePath, const CmdOptions & options)
 {
     // find any $ENVVAR and substitut
     fs::path completePath = getUTF8PathObserver(sourcePath);
@@ -70,31 +71,42 @@ fs::path PathBuilder::replaceRootEnvVars(const std::string & sourcePath)
     if (std::regex_search(sourcePath, sm, envVarRegex)) {
         std::string matchStr = sm.str(1);
         char * envVar = getenv(matchStr.c_str());
+        fs::path rootStr;
         if (envVar != nullptr) {
-            fs::path envStr (envVar);
-            std::string replacedStr = std::regex_replace(sourcePath, envVarRegex, "");
-            fs::path subdir (replacedStr);
-            completePath = envStr / subdir;
+            rootStr = envVar;
         }
+        else if (sm.str(1) == Constants::REMAKENPKGROOT) {
+            rootStr = options.getRemakenRoot();
+        }
+        else if (sm.str(1) == Constants::XPCFMODULEROOT) {
+            fs::path toolChainPrefix =  options.getOS() + "-" + options.getBuildToolchain();
+            rootStr = options.getRemakenRoot() / toolChainPrefix;
+        }
+        else {
+            throw std::runtime_error("Error: environment variable " + sm.str(1) + " not defined: unable to complete path '" + sourcePath + "'");
+        }
+        std::string replacedStr = std::regex_replace(sourcePath, envVarRegex, "");
+        fs::path subdir (replacedStr);
+        completePath = rootStr / subdir;
     }
     return completePath;
 }
 
 
-fs::path PathBuilder::buildModuleFolderPath(const std::string & filePathStr, const std::string & buildConfig)
+fs::path PathBuilder::buildModuleFolderPath(const std::string & filePathStr, const CmdOptions & options)
 {
-    fs::path filePath(replaceRootEnvVars(filePathStr));
+    fs::path filePath(replaceRootEnvVars(filePathStr,options));
 
-    fs::path configSubDir = buildConfig;
+    fs::path configSubDir = options.getConfig();
     if ( fs::exists( filePath / configSubDir ) ) {
         filePath /= configSubDir;
     }
     return filePath;
 }
 
-fs::path PathBuilder::buildModuleFilePath(const std::string & moduleName, const std::string & filePathStr, const std::string & buildConfig)
+fs::path PathBuilder::buildModuleFilePath(const std::string & moduleName, const std::string & filePathStr, const CmdOptions & options)
 {
-    fs::path filePath = PathBuilder::buildModuleFolderPath(filePathStr, buildConfig);
+    fs::path filePath = PathBuilder::buildModuleFolderPath(filePathStr, options);
 
     fs::path moduleFileName = getUTF8PathObserver(moduleName.c_str());
     filePath /= moduleFileName;

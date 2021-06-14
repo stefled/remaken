@@ -87,6 +87,7 @@ CmdOptions::CmdOptions()
 {
     fs::detail::utf8_codecvt_facet utf8;
     fs::path remakenRootPath = PathBuilder::getHomePath() / Constants::REMAKEN_FOLDER;
+    remakenRootPath /= "packages";
     char * rootDirectoryVar = getenv(Constants::REMAKENPKGROOT);
     if (rootDirectoryVar != nullptr) {
         std::cerr<<Constants::REMAKENPKGROOT<<" environment variable exists"<<std::endl;
@@ -106,7 +107,7 @@ CmdOptions::CmdOptions()
         fis.close();
         remakenRootPath = pkgPath;
     }
-    remakenRootPath /= "packages";
+
 
     fs::path configPath = PathBuilder::getHomePath() / Constants::REMAKEN_FOLDER / "config";
     m_cliApp.require_subcommand(1);
