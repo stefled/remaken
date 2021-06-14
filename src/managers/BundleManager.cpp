@@ -84,6 +84,7 @@ int BundleManager::bundleXpcf()
         }
         fs::path xpcfConfigFilePath = buildDependencyPath();
         if ( xpcfConfigFilePath.extension() != ".xml") {
+            BOOST_LOG_TRIVIAL(error)<<" the xpcf configuration file must be an xml file with the correct .xml extension, file provided is "<<xpcfConfigFilePath;
             return -1;
         }
         fs::copy_file(xpcfConfigFilePath , m_options.getDestinationRoot()/xpcfConfigFilePath.filename(), fs::copy_option::overwrite_if_exists);
@@ -95,7 +96,6 @@ int BundleManager::bundleXpcf()
         }
 
         for (auto & [name,modulePath] : modulesPathMap) {
-            OsUtils::copySharedLibraries(modulePath,m_options);
             fs::path packageRootPath = XpcfXmlManager::findPackageRoot(modulePath);
             if (!fs::exists(packageRootPath)) {
                 BOOST_LOG_TRIVIAL(warning)<<"Unable to find root package path "<<packageRootPath<<" for module "<<name;
