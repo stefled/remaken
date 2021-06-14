@@ -104,7 +104,7 @@ fs::path BrewSystemTool::invokeGenerator(const std::vector<Dependency> & deps, G
     globalBrewPkgConfigPath /= "pkgconfig";
 
     // add to PKG_CONFIG_PATH default pkg-config path for brew
-    PkgConfigTool pkgConfig;
+    PkgConfigTool pkgConfig(m_options);
     pkgConfig.addPath(globalBrewPkgConfigPath);
     for ( auto & dep : deps) {
         std::cout<<"===> Adding '"<<dep.getName()<<":"<<dep.getVersion()<<"' dependency"<<std::endl;
@@ -138,14 +138,7 @@ fs::path BrewSystemTool::invokeGenerator(const std::vector<Dependency> & deps, G
         libs.push_back(pkgConfig.libs(dep.getName()));
     }
 
-    // format CFLAGS and LIBS results
-    if (generator == GeneratorType::qmake) {
-        fs::path filePath = DepUtils::getProjectBuildSubFolder(m_options)/ "brewbuildinfo.pri";
-        return pkgConfig.generateQmake(cflags, libs,"BREW",filePath);
-    }
-    else {
-        throw std::runtime_error("Only qmake generator is supported, other generators' support coming in future releases");
-    }
+    return pkgConfig.generate(generator,cflags,libs,Dependency::Type::BREW);
 }
 
 bool BrewSystemTool::installed (const Dependency & dependency)

@@ -102,6 +102,13 @@ int ConfigureCommand::execute()
             generatedFiles.push_back(fileRetriever->invokeGenerator(depVect));
             setups.push_back("brew_basic_setup");
         }
+        if (mapContains(depsVectMap, Dependency::Type::REMAKEN)) {
+            std::cout<<std::endl<<"=> Remaken dependencies build information generation in progress ... please wait"<<std::endl;
+            auto & depVect = depsVectMap[Dependency::Type::REMAKEN];
+            shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(depVect[0], m_options);
+            generatedFiles.push_back(fileRetriever->invokeGenerator(depVect));
+            setups.push_back("remaken_basic_setup");
+        }
         std::cout<<std::endl<<"=> Generating main dependenciesBuildInfo file"<<std::endl;
 
         fs::path buildSubFolderPath = DepUtils::getProjectBuildSubFolder(m_options);

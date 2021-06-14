@@ -7,7 +7,7 @@
 
 namespace bp = boost::process;
 
-PkgConfigTool::PkgConfigTool()
+PkgConfigTool::PkgConfigTool(const CmdOptions & options):m_options(options)
 {
     m_pkgConfigToolPath = bp::search_path(getPkgConfigToolIdentifier()); //or get it from somewhere else.
     if (m_pkgConfigToolPath.empty()) {
@@ -25,39 +25,55 @@ void PkgConfigTool::addPath(const fs::path & pkgConfigPath)
 }
 
 
-std::string PkgConfigTool::libs(const std::string & name)
+std::string PkgConfigTool::libs(const std::string & name, const std::vector<std::string> & options)
 {
     fs::detail::utf8_codecvt_facet utf8;
     boost::asio::io_context ios;
     std::future<std::string> listOutputFut;
     auto env = boost::this_process::environment();
     env["PKG_CONFIG_PATH"] = m_pkgConfigPaths;
-    int result = bp::system(m_pkgConfigToolPath.generic_string(utf8), "--libs", env,  name, bp::std_out > listOutputFut, ios);
+    int result = bp::system(m_pkgConfigToolPath.generic_string(utf8), "--libs", bp::args(options), env,  name, bp::std_out > listOutputFut, ios);
     if (result != 0) {
         throw std::runtime_error("Error running pkg-config --libs on '" + name + "'");
     }
     return listOutputFut.get();
 }
 
-std::string PkgConfigTool::cflags(const std::string & name)
+std::string PkgConfigTool::cflags(const std::string & name, const std::vector<std::string> & options)
 {
     fs::detail::utf8_codecvt_facet utf8;
     boost::asio::io_context ios;
     std::future<std::string> listOutputFut;
     auto env = boost::this_process::environment();
     env["PKG_CONFIG_PATH"] = m_pkgConfigPaths;
-    int result = bp::system(m_pkgConfigToolPath.generic_string(utf8), "--cflags", env,  name, bp::std_out > listOutputFut, ios);
+    int result = bp::system(m_pkgConfigToolPath.generic_string(utf8), "--cflags", bp::args(options), env,  name, bp::std_out > listOutputFut, ios);
     if (result != 0) {
         throw std::runtime_error("Error running pkg-config --cflags on '" + name + "'");
     }
     return listOutputFut.get();
 }
 
+static const std::map<Dependency::Type,std::string> type2prefixMap = {
+  {Dependency::Type::BREW,"BREW"},
+    {Dependency::Type::REMAKEN,"REMAKEN"},
+    {Dependency::Type::CONAN,"CONAN"},
+    {Dependency::Type::CHOCO,"CHOCO"},
+    {Dependency::Type::SYSTEM,"SYSTEM"},
+    {Dependency::Type::SCOOP,"SCOOP"},
+    {Dependency::Type::VCPKG,"VCPKG"}
+};
+
 fs::path PkgConfigTool::generateQmake(const std::vector<std::string>&  cflags, const std::vector<std::string>&  libs,
-                                      const std::string & prefix, const fs::path & destination)
+                                      Dependency::Type type)
 {
     fs::detail::utf8_codecvt_facet utf8;
-    std::ofstream fos(destination.generic_string(utf8),std::ios::out);
+    if (!mapContains(type2prefixMap,type)) {
+        throw std::runtime_error("Error dependency type " + std::to_string(static_cast<uint32_t>(type)) + " no supported");
+    }
+    std::string prefix = type2prefixMap.at(type);
+    std::string filename = boost::to_lower_copy(prefix) + "buildinfo.pri";
+    fs::path filePath = DepUtils::getProjectBuildSubFolder(m_options)/filename;
+    std::ofstream fos(filePath.generic_string(utf8),std::ios::out);
     std::string libdirs, libsStr;
     for (auto & cflagInfos : cflags) {
         std::vector<std::string> cflagsVect;
@@ -107,7 +123,18 @@ fs::path PkgConfigTool::generateQmake(const std::vector<std::string>&  cflags, c
     fos<<"QMAKE_CFLAGS += $$"<<prefix<<"_QMAKE_CFLAGS"<<std::endl;
     fos<<"QMAKE_LFLAGS += $$"<<prefix<<"_QMAKE_LFLAGS"<<std::endl;
     fos.close();
-    return destination;
+    return filePath;
+}
+
+fs::path PkgConfigTool::generate(GeneratorType genType, const std::vector<std::string>&  cflags, const std::vector<std::string>&  libs,
+                       Dependency::Type depType)
+{
+    if (genType == GeneratorType::qmake) {
+        return generateQmake(cflags, libs, depType);
+    }
+    else {
+        throw std::runtime_error("Only qmake generator is supported, other generators' support coming in future releases");
+    }
 }
 
 std::string PkgConfigTool::getPkgConfigToolIdentifier()

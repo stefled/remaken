@@ -50,7 +50,7 @@ public:
     virtual std::vector<fs::path> libPaths ([[maybe_unused]] const Dependency & dependency);
     virtual std::string computeSourcePath (const Dependency &  dependency);
     virtual fs::path sudo () { return m_sudoCmd; }
-    virtual fs::path invokeGenerator([[maybe_unused]] const std::vector<Dependency> & deps, [[maybe_unused]] GeneratorType generator) { return fs::path(); }
+    virtual fs::path invokeGenerator([[maybe_unused]] const std::vector<Dependency> & deps, [[maybe_unused]] GeneratorType generator);
 
 protected:
     virtual std::string computeToolRef ( const Dependency &  dependency);

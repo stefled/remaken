@@ -1,6 +1,7 @@
 #include "SystemTools.h"
 #include "BrewSystemTool.h"
 #include "VCPKGSystemTool.h"
+#include "PkgConfigTool.h"
 #include "utils/OsUtils.h"
 
 #include <boost/process.hpp>
@@ -122,6 +123,17 @@ BaseSystemTool::BaseSystemTool(const CmdOptions & options, const std::string & i
     fs::path p = options.getRemakenRoot() / "vcpkg";
     std::vector<fs::path> envPath = boost::this_process::path();
     envPath.push_back(p);
+    // TODO must add brew search path here, not /usr/local/bin as it is the brew path on mac only
+#ifdef BOOST_OS_MACOS_AVAILABLE
+    if (fs::exists("/usr/local/bin")) {
+        envPath.push_back("/usr/local/bin");
+    }
+#endif
+#ifdef BOOST_OS_LINUX_AVAILABLE
+    if (fs::exists("/home/linuxbrew/.linuxbrew/bin")) {
+        envPath.push_back("/home/linuxbrew/.linuxbrew/bin");
+    }
+#endif
     m_systemInstallerPath = bp::search_path(installer, envPath); //or get it from somewhere else.
     m_sudoCmd = bp::search_path("sudo"); //or get it from somewhere else.
     if (m_systemInstallerPath.empty()) {
@@ -148,6 +160,21 @@ std::vector<fs::path> BaseSystemTool::binPaths([[maybe_unused]] const Dependency
 std::vector<fs::path> BaseSystemTool::libPaths([[maybe_unused]] const Dependency & dependency)
 {
     return std::vector<fs::path>();
+}
+
+fs::path BaseSystemTool::invokeGenerator([[maybe_unused]] const std::vector<Dependency> & deps, [[maybe_unused]] GeneratorType generator)
+{
+    PkgConfigTool pkgConfig(m_options);
+    // call pkg-config on dep and populate libs and cflags variables
+    // TODO:check pkg exists from pkgconfig ?
+    std::vector<std::string> cflags, libs;
+    for ( auto & dep : deps) {
+        cflags.push_back(pkgConfig.cflags(dep.getName()));
+        libs.push_back(pkgConfig.libs(dep.getName()));
+    }
+
+    // format CFLAGS and LIBS results
+    return pkgConfig.generate(generator,cflags,libs,Dependency::Type::SYSTEM);
 }
 
 const std::map<Dependency::Type,std::string> typeToStringMap =
@@ -259,6 +286,18 @@ std::shared_ptr<BaseSystemTool> SystemTools::createTool(const CmdOptions & optio
     fs::path p = options.getRemakenRoot() / "vcpkg";
     std::vector<fs::path> envPath = boost::this_process::path();
     envPath.push_back(p);
+    #ifdef BOOST_OS_MACOS_AVAILABLE
+    if (fs::exists("/usr/local/bin")) {
+        envPath.push_back("/usr/local/bin");
+    }
+#ifdef BOOST_OS_LINUX_AVAILABLE
+    if (fs::exists("/home/linuxbrew/.linuxbrew/bin")) {
+        envPath.push_back("/home/linuxbrew/.linuxbrew/bin");
+    }
+#endif
+    #endif
+    #ifdef BOOST_OS_LINUX_AVAILABLE
+    #endif
     if (dependencyTypeOpt.has_value()) {
         Dependency::Type depType = dependencyTypeOpt.value();
         std::string explicitToolName = getToolIdentifier(depType);

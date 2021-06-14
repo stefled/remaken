@@ -1,5 +1,7 @@
 #include "AbstractFileRetriever.h"
+#include "utils/DepUtils.h"
 #include "utils/OsUtils.h"
+#include "tools/PkgConfigTool.h"
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -68,14 +70,31 @@ fs::path AbstractFileRetriever::installArtefact(const Dependency & dependency)
 
 fs::path AbstractFileRetriever::invokeGenerator(const std::vector<Dependency> & deps, GeneratorType generator)
 {
-    return fs::path();
+    fs::detail::utf8_codecvt_facet utf8;
+    PkgConfigTool pkgConfig(m_options);
+    // call pkg-config on dep and populate libs and cflags variables
+    // TODO:check pkg exists from pkgconfig ?
+    std::vector<std::string> cflags, libs;
+    for ( auto & dep : deps) {
+        fs::path prefix = computeLocalDependencyRootDir(dep);
+        fs::path libdir = computeRootLibDir(dep);
+        pkgConfig.addPath(prefix);
+        std::string prefixOpt = "--define-variable=prefix=" + prefix.generic_string(utf8);
+        std::string libdirOpt = "--define-variable=libdir=" + libdir.generic_string(utf8);
+
+        cflags.push_back(pkgConfig.cflags("bcom-" + dep.getName(), {prefixOpt, libdirOpt}));
+        libs.push_back(pkgConfig.libs("bcom-" + dep.getName(), {prefixOpt, libdirOpt}));
+    }
+
+    // format CFLAGS and LIBS results
+    return pkgConfig.generate(generator,cflags,libs,Dependency::Type::REMAKEN);
 }
 
 fs::path AbstractFileRetriever::installArtefactImpl(const Dependency & dependency)
 {
     fs::detail::utf8_codecvt_facet utf8;
     fs::path compressedDependency = retrieveArtefact(dependency);
-    //zipper::Unzipper unzipper(compressedDependency.generic_string(utf8));
+    // zipper::Unzipper unzipper(compressedDependency.generic_string(utf8));
     fs::path outputDirectory = OsUtils::computeRemakenRootPackageDir(m_options);
     if (dependency.hasIdentifier()) {
         outputDirectory /= dependency.getIdentifier();
@@ -87,8 +106,8 @@ fs::path AbstractFileRetriever::installArtefactImpl(const Dependency & dependenc
     if (result != 0) {
         throw std::runtime_error("Error uncompressing dependency " + dependency.getName());
     }
-    //unzipper.extract(outputDirectory.generic_string(utf8));
-    //unzipper.close();
+    // unzipper.extract(outputDirectory.generic_string(utf8));
+    // unzipper.close();
     fs::remove(compressedDependency);
     outputDirectory = computeLocalDependencyRootDir(dependency);
     if (!fs::exists(outputDirectory)) {

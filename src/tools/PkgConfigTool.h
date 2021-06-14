@@ -23,7 +23,9 @@
 #ifndef GITTOOL_H
 #define GITTOOL_H
 #include <string>
+#include "Constants.h"
 #include "CmdOptions.h"
+#include "Dependency.h"
 #include <boost/filesystem.hpp>
 
 namespace fs = boost::filesystem;
@@ -31,18 +33,22 @@ namespace fs = boost::filesystem;
 class PkgConfigTool
 {
 public:
-    PkgConfigTool();
+    PkgConfigTool(const CmdOptions & options);
     virtual ~PkgConfigTool() = default;
     void addPath(const fs::path & pkgConfigPath);
-    std::string libs(const std::string & name);
-    std::string cflags(const std::string & name);
-    fs::path generateQmake(const std::vector<std::string>&  cflags, const std::vector<std::string>&  libs,
-                           const std::string & prefix, const fs::path & destination);
+    std::string libs(const std::string & name, const std::vector<std::string> & options = {});
+    std::string cflags(const std::string & name, const std::vector<std::string> & options = {});
+    fs::path generate(GeneratorType genType, const std::vector<std::string>&  cflags, const std::vector<std::string>&  libs,
+                           Dependency::Type depType);
+
 
 protected:
     static std::string getPkgConfigToolIdentifier();
+    fs::path generateQmake(const std::vector<std::string>&  cflags, const std::vector<std::string>&  libs,
+                           Dependency::Type type);
     fs::path m_pkgConfigToolPath;
     std::string m_pkgConfigPaths;
+    const CmdOptions & m_options;
 };
 
 #endif // GITTOOL_H
