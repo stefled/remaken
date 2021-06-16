@@ -125,7 +125,7 @@ fs::path BrewSystemTool::invokeGenerator(const std::vector<Dependency> & deps, G
                     }
                 }
                 if (!localPkgConfigPath.empty()) { // add found pkgconfig to pkgConfigPath variable
-                    pkgConfig.addPath(localPkgConfigPath);
+                    pkgConfig.addPath(localPkgConfigPath.parent_path());
                 }
             }
         }

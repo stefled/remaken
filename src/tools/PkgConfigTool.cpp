@@ -21,7 +21,7 @@ void PkgConfigTool::addPath(const fs::path & pkgConfigPath)
     if (!m_pkgConfigPaths.empty()) {
         m_pkgConfigPaths += ":";
     }
-    m_pkgConfigPaths +=  pkgConfigPath.parent_path().generic_string(utf8);
+    m_pkgConfigPaths +=  pkgConfigPath.generic_string(utf8);
 }
 
 
@@ -74,28 +74,39 @@ fs::path PkgConfigTool::generateQmake(const std::vector<std::string>&  cflags, c
     std::string filename = boost::to_lower_copy(prefix) + "buildinfo.pri";
     fs::path filePath = DepUtils::getProjectBuildSubFolder(m_options)/filename;
     std::ofstream fos(filePath.generic_string(utf8),std::ios::out);
-    std::string libdirs, libsStr;
+    std::string libdirs, libsStr, defines;
     for (auto & cflagInfos : cflags) {
         std::vector<std::string> cflagsVect;
         boost::split(cflagsVect, cflagInfos, [&](char c){return c == ' ';});
         for (auto & cflag: cflagsVect) {
-            // remove -I
-            cflag.erase(0,2);
-            boost::trim(cflag);
-            fos<<prefix<<"_INCLUDEPATH += \""<<cflag<<"\""<<std::endl;
+            std::string cflagPrefix = cflag.substr(0,2);
+            if (cflagPrefix == "-I") {
+                // remove -I
+                cflag.erase(0,2);
+                boost::trim(cflag);
+                fos<<prefix<<"_INCLUDEPATH += \""<<cflag<<"\""<<std::endl;
+            }
+            else if (cflagPrefix == "-D") {
+                // remove -D
+                cflag.erase(0,2);
+                boost::trim(cflag);
+                defines += " " + cflag;
+            }
         }
     }
+    fos<<prefix<<"_DEFINES += "<<defines<<std::endl;
     for (auto & libInfos : libs) {
         std::vector<std::string> optionsVect;
         boost::split(optionsVect, libInfos, [&](char c){return c == ' ';});
         for (auto & option: optionsVect) {
-            std::string prefix = option.substr(0,2);
-            if (prefix == "-L") {
+            std::string optionPrefix = option.substr(0,2);
+            if (optionPrefix == "-L") {
                 option.erase(0,2);
                 libdirs += " -L\"" + option + "\"";
             }
             //TODO : extract lib paths from libdefs and put quotes around libs path
             else {
+                boost::trim(option);
                 libsStr += " " + option;
             }
         }
@@ -106,7 +117,7 @@ fs::path PkgConfigTool::generateQmake(const std::vector<std::string>&  cflags, c
     fos<<prefix<<"_FRAMEWORKS_PATH += "<<std::endl;
     fos<<prefix<<"_LIBDIRS +="<<libdirs<<std::endl;
     fos<<prefix<<"_BINDIRS +="<<std::endl;
-    fos<<prefix<<"_DEFINES +="<<std::endl;
+
     fos<<prefix<<"_DEFINES +="<<std::endl;
     fos<<prefix<<"_QMAKE_CXXFLAGS +="<<std::endl;
     fos<<prefix<<"_QMAKE_CFLAGS +="<<std::endl;
