@@ -75,10 +75,10 @@ fs::path PathBuilder::replaceRootEnvVars(const std::string & sourcePath, const C
         if (envVar != nullptr) {
             rootStr = envVar;
         }
-        else if (sm.str(1) == Constants::REMAKENPKGROOT) {
+        else if (matchStr == Constants::REMAKENPKGROOT) {
             rootStr = options.getRemakenRoot();
         }
-        else if (sm.str(1) == Constants::XPCFMODULEROOT) {
+        else if (matchStr == Constants::XPCFMODULEROOT) {
             fs::path toolChainPrefix =  options.getOS() + "-" + options.getBuildToolchain();
             rootStr = options.getRemakenRoot() / toolChainPrefix;
         }

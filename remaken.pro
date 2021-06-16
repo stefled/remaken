@@ -18,7 +18,6 @@ CONFIG(release,debug|release) {
 }
 
 DEFINES += BOOST_ALL_NO_LIB
-DEFINES += ROOTFOLDERENV=$$shell_quote(\"REMAKEN_ROOT\")
 
 # Include bundle configuration parameters
 include(_BundleConfig.pri)

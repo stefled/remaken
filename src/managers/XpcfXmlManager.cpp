@@ -128,6 +128,7 @@ const std::map<std::string, fs::path> & XpcfXmlManager::parseXpcfModulesConfigur
             processXmlNode(rootElt, "module", std::bind(&XpcfXmlManager::declareModule, this, _1));
         }
         catch (const std::runtime_error & e) {
+            BOOST_LOG_TRIVIAL(error)<<e.what();
             throw std::runtime_error("Error parsing xpcf configuration file : invalid format ");
         }
     }
