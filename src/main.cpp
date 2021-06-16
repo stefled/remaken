@@ -41,7 +41,7 @@ int main(int argc, char** argv)
         dispatcher["profile"] = make_shared<ProfileCommand>(opts);
         dispatcher["version"] = make_shared<VersionCommand>();
         if (mapContains(dispatcher, opts.getAction())) {
-            dispatcher.at(opts.getAction())->execute();
+            return dispatcher.at(opts.getAction())->execute();
         }
         else {
             return -1;

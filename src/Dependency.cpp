@@ -138,7 +138,8 @@ Dependency::Dependency(const std::string & rawFormat, const std::string & mainMo
     }
     m_type = deduceType(m_repositoryType);
 
-    if (m_identifier != m_repositoryType) {
+    if (m_identifier != m_repositoryType &&
+            m_type != Dependency::Type::CONAN) {
         m_bHasIdentifier = !m_identifier.empty();
         m_type = deduceType(m_identifier);
     }
