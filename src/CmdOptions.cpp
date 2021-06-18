@@ -4,10 +4,10 @@
 #include "Constants.h"
 #include <exception>
 #include <algorithm>
-#include "ZipTool.h"
+#include "tools/ZipTool.h"
 #include <boost/process.hpp>
 #include <boost/predef.h>
-#include "PathBuilder.h"
+#include "utils/PathBuilder.h"
 namespace bp = boost::process;
 using namespace std;
 

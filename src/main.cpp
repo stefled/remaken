@@ -1,15 +1,15 @@
 #include <iostream>
 #include "Constants.h"
 #include "CmdOptions.h"
-#include "InfoCommand.h"
-#include "InitCommand.h"
-#include "InstallCommand.h"
-#include "ParseCommand.h"
-#include "BundleCommand.h"
-#include "CleanCommand.h"
-#include "BundleXpcfCommand.h"
-#include "VersionCommand.h"
-#include "ProfileCommand.h"
+#include "commands/InfoCommand.h"
+#include "commands/InitCommand.h"
+#include "commands/InstallCommand.h"
+#include "commands/ParseCommand.h"
+#include "commands/BundleCommand.h"
+#include "commands/CleanCommand.h"
+#include "commands/BundleXpcfCommand.h"
+#include "commands/VersionCommand.h"
+#include "commands/ProfileCommand.h"
 #include <memory>
 
 using namespace std;
@@ -33,7 +33,7 @@ int main(int argc, char** argv)
         dispatcher["profile"] = make_shared<ProfileCommand>(opts);
         dispatcher["version"] = make_shared<VersionCommand>();
         if (mapContains(dispatcher, opts.getAction())) {
-            dispatcher.at(opts.getAction())->execute();
+            return dispatcher.at(opts.getAction())->execute();
         }
         else {
             return -1;

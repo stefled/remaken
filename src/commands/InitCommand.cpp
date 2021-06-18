@@ -1,9 +1,9 @@
 #include "InitCommand.h"
-#include "DependencyManager.h"
+#include "managers/DependencyManager.h"
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
-#include "PathBuilder.h"
-#include "HttpFileRetriever.h"
-#include "OsTools.h"
+#include "utils/PathBuilder.h"
+#include "retrievers/HttpFileRetriever.h"
+#include "utils/OsTools.h"
 #include <boost/log/trivial.hpp>
 
 InitCommand::InitCommand(const CmdOptions & options):AbstractCommand(InitCommand::NAME),m_options(options)

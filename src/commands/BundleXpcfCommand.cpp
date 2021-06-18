@@ -1,5 +1,5 @@
 #include "BundleXpcfCommand.h"
-#include "DependencyManager.h"
+#include "managers/DependencyManager.h"
 
 BundleXpcfCommand::BundleXpcfCommand(const CmdOptions & options):AbstractCommand(BundleXpcfCommand::NAME),m_options(options)
 {

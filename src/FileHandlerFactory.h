@@ -22,7 +22,7 @@
 
 #ifndef FILEHANDLERFACTORY_H
 #define FILEHANDLERFACTORY_H
-#include "IFileRetriever.h"
+#include "retrievers/IFileRetriever.h"
 #include "CmdOptions.h"
 #include "Dependency.h"
 #include <atomic>

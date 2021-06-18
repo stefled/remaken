@@ -1,5 +1,5 @@
 #include "CleanCommand.h"
-#include "DependencyManager.h"
+#include "managers/DependencyManager.h"
 
 CleanCommand::CleanCommand(const CmdOptions & options):AbstractCommand(CleanCommand::NAME),m_options(options)
 {

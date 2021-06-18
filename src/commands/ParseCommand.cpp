@@ -1,5 +1,5 @@
 #include "ParseCommand.h"
-#include "DependencyManager.h"
+#include "managers/DependencyManager.h"
 
 ParseCommand::ParseCommand(const CmdOptions & options):AbstractCommand(ParseCommand::NAME),m_options(options)
 {

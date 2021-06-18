@@ -1,8 +1,8 @@
 #include "HttpHandlerFactory.h"
 
-#include "CredentialsFileRetriever.h"
-#include "FSFileRetriever.h"
-#include "HttpFileRetriever.h"
+#include "retrievers/CredentialsFileRetriever.h"
+#include "retrievers/FSFileRetriever.h"
+#include "retrievers/HttpFileRetriever.h"
 #include <regex>
 
 std::atomic<HttpHandlerFactory*> HttpHandlerFactory::m_instance;

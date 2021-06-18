@@ -1,5 +1,5 @@
 TARGET = remaken
-VERSION=1.7.2
+VERSION=1.7.3
 
 CONFIG += c++1z
 CONFIG += console
@@ -18,7 +18,6 @@ CONFIG(release,debug|release) {
 }
 
 DEFINES += BOOST_ALL_NO_LIB
-DEFINES += ROOTFOLDERENV=$$shell_quote(\"REMAKEN_ROOT\")
 
 # Include bundle configuration parameters
 include(_BundleConfig.pri)
@@ -32,70 +31,72 @@ CONFIG += app_setup
 include (builddefs/qmake/templateappconfig.pri)
 
 HEADERS += \
-    src/BundleXpcfCommand.h \
-    src/CleanCommand.h \
+    src/commands/BundleXpcfCommand.h \
+    src/commands/CleanCommand.h \
     src/Dependency.h \
-    src/DependencyManager.h \
+    src/managers/DependencyManager.h \
     src/CmdOptions.h \
     src/Constants.h \
     src/Cache.h \
-    src/AbstractCommand.h \
-    src/InfoCommand.h \
-    src/InitCommand.h \
-    src/InstallCommand.h \
+    src/commands/AbstractCommand.h \
+    src/commands/InfoCommand.h \
+    src/commands/InitCommand.h \
+    src/commands/InstallCommand.h \
     src/PathBuilder.h \
-    src/ProfileCommand.h \
-    src/VersionCommand.h \
+    src/commands/ProfileCommand.h \
+    src/commands/VersionCommand.h \
     src/FileHandlerFactory.h \
-    src/CredentialsFileRetriever.h \
-    src/HttpFileRetriever.h \
-    src/FSFileRetriever.h \
-    src/IFileRetriever.h \
-    src/AbstractFileRetriever.h \
+    src/retrievers/CredentialsFileRetriever.h \
+    src/retrievers/HttpFileRetriever.h \
+    src/retrievers/FSFileRetriever.h \
+    src/retrievers/IFileRetriever.h \
+    src/retrievers/AbstractFileRetriever.h \
     src/AsioWrapper.h \
     src/HttpHandlerFactory.h \
-    src/ConanFileRetriever.h \
-    src/VCPKGFileRetriever.h \
-    src/SystemFileRetriever.h \
-    src/SystemTools.h \
-    src/ParseCommand.h \
-    src/BundleCommand.h \
-    src/ZipTool.h \
-    src/OsTools.h \
+    src/retrievers/ConanFileRetriever.h \
+    src/retrievers/VCPKGFileRetriever.h \
+    src/retrievers/SystemFileRetriever.h \
+    src/tools/SystemTools.h \
+    src/commands/ParseCommand.h \
+    src/commands/BundleCommand.h \
+    src/tools/ZipTool.h \
+    src/utils/OsTools.h \
     src/tinyxml2.h \
     src/tinyxmlhelper.h
 
 SOURCES += \
-    src/BundleXpcfCommand.cpp \
-    src/CleanCommand.cpp \
-    src/InfoCommand.cpp \
-    src/InitCommand.cpp \
-    src/PathBuilder.cpp \
-    src/ProfileCommand.cpp \
-    src/ZipTool.cpp \
+    src/commands/BundleXpcfCommand.cpp \
+    src/commands/CleanCommand.cpp \
+    src/commands/InfoCommand.cpp \
+    src/commands/InitCommand.cpp \
+    src/utils/PathBuilder.cpp \
+    src/commands/ProfileCommand.cpp \
+    src/tools/ZipTool.cpp \
     src/main.cpp \
     src/Dependency.cpp \
-    src/DependencyManager.cpp \
+    src/managers/DependencyManager.cpp \
     src/CmdOptions.cpp \
     src/Cache.cpp \
-    src/InstallCommand.cpp \
-    src/VersionCommand.cpp \
-    src/AbstractCommand.cpp \
+    src/commands/InstallCommand.cpp \
+    src/commands/VersionCommand.cpp \
+    src/commands/AbstractCommand.cpp \
     src/FileHandlerFactory.cpp \
-    src/CredentialsFileRetriever.cpp \
-    src/FSFileRetriever.cpp \
-    src/HttpFileRetriever.cpp \
-    src/AbstractFileRetriever.cpp \
+    src/retrievers/CredentialsFileRetriever.cpp \
+    src/retrievers/FSFileRetriever.cpp \
+    src/retrievers/HttpFileRetriever.cpp \
+    src/retrievers/AbstractFileRetriever.cpp \
     src/HttpHandlerFactory.cpp \
-    src/ConanFileRetriever.cpp \
-    src/VCPKGFileRetriever.cpp \
-    src/SystemFileRetriever.cpp \
-    src/SystemTools.cpp \
-    src/ParseCommand.cpp \
-    src/BundleCommand.cpp \
-    src/OsTools.cpp \
+    src/retrievers/ConanFileRetriever.cpp \
+    src/retrievers/VCPKGFileRetriever.cpp \
+    src/retrievers/SystemFileRetriever.cpp \
+    src/tools/SystemTools.cpp \
+    src/commands/ParseCommand.cpp \
+    src/commands/BundleCommand.cpp \
+    src/utils/OsTools.cpp \
     src/tinyxml2.cpp \
     src/tinyxmlhelper.cpp
+
+INCLUDEPATH += src
 
 unix {
    # QMAKE_CXXFLAGS += --coverage

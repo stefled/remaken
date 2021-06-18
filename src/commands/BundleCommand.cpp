@@ -1,5 +1,5 @@
 #include "BundleCommand.h"
-#include "DependencyManager.h"
+#include "managers/DependencyManager.h"
 
 BundleCommand::BundleCommand(const CmdOptions & options):AbstractCommand(BundleCommand::NAME),m_options(options)
 {

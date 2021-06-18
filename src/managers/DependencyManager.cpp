@@ -5,10 +5,10 @@
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 //#include <zipper/unzipper.h>
 #include <future>
-#include "SystemTools.h"
-#include "OsTools.h"
+#include "tools/SystemTools.h"
+#include "utils/OsTools.h"
 #include <boost/log/trivial.hpp>
-#include "PathBuilder.h"
+#include "utils/PathBuilder.h"
 #include <regex>
 
 using namespace std;
@@ -236,15 +236,13 @@ int DependencyManager::bundleXpcf()
         }
         fs::path xpcfConfigFilePath = buildDependencyPath();
         if ( xpcfConfigFilePath.extension() != ".xml") {
+            BOOST_LOG_TRIVIAL(error)<<" the xpcf configuration file must be an xml file with the correct .xml extension, file provided is "<<xpcfConfigFilePath;
             return -1;
         }
         fs::copy_file(xpcfConfigFilePath , m_options.getDestinationRoot()/xpcfConfigFilePath.filename(), fs::copy_option::overwrite_if_exists);
 
         parseXpcfModulesConfiguration(xpcfConfigFilePath);
         updateXpcfModulesPath(m_options.getDestinationRoot()/xpcfConfigFilePath.filename());
-        for (auto & [name,modulePath] : m_modulesPathMap) {
-            OsTools::copySharedLibraries(modulePath,m_options);
-        }
 
         for (auto & [name,modulePath] : m_modulesPathMap) {
             OsTools::copySharedLibraries(modulePath,m_options);
@@ -313,7 +311,7 @@ void DependencyManager::declareModule(tinyxml2::XMLElement * xmlModuleElt)
         moduleDescription = xmlModuleElt->Attribute("description");
     }
     std::string moduleUuid =  xmlModuleElt->Attribute("uuid");
-    fs::path modulePath = PathBuilder::buildModuleFolderPath(xmlModuleElt->Attribute("path"), m_options.getConfig());
+    fs::path modulePath = PathBuilder::buildModuleFolderPath(xmlModuleElt->Attribute("path"), m_options);
     if (! mapContains(m_modulesUUiDMap, moduleName)) {
         m_modulesUUiDMap[moduleName] = moduleUuid;
     }
