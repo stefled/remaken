@@ -349,6 +349,7 @@ int DependencyManager::parseXpcfModulesConfiguration(const fs::path & configurat
             processXmlNode(rootElt, "module", std::bind(&DependencyManager::declareModule, this, _1));
         }
         catch (const std::runtime_error & e) {
+            BOOST_LOG_TRIVIAL(error)<<e.what();
             return -1;
         }
     }
