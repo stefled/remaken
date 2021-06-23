@@ -72,10 +72,18 @@ void OsTools::copySharedLibraries(const fs::path & sourceRootFolder, const CmdOp
         fs::path filepath = x.path();
         auto linkStatus = fs::symlink_status(x.path());
         if (linkStatus.type() == fs::symlink_file) {
-            if (fs::exists(destinationFolderPath/filepath.filename())) {
-                fs::remove(destinationFolderPath/filepath.filename());
+            fs::path currentPath = filepath;
+            fs::path fileSuffix;
+            while (currentPath.has_extension() && fileSuffix.string(utf8) != sharedSuffix(options.getOS())) {
+                fileSuffix = currentPath.extension();
+                currentPath = currentPath.stem();
             }
-            fs::copy_symlink(x.path(),destinationFolderPath/filepath.filename());
+            if (fileSuffix.string(utf8) == sharedSuffix(options.getOS())) {
+                if (fs::is_symlink(destinationFolderPath/filepath.filename())) {
+                    fs::remove(destinationFolderPath/filepath.filename());
+                }
+                fs::copy_symlink(x.path(),destinationFolderPath/filepath.filename());
+            }
         }
         else if (is_regular_file(filepath)) {
             fs::path currentPath = filepath;
