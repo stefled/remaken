@@ -520,18 +520,18 @@ void DependencyManager::retrieveDependency(Dependency &  dependency)
             catch (std::runtime_error & e) { // try alternate repository
                 shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(m_options,true);
                 if (!fileRetriever) { // no alternate repository found
-                    BOOST_LOG_TRIVIAL(error)<<"Unable to find '"<<dependency.getPackageName()<<":"<<dependency.getVersion()<<"' on "<<dependency.getRepositoryType()<<"('"<<dependency.getBaseRepository()<<"')";
+                    BOOST_LOG_TRIVIAL(error)<<"==> Unable to find '"<<dependency.getPackageName()<<":"<<dependency.getVersion()<<"' on "<<dependency.getRepositoryType()<<"('"<<dependency.getBaseRepository()<<"')";
                     throw std::runtime_error(e.what());
                 }
                 else {
                     dependency.changeBaseRepository(m_options.getAlternateRepoUrl());
                     source = fileRetriever->computeSourcePath(dependency);
                     try {
-                        std::cout<<"Trying to find '"<<dependency.getPackageName()<<":"<<dependency.getVersion()<<"' on alternate repository "<<dependency.getBaseRepository()<<"("<<source<<")"<<std::endl;
+                        std::cout<<"==> Trying to find '"<<dependency.getPackageName()<<":"<<dependency.getVersion()<<"' on alternate repository "<<dependency.getBaseRepository()<<"('"<<source<<"')"<<std::endl;
                         outputDirectory = fileRetriever->installArtefact(dependency);
                     }
                     catch (std::runtime_error & e) {
-                        BOOST_LOG_TRIVIAL(error)<<"Unable to find '"<<dependency.getPackageName()<<":"<<dependency.getVersion()<<"' on "<<dependency.getRepositoryType()<<"('"<<dependency.getBaseRepository()<<"')";
+                        BOOST_LOG_TRIVIAL(error)<<"Unable to find '"<<dependency.getPackageName()<<":"<<dependency.getVersion()<<"' on "<<dependency.getBaseRepository()<<"('"<<source<<"')";
                         throw std::runtime_error(e.what());
                     }
                 }
