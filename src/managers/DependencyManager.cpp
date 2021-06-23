@@ -527,6 +527,7 @@ void DependencyManager::retrieveDependency(Dependency &  dependency)
                     dependency.changeBaseRepository(m_options.getAlternateRepoUrl());
                     source = fileRetriever->computeSourcePath(dependency);
                     try {
+                        std::cout<<"Trying to find '"<<dependency.getPackageName()<<":"<<dependency.getVersion()<<"' on alternate repository "<<dependency.getBaseRepository()<<"("<<source<<")"<<std::endl;
                         outputDirectory = fileRetriever->installArtefact(dependency);
                     }
                     catch (std::runtime_error & e) {
