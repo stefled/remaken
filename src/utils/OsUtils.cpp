@@ -1,11 +1,11 @@
-#include "OsTools.h"
+#include "OsUtils.h"
 #include "Constants.h"
 
 #ifdef BOOST_OS_WINDOWS_AVAILABLE
 #include <wbemidl.h>
 #endif
 
-bool OsTools::isElevated()
+bool OsUtils::isElevated()
 {
 #ifdef BOOST_OS_ANDROID_AVAILABLE
     return true;
@@ -52,7 +52,7 @@ static const std::map<const std::string_view,const  std::string_view> os2sharedS
     {"linux",".so"}
 };
 
-const std::string_view & OsTools::sharedSuffix(const std::string_view & osStr)
+const std::string_view & OsUtils::sharedSuffix(const std::string_view & osStr)
 {
     if (os2sharedSuffix.find(osStr) == os2sharedSuffix.end()) {
         return os2sharedSuffix.at("unix");
@@ -61,7 +61,7 @@ const std::string_view & OsTools::sharedSuffix(const std::string_view & osStr)
 }
 
 
-void OsTools::copySharedLibraries(const fs::path & sourceRootFolder, const CmdOptions & options)
+void OsUtils::copySharedLibraries(const fs::path & sourceRootFolder, const CmdOptions & options)
 {
     fs::detail::utf8_codecvt_facet utf8;
     fs::path destinationFolderPath = options.getDestinationRoot();

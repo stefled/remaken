@@ -1,5 +1,5 @@
 #include "SystemTools.h"
-#include "utils/OsTools.h"
+#include "utils/OsUtils.h"
 
 #include <boost/process.hpp>
 #include <boost/predef.h>
@@ -327,7 +327,7 @@ void ConanSystemTool::bundle(const Dependency & dependency)
             for (auto lib_path : lib_paths) {
                 boost::filesystem::path libPath = std::string(lib_path);
                 if (boost::filesystem::exists(libPath)) {
-                    OsTools::copySharedLibraries(libPath, m_options);
+                    OsUtils::copySharedLibraries(libPath, m_options);
                 }
             }
 

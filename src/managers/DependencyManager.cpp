@@ -6,7 +6,7 @@
 //#include <zipper/unzipper.h>
 #include <future>
 #include "tools/SystemTools.h"
-#include "utils/OsTools.h"
+#include "utils/OsUtils.h"
 #include <boost/log/trivial.hpp>
 #include "utils/PathBuilder.h"
 #include <regex>
@@ -245,7 +245,7 @@ int DependencyManager::bundleXpcf()
         updateXpcfModulesPath(m_options.getDestinationRoot()/xpcfConfigFilePath.filename());
 
         for (auto & [name,modulePath] : m_modulesPathMap) {
-            OsTools::copySharedLibraries(modulePath,m_options);
+            OsUtils::copySharedLibraries(modulePath,m_options);
             fs::path packageRootPath = findPackageRoot(modulePath);
             if (!fs::exists(packageRootPath)) {
                 BOOST_LOG_TRIVIAL(warning)<<"Unable to find root package path "<<packageRootPath<<" for module "<<name;
@@ -382,7 +382,7 @@ void DependencyManager::bundleDependencies(const fs::path &  dependenciesFile)
                     throw std::runtime_error("Error parsing dependency file : invalid format ");
                 }
 #ifdef BOOST_OS_WINDOWS_AVAILABLE
-                if (isSystemNeededElevation(dependency) && !OsTools::isElevated()) {
+                if (isSystemNeededElevation(dependency) && !OsUtils::isElevated()) {
                     throw std::runtime_error("Remaken needs elevated privileges to install system Windows " + SystemTools::getToolIdentifier() + " dependencies");
                 }
 #endif
@@ -567,7 +567,7 @@ void DependencyManager::retrieveDependencies(const fs::path &  dependenciesFile)
                     throw std::runtime_error("Error parsing dependency file : invalid format ");
                 }
 #ifdef BOOST_OS_WINDOWS_AVAILABLE
-                if (isSystemNeededElevation(dep) && !OsTools::isElevated()) {
+                if (isSystemNeededElevation(dep) && !OsUtils::isElevated()) {
                     throw std::runtime_error("Remaken needs elevated privileges to install system Windows " + SystemTools::getToolIdentifier() + " dependencies");
                 }
 #endif

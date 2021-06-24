@@ -3,7 +3,7 @@
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 #include "utils/PathBuilder.h"
 #include "retrievers/HttpFileRetriever.h"
-#include "utils/OsTools.h"
+#include "utils/OsUtils.h"
 #include <boost/log/trivial.hpp>
 
 InitCommand::InitCommand(const CmdOptions & options):AbstractCommand(InitCommand::NAME),m_options(options)

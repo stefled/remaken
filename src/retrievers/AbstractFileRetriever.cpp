@@ -1,5 +1,5 @@
 #include "AbstractFileRetriever.h"
-#include "utils/OsTools.h"
+#include "utils/OsUtils.h"
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -101,7 +101,7 @@ fs::path AbstractFileRetriever::installArtefact(const Dependency & dependency)
 
 void AbstractFileRetriever::copySharedLibraries(const fs::path & sourceRootFolder)
 {
-    OsTools::copySharedLibraries(sourceRootFolder, m_options);
+    OsUtils::copySharedLibraries(sourceRootFolder, m_options);
 }
 
 fs::path AbstractFileRetriever::bundleArtefact(const Dependency & dependency)

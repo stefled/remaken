@@ -60,7 +60,7 @@ HEADERS += \
     src/commands/ParseCommand.h \
     src/commands/BundleCommand.h \
     src/tools/ZipTool.h \
-    src/utils/OsTools.h \
+    src/utils/OsUtils.h \
     src/tinyxml2.h \
     src/tinyxmlhelper.h
 
@@ -92,7 +92,7 @@ SOURCES += \
     src/tools/SystemTools.cpp \
     src/commands/ParseCommand.cpp \
     src/commands/BundleCommand.cpp \
-    src/utils/OsTools.cpp \
+    src/utils/OsUtils.cpp \
     src/tinyxml2.cpp \
     src/tinyxmlhelper.cpp
 
