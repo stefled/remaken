@@ -16,7 +16,7 @@ using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 namespace http = boost::beast::http;
 using namespace std;
 namespace ssl = boost::asio::ssl;
-
+#ifdef REMAKEN_USE_BEAST
 http::status HttpFileRetriever::downloadArtefact (const std::string & source,const fs::path & dest, std::string & newLocation)
 {
     //auto const host = "www.github.com";
@@ -70,28 +70,42 @@ http::status HttpFileRetriever::downloadArtefact (const std::string & source,con
     // If we get here then the connection is closed gracefully
     return std::move(res.get().result());
 }
+#else
+http::status HttpFileRetriever::downloadArtefact (const std::string & source,const fs::path & dest, std::string & newLocation)
+{
+    boost::filesystem::path tool = bp::search_path("curl");
+    if (!tool.empty()) {
+        int result = bp::system(tool, "-L", "-f", source, "-o", dest);
+        if (result != 0) {
+            std::cout << source<<std::endl;
+            std::cout <<"Bad http response : considering 404. curl error code : " + std::to_string(static_cast<int>(result))<<std::endl;
+            // consider 404 as default error
+            return http::status::not_found;
+        }
+    }
+    else {
+        throw std::runtime_error("Curl not installed : check your installation !!!");
+    }
+    return http::status::ok;
+}
+
+#endif
 
 HttpFileRetriever::HttpFileRetriever(const CmdOptions & options):AbstractFileRetriever (options)
 {
 
 }
 
-enum HttpStatus {
-    SUCCESS = 0,
-    FAILURE = -1,
-    MOVED = 1
+static const std::map<http::status,HttpFileRetriever::HttpStatus> httpStatusConverter = {
+     { http::status::moved_permanently, HttpFileRetriever::HttpStatus::MOVED },
+     { http::status::found, HttpFileRetriever::HttpStatus::MOVED },
+     { http::status::see_other, HttpFileRetriever::HttpStatus::MOVED },
+     { http::status::temporary_redirect, HttpFileRetriever::HttpStatus::MOVED },
+     { http::status::permanent_redirect, HttpFileRetriever::HttpStatus::MOVED },
+     { http::status::ok, HttpFileRetriever::HttpStatus::SUCCESS }
 };
 
-static const std::map<http::status,HttpStatus> httpStatusConverter = {
-     { http::status::moved_permanently, HttpStatus::MOVED },
-     { http::status::found, HttpStatus::MOVED },
-     { http::status::see_other, HttpStatus::MOVED },
-     { http::status::temporary_redirect, HttpStatus::MOVED },
-     { http::status::permanent_redirect, HttpStatus::MOVED },
-     { http::status::ok, HttpStatus::SUCCESS }
-};
-
-inline HttpStatus convertStatus(const http::status & status)
+HttpFileRetriever::HttpStatus HttpFileRetriever::convertStatus(const http::status & status)
 {
     if (httpStatusConverter.find(status) == httpStatusConverter.end()) {
         return HttpStatus::FAILURE;
@@ -135,16 +149,11 @@ fs::path HttpFileRetriever::retrieveArtefact(const std::string & source)
     boost::uuids::uuid uuid = boost::uuids::random_generator()();
     fs::path output = this->m_workingDirectory / boost::uuids::to_string(uuid);
     //cpr::Response r = cpr::Get(cpr::Url{source});
-    boost::filesystem::path tool = bp::search_path("curl");
-    if (!tool.empty()) {
-        int result = bp::system(tool, "-L", "-f", source, "-o", output);
-        if (result != 0) {
-            std::cout << source<<std::endl;
-            throw std::runtime_error("Bad http response : curl error code : " + std::to_string(static_cast<int>(result)));
-        }
-    }
-    else {
-        throw std::runtime_error("Curl not installed : check your installation !!!");
+    std::string newUrl;
+    http::status status = downloadArtefact(source,output,newUrl);
+    if (status != http::status::ok) {
+        std::cout << source<<std::endl;
+        throw std::runtime_error("Bad http response : http error code : " + std::to_string(static_cast<unsigned long>(status)));
     }
     return output;
 }

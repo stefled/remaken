@@ -33,9 +33,10 @@ class CredentialsFileRetriever : public HttpFileRetriever
 public:
     CredentialsFileRetriever(const CmdOptions & options);
     ~CredentialsFileRetriever() override = default;
+    fs::path retrieveArtefact(const std::string & url) override;
 
 private:
-    boost::beast::http::status downloadArtefact (const std::string & source,const fs::path & dest, std::string & newLocation) override;
+    boost::beast::http::status downloadArtefact (const std::string & source,const fs::path & dest, std::string & newLocation);
 
     std::string m_apiKey = "";
 

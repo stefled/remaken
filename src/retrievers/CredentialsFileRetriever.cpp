@@ -17,6 +17,17 @@ namespace http = boost::beast::http;
 using namespace std;
 namespace ssl = boost::asio::ssl;
 
+
+CredentialsFileRetriever::CredentialsFileRetriever(const CmdOptions & options):HttpFileRetriever (options)
+{
+    if (options.getApiKey().empty()){
+        throw std::runtime_error("missing user api key for repository " );
+    }
+    m_apiKey = options.getApiKey();
+}
+
+
+
 http::status CredentialsFileRetriever::downloadArtefact (const std::string & source,const fs::path & dest, std::string & newLocation)
 {
     //auto const host = "www.github.com";
@@ -64,13 +75,30 @@ http::status CredentialsFileRetriever::downloadArtefact (const std::string & sou
     return std::move(res.get().result());
 }
 
-CredentialsFileRetriever::CredentialsFileRetriever(const CmdOptions & options):HttpFileRetriever (options)
+fs::path CredentialsFileRetriever::retrieveArtefact(const std::string & source)
 {
-    if (options.getApiKey().empty()){
-        throw std::runtime_error("missing user api key for repository " );
+    // LOGGER.info(std::string.format("Download file %s", url));
+    boost::uuids::uuid uuid = boost::uuids::random_generator()();
+    fs::path output = this->m_workingDirectory / boost::uuids::to_string(uuid);
+    std::string newUrl;
+    http::status status = downloadArtefact(source,output,newUrl);
+    if (status == http::status::not_found) {
+        std::string updatedSource = m_options.getOS()+ "-" + m_options.getBuildToolchain() + "_" + source;
+         status = downloadArtefact(source,output,newUrl);
+         if (status == http::status::not_found) {
+             updatedSource = m_options.getOS()+ "_" + source;
+             status = downloadArtefact(source,output,newUrl);
+         }
     }
-    m_apiKey = options.getApiKey();
+    while (convertStatus(status) == HttpStatus::MOVED) {
+        std::string newSource = newUrl;
+        status = downloadArtefact(newSource,output,newUrl);
+    }
+    if (status != http::status::ok) {
+        std::cout << source<<std::endl;
+        throw std::runtime_error("Bad http response : http error code : " + std::to_string(static_cast<unsigned long>(status)));
+    }
+    return output;
 }
-
 
 

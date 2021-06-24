@@ -31,15 +31,22 @@
 class HttpFileRetriever : public AbstractFileRetriever
 {
 public:
+    enum class HttpStatus {
+        SUCCESS = 0,
+        FAILURE = -1,
+        MOVED = 1
+    };
     HttpFileRetriever(const CmdOptions & options);
     virtual ~HttpFileRetriever() override = default;
     fs::path retrieveArtefact(const Dependency & dependency) override final;
-    fs::path retrieveArtefact(const std::string & url);
+    virtual fs::path retrieveArtefact(const std::string & url);
 
 protected:
-    virtual boost::beast::http::status downloadArtefact (const std::string & source,const fs::path & dest, std::string & newLocation);
-
+    HttpStatus convertStatus(const boost::beast::http::status & status);
     static const int m_version = 11;
+
+private:
+    boost::beast::http::status downloadArtefact (const std::string & source,const fs::path & dest, std::string & newLocation);
 };
 
 #endif // HTTPFILERETRIEVER_H
