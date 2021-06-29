@@ -386,7 +386,7 @@ std::string ConanSystemTool::computeConanRef(const Dependency &  dependency)
     sourceURL += "@";
     // decorate url for remotes other than conan-center index
     if ((dependency.getBaseRepository() != "conan-center")
-        || (dependency.getBaseRepository() != "conancenter")) {
+        && (dependency.getBaseRepository() != "conancenter")) {
         sourceURL +=  dependency.getIdentifier();
         sourceURL += "/" + dependency.getChannel();
     }
