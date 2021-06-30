@@ -66,7 +66,7 @@ public:
     ~SystemTools () = delete;
     static std::string getToolIdentifier (Dependency::Type type = Dependency::Type::SYSTEM);
     static bool isToolSupported (const std::string & tool);
-    static std::shared_ptr<BaseSystemTool> createTool (const CmdOptions & options, std::optional<Dependency::Type> dependencyTypeOpt=std::nullopt);
+    static std::shared_ptr<BaseSystemTool> createTool (const CmdOptions & options, Dependency::Type dependencyType=Dependency::Type::SYSTEM);
 };
 
 

@@ -24,7 +24,6 @@
 #define CONANFILERETRIEVER_H
 
 #include "SystemFileRetriever.h"
-#include "tools/ConanSystemTool.h"
 
 class ConanFileRetriever : public SystemFileRetriever
 {

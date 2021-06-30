@@ -32,7 +32,7 @@
 class SystemFileRetriever : public AbstractFileRetriever
 {
 public:
-    SystemFileRetriever(const CmdOptions & options, std::optional<Dependency::Type> dependencyTypeOpt=std::nullopt);
+    SystemFileRetriever(const CmdOptions & options, Dependency::Type dependencyType = Dependency::Type::SYSTEM);
     ~SystemFileRetriever() override = default;
 
 

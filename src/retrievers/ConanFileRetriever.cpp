@@ -4,9 +4,8 @@
 #include <fstream>
 using namespace std;
 
-ConanFileRetriever::ConanFileRetriever(const CmdOptions & options):SystemFileRetriever (options)
+ConanFileRetriever::ConanFileRetriever(const CmdOptions & options):SystemFileRetriever (options,Dependency::Type::CONAN)
 {
-    m_tool = std::make_shared<ConanSystemTool>(options);
 }
 
 fs::path ConanFileRetriever::bundleArtefact(const Dependency & dependency)
