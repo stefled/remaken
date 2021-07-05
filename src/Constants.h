@@ -36,7 +36,7 @@ public:
     static constexpr const char * REMAKEN_PROFILES_FOLDER = "profiles";
     static constexpr const char * REMAKEN_CACHE_FILE = ".remaken-cache";
     static constexpr const char * ARTIFACTORY_API_KEY = "artifactoryApiKey";
-    static constexpr const char * QMAKE_RULES_DEFAULT_TAG = "4.6.3";
+    static constexpr const char * QMAKE_RULES_DEFAULT_TAG = "4.6.5";
 };
 
 #include <boost/filesystem.hpp>
