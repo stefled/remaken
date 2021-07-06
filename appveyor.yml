@@ -3,6 +3,7 @@ branches:
   only:
     - develop
     - master
+    - /\d+\.\d+\.\d+/
     
 image:
   - Ubuntu1804
@@ -119,3 +120,15 @@ deploy:
   on:
     branch: master
     APPVEYOR_REPO_TAG: true
+
+- provider: GitHub
+  release: remaken-${APPVEYOR_REPO_TAG_NAME}
+  auth_token:
+    secure: WUZuOKLtErzvGojYwISnWio7doATSkiTNVWQaO1iz9ozEJQDPMIQKbF4Hzn8SkLU
+  artifact: remaken, remaken_packager
+  draft: false
+  force_update: true
+  tag: $(APPVEYOR_REPO_TAG_NAME)
+  on:
+    branch: /release/
+    APPVEYOR_REPO_TAG: true    
