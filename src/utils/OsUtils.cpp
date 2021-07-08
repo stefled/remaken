@@ -111,21 +111,15 @@ void OsUtils::copyLibraries(const fs::path & sourceRootFolder, const fs::path & 
             fileSuffix = currentPath.extension();
             currentPath = currentPath.stem();
         }
-        if (fileSuffix.string(utf8) != suffix) {
-            // not a matching lib suffix file
-            return;
-        }
-
-        auto linkStatus = fs::symlink_status(x.path());
-        if (linkStatus.type() == fs::symlink_file) {
-            if (fs::is_symlink(destinationFolderPath/filepath.filename())) {
-                fs::remove(destinationFolderPath/filepath.filename());
+        if (fileSuffix.string(utf8) == suffix) {
+            auto linkStatus = fs::symlink_status(x.path());
+            if (linkStatus.type() == fs::symlink_file) {
+                if (fs::is_symlink(destinationFolderPath/filepath.filename())) {
+                    fs::remove(destinationFolderPath/filepath.filename());
+                }
+                fs::copy_symlink(x.path(), destinationFolderPath/filepath.filename());
             }
-            fs::copy_symlink(x.path(),destinationFolderPath/filepath.filename());
-        }
-        else if (is_regular_file(filepath)) {
-
-            if (fileSuffix.string(utf8) == suffix) {
+            else if (is_regular_file(filepath)) {
                 fs::copy_file(filepath , destinationFolderPath/filepath.filename(), fs::copy_option::overwrite_if_exists);
             }
         }
