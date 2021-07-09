@@ -36,8 +36,9 @@ public:
     PkgConfigTool(const CmdOptions & options);
     virtual ~PkgConfigTool() = default;
     void addPath(const fs::path & pkgConfigPath);
-    std::string libs(const std::string & name, const std::vector<std::string> & options = {});
-    std::string cflags(const std::string & name, const std::vector<std::string> & options = {});
+
+    void libs(const std::string & name, std::vector<std::string> & libFlagList, const std::vector<std::string> & options = {});
+    void cflags(const std::string & name,  std::vector<std::string> & cFlagList, const std::vector<std::string> & options = {});
     fs::path generate(GeneratorType genType, const std::vector<std::string>&  cflags, const std::vector<std::string>&  libs,
                            Dependency::Type depType);
 

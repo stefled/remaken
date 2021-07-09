@@ -2,6 +2,7 @@
 
 #include <boost/process.hpp>
 #include <boost/predef.h>
+#include <boost/algorithm/string_regex.hpp>
 #include <string>
 #include "PkgConfigTool.h"
 
@@ -25,7 +26,7 @@ void PkgConfigTool::addPath(const fs::path & pkgConfigPath)
 }
 
 
-std::string PkgConfigTool::libs(const std::string & name, const std::vector<std::string> & options)
+void PkgConfigTool::libs(const std::string & name, std::vector<std::string> & libFlagList, const std::vector<std::string> & options)
 {
     fs::detail::utf8_codecvt_facet utf8;
     boost::asio::io_context ios;
@@ -36,10 +37,16 @@ std::string PkgConfigTool::libs(const std::string & name, const std::vector<std:
     if (result != 0) {
         throw std::runtime_error("Error running pkg-config --libs on '" + name + "'");
     }
-    return listOutputFut.get();
+    std::string res = listOutputFut.get();
+    if (res[0] == '\n') {
+        res.erase(0,1);
+    }
+    if (!res.empty()) {
+        libFlagList.push_back(res);
+    }
 }
 
-std::string PkgConfigTool::cflags(const std::string & name, const std::vector<std::string> & options)
+void PkgConfigTool::cflags(const std::string & name, std::vector<std::string> & cFlagList, const std::vector<std::string> & options)
 {
     fs::detail::utf8_codecvt_facet utf8;
     boost::asio::io_context ios;
@@ -50,8 +57,16 @@ std::string PkgConfigTool::cflags(const std::string & name, const std::vector<st
     if (result != 0) {
         throw std::runtime_error("Error running pkg-config --cflags on '" + name + "'");
     }
-    return listOutputFut.get();
+
+    std::string res = listOutputFut.get();
+    if (res[0] == '\n') {
+        res.erase(0,1);
+    }
+    if (!res.empty()) {
+        cFlagList.push_back(res);
+    }
 }
+
 
 static const std::map<Dependency::Type,std::string> type2prefixMap = {
   {Dependency::Type::BREW,"BREW"},
@@ -77,18 +92,21 @@ fs::path PkgConfigTool::generateQmake(const std::vector<std::string>&  cflags, c
     std::string libdirs, libsStr, defines;
     for (auto & cflagInfos : cflags) {
         std::vector<std::string> cflagsVect;
-        boost::split(cflagsVect, cflagInfos, [&](char c){return c == ' ';});
+        boost::split_regex(cflagsVect, cflagInfos, boost::regex( " -" ));
         for (auto & cflag: cflagsVect) {
-            std::string cflagPrefix = cflag.substr(0,2);
-            if (cflagPrefix == "-I") {
+            if (cflag[0] == '-') {
+                cflag.erase(0,1);
+            }
+            std::string cflagPrefix = cflag.substr(0,1);
+            if (cflagPrefix == "I") {
                 // remove -I
-                cflag.erase(0,2);
+                cflag.erase(0,1);
                 boost::trim(cflag);
                 fos<<prefix<<"_INCLUDEPATH += \""<<cflag<<"\""<<std::endl;
             }
-            else if (cflagPrefix == "-D") {
+            else if (cflagPrefix == "D") {
                 // remove -D
-                cflag.erase(0,2);
+                cflag.erase(0,1);
                 boost::trim(cflag);
                 defines += " " + cflag;
             }
@@ -97,17 +115,20 @@ fs::path PkgConfigTool::generateQmake(const std::vector<std::string>&  cflags, c
     fos<<prefix<<"_DEFINES += "<<defines<<std::endl;
     for (auto & libInfos : libs) {
         std::vector<std::string> optionsVect;
-        boost::split(optionsVect, libInfos, [&](char c){return c == ' ';});
+        boost::split_regex(optionsVect, libInfos, boost::regex( " -" ));
         for (auto & option: optionsVect) {
-            std::string optionPrefix = option.substr(0,2);
-            if (optionPrefix == "-L") {
-                option.erase(0,2);
+            if (option[0] == '-') {
+                option.erase(0,1);
+            }
+            std::string optionPrefix = option.substr(0,1);
+            if (optionPrefix == "L") {
+                option.erase(0,1);
                 libdirs += " -L\"" + option + "\"";
             }
             //TODO : extract lib paths from libdefs and put quotes around libs path
             else {
                 boost::trim(option);
-                libsStr += " " + option;
+                libsStr += " -" + option;
             }
         }
     }

@@ -81,9 +81,8 @@ fs::path AbstractFileRetriever::invokeGenerator(const std::vector<Dependency> & 
         pkgConfig.addPath(prefix);
         std::string prefixOpt = "--define-variable=prefix=" + prefix.generic_string(utf8);
         std::string libdirOpt = "--define-variable=libdir=" + libdir.generic_string(utf8);
-
-        cflags.push_back(pkgConfig.cflags("bcom-" + dep.getName(), {prefixOpt, libdirOpt}));
-        libs.push_back(pkgConfig.libs("bcom-" + dep.getName(), {prefixOpt, libdirOpt}));
+        pkgConfig.cflags("bcom-" + dep.getName(), cflags, {prefixOpt, libdirOpt});
+        pkgConfig.libs("bcom-" + dep.getName(), libs, {prefixOpt, libdirOpt});
     }
 
     // format CFLAGS and LIBS results

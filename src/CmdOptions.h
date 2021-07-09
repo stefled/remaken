@@ -207,6 +207,12 @@ public:
         return m_listOptions;
     }
 
+    void verboseMessage(const std::string & msg) const {
+        if (m_verbose) {
+            std::cout<<msg<<std::endl;
+        }
+    }
+
     void writeConfigurationFile() const;
     void displayConfigurationSettings() const;
 

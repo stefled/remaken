@@ -26,7 +26,7 @@ FileHandlerFactory * FileHandlerFactory::instance()
 }
 
 
-std::shared_ptr<IFileRetriever> FileHandlerFactory::getHandler(const Dependency & dependency, const CmdOptions & options, const std::string & repo)
+std::shared_ptr<IFileRetriever> FileHandlerFactory::getHandler(Dependency::Type depType, const CmdOptions & options, const std::string & repo)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
     if (!mapContains(m_handlers, repo)) {
@@ -43,7 +43,7 @@ std::shared_ptr<IFileRetriever> FileHandlerFactory::getHandler(const Dependency 
             m_handlers[repo] = make_shared<ConanFileRetriever>(options);
         }
         if (repo == "vcpkg" || repo == "system") {
-            m_handlers[repo] = make_shared<SystemFileRetriever>(options, dependency.getType());
+            m_handlers[repo] = make_shared<SystemFileRetriever>(options, depType);
         }
     }
     if (mapContains(m_handlers, repo)) {
@@ -52,12 +52,12 @@ std::shared_ptr<IFileRetriever> FileHandlerFactory::getHandler(const Dependency 
     return nullptr;
 }
 
-std::shared_ptr<IFileRetriever> FileHandlerFactory::getAlternateHandler(const Dependency & dependency,const CmdOptions & options)
+std::shared_ptr<IFileRetriever> FileHandlerFactory::getAlternateHandler(Dependency::Type depType,const CmdOptions & options)
 {
     std::string repoType = options.getAlternateRepoType();
     std::shared_ptr<IFileRetriever> retriever;
     if (!repoType.empty()) {
-        retriever = getHandler(dependency, options, repoType);
+        retriever = getHandler(depType, options, repoType);
     }
     if (!retriever) {
         // This should never happen, as command line options are validated in CmdOptions after parsing
@@ -66,12 +66,17 @@ std::shared_ptr<IFileRetriever> FileHandlerFactory::getAlternateHandler(const De
     return retriever;
 }
 
-std::shared_ptr<IFileRetriever> FileHandlerFactory::getFileHandler(const Dependency & dependency,const CmdOptions & options)
+std::shared_ptr<IFileRetriever> FileHandlerFactory::getFileHandler(Dependency::Type depType,const CmdOptions & options, const std::string & repo)
 {
-    std::shared_ptr<IFileRetriever> retriever = getHandler(dependency, options, dependency.getRepositoryType());
+    std::shared_ptr<IFileRetriever> retriever = getHandler(depType, options, repo);
     if (!retriever) {
         // This should never happen, as command line options are validated in CmdOptions after parsing
-        throw std::runtime_error("Unknown repository type " + dependency.getRepositoryType());
+        throw std::runtime_error("Unknown repository type " + repo);
     }
     return retriever;
+}
+
+std::shared_ptr<IFileRetriever> FileHandlerFactory::getFileHandler(const Dependency & dependency,const CmdOptions & options)
+{
+    return getFileHandler(dependency.getType(), options, dependency.getRepositoryType());
 }

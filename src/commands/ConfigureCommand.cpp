@@ -91,23 +91,30 @@ int ConfigureCommand::execute()
         if (mapContains(depsVectMap, Dependency::Type::CONAN)) {
             std::cout<<std::endl<<"=> Conan dependencies build information generation in progress ... please wait"<<std::endl;
             auto & depVect = depsVectMap[Dependency::Type::CONAN];
-            shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(depVect[0], m_options);
+            shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(Dependency::Type::CONAN, m_options, "conan");
             generatedFiles.push_back(fileRetriever->invokeGenerator(depVect));
             setups.push_back("conan_basic_setup");
-        }
-        if (mapContains(depsVectMap, Dependency::Type::BREW)) {
-            std::cout<<std::endl<<"=> Brew dependencies build information generation in progress ... please wait"<<std::endl;
-            auto & depVect = depsVectMap[Dependency::Type::BREW];
-            shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(depVect[0], m_options);
-            generatedFiles.push_back(fileRetriever->invokeGenerator(depVect));
-            setups.push_back("brew_basic_setup");
         }
         if (mapContains(depsVectMap, Dependency::Type::REMAKEN)) {
             std::cout<<std::endl<<"=> Remaken dependencies build information generation in progress ... please wait"<<std::endl;
             auto & depVect = depsVectMap[Dependency::Type::REMAKEN];
-            shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(depVect[0], m_options);
+            shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(Dependency::Type::REMAKEN, m_options, "github");
             generatedFiles.push_back(fileRetriever->invokeGenerator(depVect));
             setups.push_back("remaken_basic_setup");
+        }
+        if (mapContains(depsVectMap, Dependency::Type::BREW)) {
+            std::cout<<std::endl<<"=> Brew dependencies build information generation in progress ... please wait"<<std::endl;
+            auto & depVect = depsVectMap[Dependency::Type::BREW];
+            shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(Dependency::Type::BREW, m_options, "system");
+            generatedFiles.push_back(fileRetriever->invokeGenerator(depVect));
+            setups.push_back("brew_basic_setup");
+        }
+        if (mapContains(depsVectMap, Dependency::Type::SYSTEM)) {
+            std::cout<<std::endl<<"=> System dependencies build information generation in progress ... please wait"<<std::endl;
+            auto & depVect = depsVectMap[Dependency::Type::SYSTEM];
+            shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(Dependency::Type::SYSTEM, m_options, "system");
+            generatedFiles.push_back(fileRetriever->invokeGenerator(depVect));
+            setups.push_back("system_basic_setup");
         }
         std::cout<<std::endl<<"=> Generating main dependenciesBuildInfo file"<<std::endl;
 

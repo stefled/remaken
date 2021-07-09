@@ -7,10 +7,11 @@
 #include <string>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
+#include <nlohmann/json.hpp>
 
 namespace fs = boost::filesystem;
 namespace bp = boost::process;
-
+namespace nj = nlohmann;
 
 std::string BrewSystemTool::computeToolRef (const Dependency &  dependency)
 {
@@ -107,25 +108,38 @@ fs::path BrewSystemTool::invokeGenerator(const std::vector<Dependency> & deps, G
     PkgConfigTool pkgConfig(m_options);
     pkgConfig.addPath(globalBrewPkgConfigPath);
     for ( auto & dep : deps) {
-        std::cout<<"===> Adding '"<<dep.getName()<<":"<<dep.getVersion()<<"' dependency"<<std::endl;
+        std::cout<<"==> Adding '"<<dep.getName()<<":"<<dep.getVersion()<<"' dependency"<<std::endl;
         // retrieve brew sub-dependencies for 'dep'
         std::vector<std::string> depsList = split( run ("deps", dep.getPackageName()) );
         // add base dependency to check for keg-only
         depsList.push_back(dep.getPackageName());
         // search for keg-only formulae
         for (auto & subDep : depsList) {
+            m_options.verboseMessage("===> Analysing sub dependency: " + subDep);
             std::string jsonInfos = run ("info", subDep, {"--json=v1"});
-            //todo : ignore keg-only on linux
-            if (jsonInfos.find("\"keg_only\":true") != std::string::npos) { // found keg-only formulae
-                std::vector<std::string> filesList = split( run ("list", subDep) );
-                fs::path localPkgConfigPath;
-                for (auto & file : filesList) {
-                    if (file.find("pkgconfig") != std::string::npos) { // found pkgconfig path for keg-only
-                        localPkgConfigPath = file;
+            nj::json brewJsonInfos = nj::json::parse(jsonInfos);
+            //todo : ignore keg-only on linux and search keg-only
+            if (!brewJsonInfos.is_array()) {
+                throw std::runtime_error("Error: expecting a json array but brew json info is not an array");
+            }
+            if (brewJsonInfos.empty()) {
+                throw std::runtime_error("Error: brew json info array is empty");
+            }
+            if (brewJsonInfos[0].contains("keg_only")) {
+                if (brewJsonInfos[0]["keg_only"].get<bool>() == true) {
+                    // found keg-only formulae
+                    m_options.verboseMessage("   |==> " + subDep + " is 'keg-only': parsing files ...");
+                    std::vector<std::string> filesList = split( run ("list", subDep) );
+                    fs::path localPkgConfigPath;
+                    for (auto & file : filesList) {
+                        if (file.find("pkgconfig") != std::string::npos) { // found pkgconfig path for keg-only
+                            localPkgConfigPath = file;
+                        }
                     }
-                }
-                if (!localPkgConfigPath.empty()) { // add found pkgconfig to pkgConfigPath variable
-                    pkgConfig.addPath(localPkgConfigPath.parent_path());
+                    if (!localPkgConfigPath.empty()) { // add found pkgconfig to pkgConfigPath variable
+                        m_options.verboseMessage("   |==> Adding keg-only pkgconfig path: " + localPkgConfigPath.parent_path().generic_string(utf8));
+                        pkgConfig.addPath(localPkgConfigPath.parent_path());
+                    }
                 }
             }
         }
@@ -134,8 +148,8 @@ fs::path BrewSystemTool::invokeGenerator(const std::vector<Dependency> & deps, G
     // call pkg-config on dep and populate libs and cflags variables
     std::vector<std::string> cflags, libs;
     for ( auto & dep : deps) {
-        cflags.push_back(pkgConfig.cflags(dep.getName()));
-        libs.push_back(pkgConfig.libs(dep.getName()));
+        pkgConfig.cflags(dep.getName(),cflags);
+        pkgConfig.libs(dep.getName(),libs);
     }
 
     return pkgConfig.generate(generator,cflags,libs,Dependency::Type::BREW);

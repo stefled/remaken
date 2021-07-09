@@ -170,8 +170,8 @@ fs::path BaseSystemTool::invokeGenerator([[maybe_unused]] const std::vector<Depe
     // TODO:check pkg exists from pkgconfig ?
     std::vector<std::string> cflags, libs;
     for ( auto & dep : deps) {
-        cflags.push_back(pkgConfig.cflags(dep.getName()));
-        libs.push_back(pkgConfig.libs(dep.getName()));
+        pkgConfig.cflags(dep.getName(),cflags);
+        pkgConfig.libs(dep.getName(),libs);
     }
 
     // format CFLAGS and LIBS results
@@ -332,8 +332,8 @@ std::shared_ptr<BaseSystemTool> SystemTools::createTool(const CmdOptions & optio
         if (dependencyType == Dependency::Type::SCOOP) {
             return std::make_shared<ScoopSystemTool>(options);
         }
-        if (dependencyType == Dependency::Type::CHOCO)
-            || (dependencyType == Dependency::Type::SYSTEM){
+        if ((dependencyType == Dependency::Type::CHOCO)
+            || (dependencyType == Dependency::Type::SYSTEM)) {
             return std::make_shared<ChocoSystemTool>(options);
         }
 #endif
