@@ -168,6 +168,12 @@ fs::path BaseSystemTool::invokeGenerator([[maybe_unused]] const std::vector<Depe
     PkgConfigTool pkgConfig(m_options);
     // call pkg-config on dep and populate libs and cflags variables
     // TODO:check pkg exists from pkgconfig ?
+#ifdef BOOST_OS_LINUX_AVAILABLE
+    if (fs::exists("/usr/lib/x86_64-linux-gnu/pkgconfig/")) {
+        m_options.verboseMessage("==> Adding pkgconfig path: '/usr/lib/x86_64-linux-gnu/pkgconfig/'");
+        pkgConfig.addPath("/usr/lib/x86_64-linux-gnu/pkgconfig/");
+    }
+#endif
     std::vector<std::string> cflags, libs;
     for ( auto & dep : deps) {
         pkgConfig.cflags(dep.getName(),cflags);

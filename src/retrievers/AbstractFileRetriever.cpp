@@ -76,11 +76,14 @@ fs::path AbstractFileRetriever::invokeGenerator(const std::vector<Dependency> & 
     // TODO:check pkg exists from pkgconfig ?
     std::vector<std::string> cflags, libs;
     for ( auto & dep : deps) {
+        std::cout<<"==> Adding '"<<dep.getName()<<":"<<dep.getVersion()<<"' dependency"<<std::endl;
         fs::path prefix = computeLocalDependencyRootDir(dep);
         fs::path libdir = computeRootLibDir(dep);
         pkgConfig.addPath(prefix);
         std::string prefixOpt = "--define-variable=prefix=" + prefix.generic_string(utf8);
         std::string libdirOpt = "--define-variable=libdir=" + libdir.generic_string(utf8);
+        m_options.verboseMessage("===> using prefix: " + prefixOpt);
+        m_options.verboseMessage("===> using libdir: " + libdirOpt);
         pkgConfig.cflags("bcom-" + dep.getName(), cflags, {prefixOpt, libdirOpt});
         pkgConfig.libs("bcom-" + dep.getName(), libs, {prefixOpt, libdirOpt});
     }
