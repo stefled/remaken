@@ -193,9 +193,9 @@ Dependency::Dependency(const std::string & rawFormat, const std::string & mainMo
 }
 
 
-static const std::vector<std::string> repoValidation = {"artifactory","github","nexus","path","vcpkg","conan","system"};
+static const std::vector<std::string> repoValidation = {"artifactory","github","nexus","path","vcpkg","conan","system","http"};
 static const std::vector<std::string> linkModeValidation = {"static","shared","default","na"};
-static const std::map<std::string,std::vector<std::string>> unsupportedLinkModeRelations = {{"na",{"artifactory","nexus","github","path","vcpkg"}}};
+static const std::map<std::string,std::vector<std::string>> unsupportedLinkModeRelations = {{"na",{"artifactory","nexus","github","path","vcpkg","http"}}};
 static const std::vector<std::string> systemIdentifierMap = {"system","apt-get","brew","yum","choco","scoop","pkg", "pkgutil", "pacman", "zypper"};
 
 bool Dependency::validate() const

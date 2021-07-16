@@ -25,12 +25,12 @@ bool yesno_prompt(char const* prompt) {
 fs::path DepUtils::detectDependencyPath(const fs::path & folderPath, const std::string & linkMode)
 {
     fs::detail::utf8_codecvt_facet utf8;
-    std::string pkgDepFileName = "packagedependencies";
+    fs::path pkgDepFileName ("packagedependencies", utf8);
     if (linkMode == "static") {
         pkgDepFileName += "-static";
     }
     pkgDepFileName += ".txt";
-    fs::path pkgDepsPath (folderPath / pkgDepFileName, utf8);
+    fs::path pkgDepsPath = folderPath / pkgDepFileName;
     if (! fs::exists(pkgDepsPath)) {
         pkgDepsPath = folderPath / "packagedependencies.txt";
     }

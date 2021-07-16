@@ -62,8 +62,8 @@ static const map<std::string,std::vector<std::string>> validationMap ={{"action"
                                                                        {"--architecture",{"x86_64","i386","arm","arm64","arm64-v8a","armeabi-v7a","armv6","armv7","armv7hf","armv8"}},
                                                                        {"--config",{"release","debug"}},
                                                                        {"--mode",{"shared","static"}},
-                                                                       {"--type",{"github","artifactory","nexus","path"}},
-                                                                       {"--alternate-remote-type",{"github","artifactory","nexus","path"}},
+                                                                       {"--type",{"github","artifactory","nexus","path","http"}},
+                                                                       {"--alternate-remote-type",{"github","artifactory","nexus","path","http"}},
                                                                        {"--operating-system",{"mac","win","unix","android","ios","linux"}},
                                                                        {"--cpp-std",{"11","14","17","20"}}
                                                                       };
