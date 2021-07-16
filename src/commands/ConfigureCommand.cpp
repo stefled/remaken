@@ -39,7 +39,8 @@ int ConfigureCommand::execute()
         bool projectFolder = false;
         fs::path depPath = DepUtils::buildDependencyPath(m_options.getDependenciesFile());
         fs::path depFolder = depPath.parent_path();
-        std::map<std::string,bool> conditionsMap = DepUtils::parseConditionsFile(depFolder);
+        // TODO: generated configure file subfolder structure must be declared and shared with Install step function DepMgr::generateConfigureFile
+        std::map<std::string,bool> conditionsMap = DepUtils::parseConditionsFile(depFolder/"build");
         if (m_options.projectModeEnabled()) {
             m_options.setProjectRootPath(depFolder);
         }
@@ -54,8 +55,8 @@ int ConfigureCommand::execute()
             BOOST_LOG_TRIVIAL(error)<<"packagedependencies.txt parent folder is not a project folder : no .pro file found in "<<depPath.parent_path().generic_string(utf8);
             return -1;
         }
-
-        fs::path timestampPath = DepUtils::getProjectBuildSubFolder(m_options)/ ".timestamp";
+        fs::path buildProjectSubFolderPath = DepUtils::getProjectBuildSubFolder(m_options);
+        fs::path timestampPath = buildProjectSubFolderPath/ ".timestamp";
         std::chrono::duration nsDuration = std::chrono::duration_cast<std::chrono::nanoseconds> (std::chrono::system_clock::now().time_since_epoch());
         // check timestamp exists
         if (fs::exists(timestampPath) && !m_options.force()) {
@@ -75,8 +76,8 @@ int ConfigureCommand::execute()
             std::cout<<"=> Force generation: cleaning up and starting a fresh build configuration ---------"<<std::endl;
         }
 
-        fs::remove_all(DepUtils::getProjectBuildSubFolder(m_options));
-        fs::create_directories(DepUtils::getProjectBuildSubFolder(m_options));
+        fs::remove_all(buildProjectSubFolderPath);
+        fs::create_directories(buildProjectSubFolderPath);
         fs::detail::utf8_codecvt_facet utf8;
 
         std::vector<Dependency> depsVect;
@@ -118,14 +119,14 @@ int ConfigureCommand::execute()
         }
         std::cout<<std::endl<<"=> Generating main dependenciesBuildInfo file"<<std::endl;
 
-        fs::path buildSubFolderPath = DepUtils::getProjectBuildSubFolder(m_options);
-        fs::path depsInfoFilePath = buildSubFolderPath / "dependenciesBuildInfo.pri"; // extension should later depend on generator type
+        fs::path depsInfoFilePath = buildProjectSubFolderPath / "dependenciesBuildInfo.pri"; // extension should later depend on generator type
         ofstream depsOstream(depsInfoFilePath.generic_string(utf8),ios::out);
         for (auto & config : setups) {
             depsOstream<<"CONFIG += "<<config<<std::endl;
         }
+        fs::path  buildSubFolderPath = DepUtils::getBuildSubFolder(m_options);
         for (auto & file : generatedFiles) {
-            depsOstream<<"include($$_PRO_FILE_PWD_/build/"<<m_options.getConfig()<<"/"<<file.filename().generic_string(utf8)<<")\n";
+            depsOstream<<"include($$_PRO_FILE_PWD_/"<<buildSubFolderPath.generic_string(utf8)<<"/"<<file.filename().generic_string(utf8)<<")\n";
         }
         depsOstream.close();
         std::ofstream fos(timestampPath.generic_string(utf8),std::ios::out);

@@ -22,6 +22,24 @@ bool yesno_prompt(char const* prompt) {
     }
 }
 
+fs::path DepUtils::detectDependencyPath(const fs::path & folderPath, const std::string & linkMode)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    std::string pkgDepFileName = "packagedependencies";
+    if (linkMode == "static") {
+        pkgDepFileName += "-static";
+    }
+    pkgDepFileName += ".txt";
+    fs::path pkgDepsPath (folderPath / pkgDepFileName, utf8);
+    if (! fs::exists(pkgDepsPath)) {
+        pkgDepsPath = folderPath / "packagedependencies.txt";
+    }
+    if (!fs::exists(pkgDepsPath)) {
+        throw std::runtime_error("The file does not exists " + pkgDepsPath.generic_string(utf8));
+    }
+    return pkgDepsPath;
+}
+
 fs::path DepUtils::buildDependencyPath(const std::string & filePath)
 {
     fs::detail::utf8_codecvt_facet utf8;
@@ -39,9 +57,18 @@ fs::path DepUtils::buildDependencyPath(const std::string & filePath)
     return dependenciesFile;
 }
 
+fs::path DepUtils::getBuildSubFolder(const CmdOptions & options)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    fs::path targetPath ("build", utf8);
+    targetPath /= options.getMode();
+    targetPath /= options.getConfig();
+    return targetPath;
+}
+
 fs::path DepUtils::getProjectBuildSubFolder(const CmdOptions & options)
 {
-    fs::path targetPath = options.getProjectRootPath() / "build" / options.getConfig();
+    fs::path targetPath = options.getProjectRootPath() /getBuildSubFolder(options);
     return targetPath;
 }
 

@@ -300,6 +300,7 @@ void CmdOptions::validateOptions()
         throw std::runtime_error("Error : " + m_zipTool + " command not found on the system. Please install it first.");
     }
     m_crossCompile = (m_os != computeOS());
+    // TODO : if linkmode=static and pkgdep = path/to/pkgdep.txt should we replace pkgdep with path/to/pkgdep-static.txt when the file exists ?
 }
 
 CmdOptions::OptionResult CmdOptions::parseArguments(int argc, char** argv)

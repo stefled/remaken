@@ -96,6 +96,10 @@ remaken can be used to ease application run by gathering all shared libraries pa
 
 For each project, a packagedependencies.txt file can be created in the root project folder.
 
+For dependencies specific to a particular os, a packagedependencies-[os].txt can also be created in the root project folder (os is a value in {android, linux, mac, win } ).
+
+The project build rules (builddefs-qmake for instance) will generate a packagedependencies.txt containing the build informations and will gather the dependencies in the original packagedependencies.txt and packagedependencies-[os].txt for the target os the build is run for.
+
 Each line follows the pattern :
 
 ```framework#channel | version | [condition]%library name | identifier@repository_type | repository_url | link_mode | options```
@@ -103,7 +107,7 @@ Each line follows the pattern :
 
 | ```framework#channel``` | ```version``` | ```[condition]%library name``` | ```repository_type``` | ```repository_url``` | ```link_mode``` | ```options```|
 |---|---|---|---|---|---|---|
-|---|---|---| a value in: [ artifactory, nexus, github, vcpkg, conan, system, path : local or network filesystem root path hosting the dependencies ]|---|optional value in : [ static, shared, default (inherits the project's link mode), na (not applicable) ]|---|
+|---|---|---| a value in: [ artifactory, nexus, github or http (http or https public repositories), vcpkg, conan, system, path : local or network filesystem root path hosting the dependencies ]|---|optional value in : [ static, shared, default (inherits the project's link mode), na (not applicable) ]|---|
 
 When link_mode is not provided :
 

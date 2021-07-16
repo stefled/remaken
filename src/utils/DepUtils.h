@@ -40,6 +40,8 @@ public:
     DepUtils() = delete;
     ~DepUtils() = delete;
     static fs::path buildDependencyPath(const std::string & filePath);
+    fs::path detectDependencyPath(const fs::path & folderPath, const std::string & linkMode);
+    static fs::path getBuildSubFolder(const CmdOptions & options);
     static fs::path getProjectBuildSubFolder(const CmdOptions & options);
     static std::vector<fs::path> getChildrenDependencies(const fs::path & outputDirectory, const std::string & osPlatform, const std::string & filePrefix = "packagedependencies");
     static std::vector<Dependency> parse(const fs::path & dependenciesPath, const std::string & linkMode);

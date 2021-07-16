@@ -10,6 +10,7 @@ const std::map<std::string,Dependency::Type> str2type = {
     {"artifactory",Dependency::Type::REMAKEN},
     {"nexus",Dependency::Type::REMAKEN},
     {"github",Dependency::Type::REMAKEN},
+    {"http",Dependency::Type::REMAKEN},
     {"path",Dependency::Type::REMAKEN},
     {"conan",Dependency::Type::CONAN},
     {"system",Dependency::Type::SYSTEM},

@@ -30,7 +30,8 @@ std::shared_ptr<IFileRetriever> FileHandlerFactory::getHandler(Dependency::Type 
 {
     std::lock_guard<std::mutex> lock(m_mutex);
     if (!mapContains(m_handlers, repo)) {
-        if (repo == "github") {
+        if ((repo == "github") ||
+            (repo == "http")) {
             m_handlers[repo] = make_shared<HttpFileRetriever>(options);
         }
         if ((repo == "artifactory") || (repo == "nexus")) {
