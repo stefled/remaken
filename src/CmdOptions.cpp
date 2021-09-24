@@ -184,7 +184,7 @@ CmdOptions::CmdOptions()
     CLI::App * installCommand = m_cliApp.add_subcommand("install", "install dependencies for a package from its packagedependencies file(s)");
     installCommand->add_option("--alternate-remote-type,-l", m_altRepoType, "alternate remote type: " + getOptionString("--alternate-remote-type"));
     installCommand->add_option("--alternate-remote-url,-u", m_altRepoUrl, "alternate remote url to use when the declared remote fails to provide a dependency");
-    installCommand->add_option("--invert-remote-order", m_invertRepositoryOrder, "invert alternate and base remote search order : alternate remote is searched before packagedependencies declared remote", true);
+    installCommand->add_flag("--invert-remote-order", m_invertRepositoryOrder, "invert alternate and base remote search order : alternate remote is searched before packagedependencies declared remote");
     installCommand->add_option("--apiKey,-k", m_apiKey, "Artifactory api key");
     installCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files", true);
     installCommand->add_option("--conan_profile", m_conanProfile, "force conan profile name to use (overrides detected profile)",true);
