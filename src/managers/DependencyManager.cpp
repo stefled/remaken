@@ -176,6 +176,7 @@ void DependencyManager::retrieveDependency(Dependency &  dependency)
 {
     fs::detail::utf8_codecvt_facet utf8;
     shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(dependency, m_options);
+    std::string currentRepositoryType = dependency.getRepositoryType();
     if (m_options.invertRepositoryOrder() && dependency.getType() == Dependency::Type::REMAKEN) {// what about cache management in this case ?
         fileRetriever = FileHandlerFactory::instance()->getAlternateHandler(dependency.getType(),m_options);
         if (!fileRetriever) { // no alternate repository found
@@ -183,6 +184,7 @@ void DependencyManager::retrieveDependency(Dependency &  dependency)
             throw std::runtime_error("No alternate repository defined for '" + dependency.getPackageName() +":" +dependency.getVersion() + "'");
         }
         dependency.changeBaseRepository(m_options.getAlternateRepoUrl());
+        currentRepositoryType = m_options.getAlternateRepoType();
     }
     std::string source = fileRetriever->computeSourcePath(dependency);
     fs::path outputDirectory = fileRetriever->computeLocalDependencyRootDir(dependency);
@@ -190,7 +192,7 @@ void DependencyManager::retrieveDependency(Dependency &  dependency)
     fs::path binDirectory = fileRetriever->computeRootBinDir(dependency);
     if (installDep(dependency, source, outputDirectory, libDirectory, binDirectory) || m_options.force()) {
         try {
-            std::cout<<"=> Installing "<<dependency.getRepositoryType()<<"::"<<source<<std::endl;
+            std::cout<<"=> Installing "<<currentRepositoryType<<"::"<<source<<std::endl;
             try {
                 outputDirectory = fileRetriever->installArtefact(dependency);
             }
@@ -200,7 +202,7 @@ void DependencyManager::retrieveDependency(Dependency &  dependency)
                     fileRetriever = FileHandlerFactory::instance()->getFileHandler(dependency, m_options);
                 }
                 if (!fileRetriever) { // no alternate repository found
-                    BOOST_LOG_TRIVIAL(error)<<"==> Unable to find '"<<dependency.getPackageName()<<":"<<dependency.getVersion()<<"' on "<<dependency.getRepositoryType()<<"('"<<dependency.getBaseRepository()<<"')";
+                    BOOST_LOG_TRIVIAL(error)<<"==> Unable to find '"<<dependency.getPackageName()<<":"<<dependency.getVersion()<<"' on "<<currentRepositoryType<<"('"<<dependency.getBaseRepository()<<"')";
                     throw std::runtime_error(e.what());
                 }
                 else {
