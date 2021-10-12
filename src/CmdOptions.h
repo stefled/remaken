@@ -129,6 +129,10 @@ public:
         return m_moduleSubfolderPath;
     }
 
+    bool invertRepositoryOrder () const {
+        return m_invertRepositoryOrder;
+    }
+
     bool useCache() const {
         return !m_ignoreCache;
     }
@@ -252,6 +256,7 @@ private:
     std::string m_conanProfile = "default";
     fs::path m_moduleSubfolderPath;
     bool m_ignoreCache;
+    bool m_invertRepositoryOrder = false;
     bool m_verbose;
     bool m_recurse;
     bool m_regex = false;

@@ -190,6 +190,7 @@ Dependency::Dependency(const std::string & rawFormat, const std::string & mainMo
             m_bHasOptions = true;
         }
     }
+    m_originalBaseRepository = m_baseRepository;
 }
 
 

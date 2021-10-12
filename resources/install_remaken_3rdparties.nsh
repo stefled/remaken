@@ -153,8 +153,12 @@ SectionGroup /e "Chocolatey" CHOCO_TOOLS
 		;always install/update conan
 		;IfFileExists $1\Python3\Scripts\conan.exe conan_exists
 			ExecWait '$python_install_dir\Scripts\pip install --upgrade conan'
-			ExecWait '$python_install_dir\Scripts\conan remote add --force --insert 0 conan-community https://api.bintray.com/conan/conan-community/conan'
-			ExecWait '$python_install_dir\Scripts\conan remote add --force bincrafters https://api.bintray.com/conan/bincrafters/public-conan'
+			# remove old conan-commnunity remote
+			ExecWait '$python_install_dir\Scripts\conan remote remove conan-community'
+			# update binCrafters remote url
+			ExecWait '$python_install_dir\Scripts\conan remote add --force bincrafters https://bincrafters.jfrog.io/artifactory/api/conan/public-conan'
+			# config for binCrafters remote
+			ExecWait '$python_install_dir\Scripts\conan config set general.revisions_enabled=1'
 		;conan_exists:
 	SectionEnd	
 	Section "pkg-config" CHOCO_TOOLS_PKG_CONFIG

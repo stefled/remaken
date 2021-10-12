@@ -83,7 +83,7 @@ const std::string_view & OsUtils::sharedSuffix(const std::string_view & osStr)
 const std::string_view & OsUtils::sharedLibraryPathEnvName(const std::string_view & osStr)
 {
     if (os2sharedPathEnv.find(osStr) == os2sharedPathEnv.end()) {
-        return os2sharedSuffix.at("unix");
+        return os2sharedPathEnv.at("unix");
     }
     return os2sharedPathEnv.at(osStr);
 }

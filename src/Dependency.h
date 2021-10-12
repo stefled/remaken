@@ -72,6 +72,11 @@ public:
         m_baseRepository = otherRepo;
     }
 
+    inline void resetBaseRepository() {
+        m_baseRepository = m_originalBaseRepository;
+    }
+
+
     inline const std::string & getMode() const  {
         return m_mode;
     }
@@ -122,6 +127,7 @@ private:
     std::string m_name;
     std::string m_version;
     std::string m_baseRepository;
+    std::string m_originalBaseRepository;
     std::string m_identifier;
     std::string m_repositoryType;
     std::string m_mode;
