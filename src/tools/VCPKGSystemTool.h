@@ -33,6 +33,7 @@ public:
     ~VCPKGSystemTool() override = default;
     void update() override;
     void bundle(const Dependency & dependency) override;
+    void bundleScript ([[maybe_unused]] const Dependency & dependency, [[maybe_unused]] const fs::path & scriptFile) override {}
     void install(const Dependency & dependency) override;
     bool installed(const Dependency & dependency) override;
     std::vector<fs::path> binPaths(const Dependency & dependency) override;
@@ -44,6 +45,9 @@ protected:
     std::vector<fs::path> retrievePaths(const Dependency & dependency, BaseSystemTool::PathType pathType);
     std::string computeToolRef( const Dependency &  dependency) override;
 
+
+private:
+    std::string retrieveInstallCommand(const Dependency & dependency) override;
 };
 
 

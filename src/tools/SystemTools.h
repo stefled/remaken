@@ -41,9 +41,8 @@ public:
     BaseSystemTool(const CmdOptions & options, const std::string & installer);
     virtual ~BaseSystemTool() = default;
     virtual void update() = 0;
-    virtual void bundle ([[maybe_unused]] const Dependency & dependency) {
-        BOOST_LOG_TRIVIAL(warning)<<"bundle() not implemented yet for tool "<<m_systemInstallerPath;
-    }
+    virtual void bundle ([[maybe_unused]] const Dependency & dependency) = 0;
+    virtual void bundleScript ([[maybe_unused]] const Dependency & dependency, [[maybe_unused]] const fs::path & scriptFile) = 0;
     virtual void install (const Dependency & dependency) = 0;
     virtual bool installed (const Dependency & dependency) = 0;
     virtual std::vector<fs::path> binPaths ([[maybe_unused]] const Dependency & dependency);
@@ -53,6 +52,7 @@ public:
     virtual fs::path invokeGenerator([[maybe_unused]] const std::vector<Dependency> & deps, [[maybe_unused]] GeneratorType generator);
 
 protected:
+    virtual std::string retrieveInstallCommand(const Dependency & dependency) = 0;
     virtual std::string computeToolRef ( const Dependency &  dependency);
     fs::path m_systemInstallerPath;
     fs::path m_sudoCmd;

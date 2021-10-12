@@ -43,8 +43,15 @@ std::shared_ptr<IFileRetriever> FileHandlerFactory::getHandler(Dependency::Type 
         if (repo == "conan") {
             m_handlers[repo] = make_shared<ConanFileRetriever>(options);
         }
-        if (repo == "vcpkg" || repo == "system") {
+        if (repo == "vcpkg") {
             m_handlers[repo] = make_shared<SystemFileRetriever>(options, depType);
+        }
+        if (repo == "system") {
+            std::string repoValue = repo;
+            if (depType != Dependency::Type::SYSTEM) {
+                repoValue = to_string(depType);
+            }
+            m_handlers[repoValue] = make_shared<SystemFileRetriever>(options, depType);
         }
     }
     if (mapContains(m_handlers, repo)) {

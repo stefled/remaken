@@ -47,6 +47,7 @@ public:
 
 protected:
     std::shared_ptr<BaseSystemTool> m_tool;
+    fs::path m_scriptFilePath;
 };
 
 #endif // SYSTEMFILERETRIEVER_H

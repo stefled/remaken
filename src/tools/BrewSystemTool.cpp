@@ -88,6 +88,15 @@ void BrewSystemTool::install (const Dependency & dependency)
     }
 }
 
+std::string BrewSystemTool::retrieveInstallCommand(const Dependency & dependency)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    std::string source = computeToolRef(dependency);
+    std::string installCmd = m_systemInstallerPath.generic_string(utf8);
+    installCmd += " install " + source;
+    return installCmd;
+}
+
 fs::path BrewSystemTool::invokeGenerator(const std::vector<Dependency> & deps, GeneratorType generator)
 {
     static const std::map<std::string,std::string> brewRootPathMap = {

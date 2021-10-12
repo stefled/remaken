@@ -22,6 +22,25 @@ const std::map<std::string,Dependency::Type> str2type = {
     {"yum",Dependency::Type::SYSTEM}
 };
 
+const std::map<Dependency::Type,std::string> typeToStringMap =
+{
+    {Dependency::Type::REMAKEN,"remaken"},
+    {Dependency::Type::BREW,"brew"},
+    {Dependency::Type::CHOCO,"choco"},
+    {Dependency::Type::CONAN,"conan"},
+    {Dependency::Type::SCOOP,"scoop"},
+    {Dependency::Type::VCPKG,"vcpkg"},
+    {Dependency::Type::SYSTEM,"system"}
+};
+
+std::string to_string(Dependency::Type type)
+{
+    if (!mapContains(typeToStringMap, type)) {
+        throw std::runtime_error("Error: unable to find tool identifier for type " + std::to_string(static_cast<uint32_t>(type)));
+    }
+    return typeToStringMap.at(type);
+}
+
 Dependency::Type deduceType(const std::string typeStr)
 {
     if (str2type.find(typeStr) != str2type.end()) {

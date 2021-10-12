@@ -49,7 +49,7 @@ void ConanSystemTool::bundle(const Dependency & dependency)
 
     std::vector<fs::path> libPaths = retrievePaths(dependency, BaseSystemTool::PathType::LIB_PATHS, destination);
 
-    for (auto libPath : libPaths) {
+    for (auto & libPath : libPaths) {
         if (boost::filesystem::exists(libPath)) {
             OsUtils::copySharedLibraries(libPath, m_options);
         }
@@ -97,6 +97,44 @@ void ConanSystemTool::install(const Dependency & dependency)
     if (result != 0) {
         throw std::runtime_error("Error installing conan dependency : " + source);
     }
+}
+
+std::string ConanSystemTool::retrieveInstallCommand(const Dependency & dependency)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    std::string source = computeToolRef(dependency);
+    std::string installCmd = m_systemInstallerPath.generic_string(utf8);
+    installCmd += " install ";
+    if (dependency.getMode() != "na") {
+            std::string buildMode = "shared=True";
+            if (dependency.getMode() == "static") {
+                buildMode = "shared=False";
+            }
+            installCmd += " -o " + buildMode;
+    }
+    std::string buildType = "build_type=Debug";
+    if (m_options.getConfig() == "release") {
+        buildType = "build_type=Release";
+    }
+    if (mapContains(conanArchTranslationMap, m_options.getArchitecture())) {
+        installCmd += " -s arch="+ conanArchTranslationMap.at(m_options.getArchitecture());
+    }
+    installCmd += " -s " + buildType;
+    installCmd += " -s compiler.cppstd=" + m_options.getCppVersion();
+    std::string profileName = m_options.getConanProfile();
+    if (m_options.crossCompiling() && m_options.getConanProfile() == "default") {
+        profileName = m_options.getOS() + "-" + m_options.getBuildToolchain() + "-" + m_options.getArchitecture();
+    }
+    installCmd += " -pr " + profileName;
+
+    if (dependency.hasOptions()) {
+        std::vector<std::string> options;
+        boost::split(options, dependency.getToolOptions(), [](char c){return c == '#';});
+        for (const auto & option: options) {
+            installCmd += " -o " + option;
+        }
+    }
+    return installCmd;
 }
 
 std::vector<std::string> ConanSystemTool::buildOptions(const Dependency & dep)

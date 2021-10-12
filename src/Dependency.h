@@ -139,6 +139,8 @@ private:
     bool m_bHasIdentifier = false;
 };
 
+std::string to_string(Dependency::Type type);
+
 template <typename T>
 std::string log(const T & t);
 

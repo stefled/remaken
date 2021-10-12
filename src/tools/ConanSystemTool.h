@@ -48,6 +48,7 @@ public:
     ~ConanSystemTool() override = default;
     void update() override;
     void bundle(const Dependency & dependency) override;
+    void bundleScript ([[maybe_unused]] const Dependency & dependency, [[maybe_unused]] const fs::path & scriptFile) override {}
     void install(const Dependency & dependency) override;
     bool installed(const Dependency & dependency) override;
     std::vector<fs::path> binPaths(const Dependency & dependency) override;
@@ -58,6 +59,7 @@ public:
     std::vector<std::string> buildOptions(const Dependency & dep);
 
 private:
+    std::string retrieveInstallCommand(const Dependency & dependency) override;
     fs::path createConanFile(const std::vector<Dependency> & deps);
     std::string computeToolRef( const Dependency &  dependency) override;
     std::string computeConanRef( const Dependency &  dependency, bool cliMode = false);

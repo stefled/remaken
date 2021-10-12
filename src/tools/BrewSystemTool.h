@@ -32,6 +32,7 @@ public:
     ~BrewSystemTool() override = default;
     void update() override;    
     void bundle(const Dependency & dependency) override;
+    void bundleScript ([[maybe_unused]] const Dependency & dependency, [[maybe_unused]] const fs::path & scriptFile) override {}
     void install(const Dependency & dependency) override;
     bool installed(const Dependency & dependency) override;
     fs::path invokeGenerator(const std::vector<Dependency> & deps, GeneratorType generator) override;
@@ -39,6 +40,7 @@ public:
     std::vector<fs::path> libPaths([[maybe_unused]] const Dependency & dependency) override;
 
 private:
+    std::string retrieveInstallCommand(const Dependency & dependency) override;
     std::vector<std::string> split(const std::string & str, char splitChar = '\n');
     std::string run(const std::string & command, const std::string & depName, const std::vector<std::string> & options = {});
     void bundleLib(const std::string & libPath);

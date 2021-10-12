@@ -10,12 +10,17 @@ namespace bp = boost::process;
 SystemFileRetriever::SystemFileRetriever(const CmdOptions & options, Dependency::Type dependencyType):AbstractFileRetriever (options)
 {
     m_tool = SystemTools::createTool(options, dependencyType);
+    m_scriptFilePath =  m_options.getDestinationRoot() / "bundle_system_install.sh";
+    if (fs::exists(m_scriptFilePath)) {
+        fs::remove(m_scriptFilePath);
+    }
 }
 
 fs::path SystemFileRetriever::bundleArtefact(const Dependency & dependency)
 {
     m_tool->bundle(dependency);
     fs::path outputDirectory = computeLocalDependencyRootDir(dependency);
+    m_tool->bundleScript(dependency, m_scriptFilePath);
     return outputDirectory;
 }
 

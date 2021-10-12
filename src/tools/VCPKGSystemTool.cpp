@@ -86,6 +86,15 @@ bool VCPKGSystemTool::installed(const Dependency & dependency)
     return false;
 }
 
+std::string VCPKGSystemTool::retrieveInstallCommand(const Dependency & dependency)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    std::string source = computeToolRef(dependency);
+    std::string installCmd = m_systemInstallerPath.generic_string(utf8);
+    installCmd += " install " + source;
+    return installCmd;
+}
+
 fs::path VCPKGSystemTool::computeLocalDependencyRootDir( const Dependency &  dependency)
 {
     std::string mode = dependency.getMode();

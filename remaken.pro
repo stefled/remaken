@@ -1,5 +1,5 @@
 TARGET = remaken
-VERSION=1.8.1
+VERSION=1.9.0
 
 CONFIG += c++1z
 CONFIG += console
@@ -51,6 +51,7 @@ HEADERS += \
     src/commands/InitCommand.h \
     src/commands/InstallCommand.h \
     src/commands/PackageCommand.h \
+    src/tools/NativeSystemTools.h \
     src/tools/PkgConfigTool.h \
     src/utils/DepUtils.h \
     src/utils/OsUtils.h \
@@ -90,6 +91,7 @@ SOURCES += \
     src/commands/InfoCommand.cpp \
     src/commands/PackageCommand.cpp \
     src/commands/InitCommand.cpp \
+    src/tools/NativeSystemTools.cpp \
     src/tools/PkgConfigTool.cpp \
     src/utils/DepUtils.cpp \
     src/utils/OsUtils.cpp \
