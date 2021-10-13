@@ -143,7 +143,8 @@ void BundleManager::bundleDependencies(const fs::path &  dependenciesFile)
                 if (dependency.getType() == Dependency::Type::REMAKEN
                         || dependency.getType() == Dependency::Type::CONAN
                         || dependency.getType() == Dependency::Type::BREW
-                        || dependency.getType() == Dependency::Type::VCPKG) {
+                        || dependency.getType() == Dependency::Type::VCPKG
+                        || dependency.getType() == Dependency::Type::SYSTEM) {
                     if (!mapContains(m_ignoredPackages, dependency.getPackageName())) {
                         bundleDependency(dependency);
                     }

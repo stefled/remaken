@@ -14,9 +14,12 @@ void NativeSystemTool::bundleScript ([[maybe_unused]] const Dependency & depende
 {
     fs::detail::utf8_codecvt_facet utf8;
     std::string cmd = retrieveInstallCommand(dependency);
+
+#if defined(BOOST_OS_MACOS_AVAILABLE) || defined(BOOST_OS_LINUX_AVAILABLE)
     ofstream fos(scriptFile.generic_string(utf8),ios::out|ios::app);
     fos<<cmd<< '\n';
     fos.close();
+#endif
 }
 
 void AptSystemTool::update()

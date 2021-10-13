@@ -3,17 +3,27 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/process.hpp>
+#include <boost/predef.h>
+#include <fstream>
+using namespace std;
 
 namespace fs = boost::filesystem;
 namespace bp = boost::process;
 
 SystemFileRetriever::SystemFileRetriever(const CmdOptions & options, Dependency::Type dependencyType):AbstractFileRetriever (options)
 {
+    fs::detail::utf8_codecvt_facet utf8;
     m_tool = SystemTools::createTool(options, dependencyType);
+#if defined(BOOST_OS_MACOS_AVAILABLE) || defined(BOOST_OS_LINUX_AVAILABLE)
     m_scriptFilePath =  m_options.getDestinationRoot() / "bundle_system_install.sh";
     if (fs::exists(m_scriptFilePath)) {
         fs::remove(m_scriptFilePath);
     }
+    ofstream fos(m_scriptFilePath.generic_string(utf8),ios::out);
+    fos<<"#!/bin/bash"<< '\n';
+    fos.close();
+    fs::permissions(m_scriptFilePath, fs::add_perms|fs::owner_exe|fs::group_exe|fs::others_exe);
+#endif
 }
 
 fs::path SystemFileRetriever::bundleArtefact(const Dependency & dependency)
