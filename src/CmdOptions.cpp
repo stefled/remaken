@@ -92,6 +92,7 @@ CmdOptions::CmdOptions()
     if (rootDirectoryVar != nullptr) {
         std::cerr<<Constants::REMAKENPKGROOT<<" environment variable exists"<<std::endl;
         remakenRootPath = rootDirectoryVar;
+        std::cout<<Constants::REMAKENPKGROOT<<" = "<< remakenRootPath.generic_string(utf8) <<std::endl;
     }
     else if (fs::exists(remakenRootPath / Constants::REMAKENPKGFILENAME)) {
         fs::path pkgFile = remakenRootPath / Constants::REMAKENPKGFILENAME;
@@ -119,7 +120,7 @@ CmdOptions::CmdOptions()
     m_cppVersion = "11";
     m_cliApp.add_option("--cpp-std",m_cppVersion, "c++ standard version: " + getOptionString("--cpp-std"), true);
     m_remakenRoot = remakenRootPath.generic_string(utf8);
-    m_cliApp.add_option("--remaken-root,-r", m_remakenRoot, "Remaken root directory", true);
+    m_cliApp.add_option("--remaken-root,-r", m_remakenRoot, "Remaken packages root directory", true);
     m_toolchain = computeToolChain();
     m_cliApp.add_option("--build-toolchain,-b", m_toolchain, "Build toolchain: clang, clang-version, "
                                                              "gcc-version, cl-version .. ex: cl-14.1", true);

@@ -22,13 +22,22 @@ All qmake rules are retrieved from [builddefs-qmake](https://github.com/b-com-so
 
 The ```remaken init``` command also supports the ```--force``` (alias ```-f```) to force reinstalling qmake rules and/or ```--override```  (alias ```-e```) to override existing files.
 
+### Set remaken packages root folder
+The remaken packages folder is the location where packages are installed, searched from ...
+This folder defaults to ```$(HOME)/.remaken/packages```.
+It can be changed in various ways:
+- define the ```REMAKEN_PKG_ROOT``` environment variable to another location
+- create a ```.packagespath``` file in remaken root folder  ```$(HOME)/.remaken```. In this file, provide the path to your packages folder in the first line
+- provide the package path with the ```--remaken-root``` parameter from remaken command line invocation
+- put the ```remaken-root``` parameter and its value in the remaken ```config``` file in located in ```$(HOME)/.remaken```
+
 ### Installing dependencies
 add conditions configuration description
 ```remaken install [--conan_profile conan_profile_name] [-r  path_to_remaken_root] -i [-o linux] -t github [-l nexus -u http://url_to_root_nexus_repo] [--cpp-std 17] [-c debug|release] [--project_mode,-p] [path_to_remaken_dependencies_description_file.txt] ```
 
 **Notes:**
  
-- remaken_root defaults to ```$(HOME)/.remaken``` or if ```REMAKEN_ROOT``` environment variable is defined to ```${REMAKEN_ROOT)```. ```REMAKEN_ROOT``` contains ```.remaken``` folder
+- remaken_root defaults to ```$(HOME)/.remaken/packages``` or if ```REMAKEN_PKG_ROOT``` environment variable is defined, it defaults  to ```${REMAKEN_PKG_ROOT}```.
 - ```remaken_dependencies_description_file``` defaults to current folder ```packagedependencies.txt```file
 - ```[--project_mode,-p]```: enable project mode to generate project build files from packaging tools (conanbuildinfo.xxx, conanfile.txt ...).
    
