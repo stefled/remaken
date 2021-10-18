@@ -132,7 +132,8 @@ void BundleManager::bundleDependency(const Dependency & dependency)
 
 void BundleManager::bundleDependencies(const fs::path &  dependenciesFile)
 {
-    std::vector<fs::path> dependenciesFileList = DepUtils::getChildrenDependencies(dependenciesFile.parent_path(), m_options.getOS());
+    fs::detail::utf8_codecvt_facet utf8;
+    std::vector<fs::path> dependenciesFileList = DepUtils::getChildrenDependencies(dependenciesFile.parent_path(), m_options.getOS(),dependenciesFile.stem().generic_string(utf8));
     for (fs::path const & depsFile : dependenciesFileList) {
         if (fs::exists(depsFile)) {
             std::vector<Dependency> dependencies = DepUtils::parse(depsFile, m_options.getMode());

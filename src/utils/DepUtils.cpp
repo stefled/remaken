@@ -190,7 +190,8 @@ std::vector<Dependency> DepUtils::parse(const fs::path &  dependenciesPath, cons
 
 void DepUtils::parseRecurse(const fs::path &  dependenciesPath, const CmdOptions & options, std::vector<Dependency> & deps)
 {
-    std::vector<fs::path> dependenciesFileList = getChildrenDependencies(dependenciesPath.parent_path(), options.getOS());
+    fs::detail::utf8_codecvt_facet utf8;
+    std::vector<fs::path> dependenciesFileList = getChildrenDependencies(dependenciesPath.parent_path(), options.getOS(), dependenciesPath.stem().generic_string(utf8));
     for (fs::path & depsFile : dependenciesFileList) {
         if (fs::exists(depsFile)) {
             std::vector<Dependency> dependencies = parse(depsFile, options.getMode());
@@ -241,7 +242,8 @@ void displayInfo(const Dependency& d, uint32_t indentLevel)
 void DepUtils::readInfos(const fs::path &  dependenciesFile, const CmdOptions & options, uint32_t indentLevel)
 {
     indentLevel ++;
-    std::vector<fs::path> dependenciesFileList = DepUtils::getChildrenDependencies(dependenciesFile.parent_path(), options.getOS());
+    fs::detail::utf8_codecvt_facet utf8;
+    std::vector<fs::path> dependenciesFileList = DepUtils::getChildrenDependencies(dependenciesFile.parent_path(), options.getOS(), dependenciesFile.stem().generic_string(utf8));
     for (fs::path depsFile : dependenciesFileList) {
         if (fs::exists(depsFile)) {
             std::vector<Dependency> dependencies = DepUtils::parse(depsFile, options.getMode());
