@@ -29,33 +29,35 @@ FileHandlerFactory * FileHandlerFactory::instance()
 std::shared_ptr<IFileRetriever> FileHandlerFactory::getHandler(Dependency::Type depType, const CmdOptions & options, const std::string & repo)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
-    if (!mapContains(m_handlers, repo)) {
-        if ((repo == "github") ||
-            (repo == "http")) {
-            m_handlers[repo] = make_shared<HttpFileRetriever>(options);
-        }
-        if ((repo == "artifactory") || (repo == "nexus")) {
-            m_handlers[repo] = make_shared<CredentialsFileRetriever>(options);
-        }
-        if (repo == "path") {
-            m_handlers[repo] = make_shared<FSFileRetriever>(options);
-        }
-        if (repo == "conan") {
-            m_handlers[repo] = make_shared<ConanFileRetriever>(options);
-        }
-        if (repo == "vcpkg") {
-            m_handlers[repo] = make_shared<SystemFileRetriever>(options, depType);
-        }
-        if (repo == "system") {
-            std::string repoValue = repo;
-            if (depType != Dependency::Type::SYSTEM) {
-                repoValue = to_string(depType);
-            }
-            m_handlers[repoValue] = make_shared<SystemFileRetriever>(options, depType);
+    std::string finalRepo = repo;
+    if (repo == "system") {
+        if (depType != Dependency::Type::SYSTEM) {
+            finalRepo = to_string(depType);
         }
     }
-    if (mapContains(m_handlers, repo)) {
-        return m_handlers.at(repo);
+    if (!mapContains(m_handlers, finalRepo)) {
+        if ((finalRepo == "github") ||
+            (finalRepo == "http")) {
+            m_handlers[finalRepo] = make_shared<HttpFileRetriever>(options);
+        }
+        if ((finalRepo == "artifactory") || (finalRepo == "nexus")) {
+            m_handlers[finalRepo] = make_shared<CredentialsFileRetriever>(options);
+        }
+        if (finalRepo == "path") {
+            m_handlers[finalRepo] = make_shared<FSFileRetriever>(options);
+        }
+        if (finalRepo == "conan") {
+            m_handlers[repo] = make_shared<ConanFileRetriever>(options);
+        }
+        if (finalRepo == "vcpkg") {
+            m_handlers[finalRepo] = make_shared<SystemFileRetriever>(options, depType);
+        }
+        if (repo == "system") {
+            m_handlers[finalRepo] = make_shared<SystemFileRetriever>(options, depType);
+        }
+    }
+    if (mapContains(m_handlers, finalRepo)) {
+        return m_handlers.at(finalRepo);
     }
     return nullptr;
 }
