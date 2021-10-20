@@ -33,25 +33,61 @@ std::vector<std::string> BrewSystemTool::split(const std::string & str, char spl
 {
     std::vector<std::string> outVect;
     boost::split(outVect, str, [&](char c){return c == splitChar;});
-    outVect.erase(std::remove_if(outVect.begin(), outVect.end(),[](std::string s) { return s.empty(); }));
+    if (outVect.size() == 1) {
+        if (outVect.at(0).empty()) {
+            outVect.clear();
+        }
+    }
+    else {
+        outVect.erase(std::remove_if(outVect.begin(), outVect.end(),[](std::string s) { return s.empty(); }));
+    }
     return outVect;
 }
 
+void BrewSystemTool::tap(const std::string & repositoryUrl)
+{
+    if (repositoryUrl.empty()) {
+        return;
+    }
+    std::string tapList = run ("tap");
+    auto repoParts = split(repositoryUrl,'#');
+    std::string repoId = repositoryUrl;
+    std::vector<std::string> options;
+    if (repoParts.size() == 2) {
+        repoId = repoParts.at(0);
+        options.push_back(repoParts.at(1));
+    }
+    if (tapList.find(repoId) == std::string::npos) {
+        std::cout<<"Adding brew tap: "<<repositoryUrl<<std::endl;
+        std::string result = run ("tap",repoId,options);
+    }
+}
 
-std::string BrewSystemTool::run(const std::string & command, const std::string & depName, const std::vector<std::string> & options)
+std::string BrewSystemTool::run(const std::string & command, const std::string & cmdValue, const std::vector<std::string> & options)
 {
     fs::detail::utf8_codecvt_facet utf8;
     boost::asio::io_context ios;
     std::future<std::string> listOutputFut;
-    int result = bp::system(m_systemInstallerPath, command, bp::args(options),  depName, bp::std_out > listOutputFut, ios);
+    int result = -1;
+    if (cmdValue.empty()) {
+        result = bp::system(m_systemInstallerPath, command, bp::args(options), bp::std_out > listOutputFut, ios);
+    }
+    else {
+        result = bp::system(m_systemInstallerPath, command, bp::args(options),  cmdValue, bp::std_out > listOutputFut, ios);
+    }
     if (result != 0) {
-        throw std::runtime_error("Error running brew command '" + command + "' for '" + depName + "'");
+        throw std::runtime_error("Error running brew command '" + command + "' for '" + cmdValue + "'");
     }
     auto libsString = listOutputFut.get();
-    std::vector<std::string> libsPath;
-    boost::split(libsPath, libsString, [](char c){return c == '\n';});
-    return  libsString;
+    return libsString;
 }
+
+
+std::string BrewSystemTool::run(const std::string & command, const std::vector<std::string> & options)
+{
+    return run(command,"",options);
+}
+
 
 void BrewSystemTool::bundleLib(const std::string & libPath)
 {
@@ -81,6 +117,7 @@ void BrewSystemTool::install (const Dependency & dependency)
     if (installed (dependency)) {//TODO : version comparison and checking with range approach
         return;
     }
+    tap(dependency.getBaseRepository());
     std::string source = computeToolRef (dependency);
     int result = bp::system(m_systemInstallerPath, "install", source.c_str());
     if (result != 0) {

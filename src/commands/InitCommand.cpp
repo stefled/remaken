@@ -55,6 +55,15 @@ int setupVCPKG(const fs::path & remakenRootPackagesPath, const std::string & tag
     return result;
 }
 
+#if defined(BOOST_OS_MACOS_AVAILABLE) || defined(BOOST_OS_LINUX_AVAILABLE)
+int setupBrew()
+{
+    int result = -1;
+    result = bp::system("/bin/bash","-c","-fsSL","https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)");
+    return result;
+}
+#endif
+
 int InitCommand::execute()
 {
     fs::detail::utf8_codecvt_facet utf8;
@@ -66,6 +75,11 @@ int InitCommand::execute()
     if (subCommand == "vcpkg") {
         return setupVCPKG(m_options.getRemakenRoot(), m_options.getVcpkgTag());
     }
+#if defined(BOOST_OS_MACOS_AVAILABLE) || defined(BOOST_OS_LINUX_AVAILABLE)
+    if (subCommand == "brew") {
+        return setupBrew();
+    }
+#endif
     // no subcommand, process init command
     fs::path remakenRootPath = PathBuilder::getHomePath() / Constants::REMAKEN_FOLDER;
     fs::path remakenRulesPath = remakenRootPath / "rules";

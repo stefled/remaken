@@ -2,11 +2,94 @@
 
 Remaken is a meta dependencies management tool.
 
-It supports various dependency tools using common dependency(ies) file(s).
+It supports various several C++ packaging systems using common dependency(ies) file(s).
 
 The dependency file follows a modular syntax.
 
 Remaken also provide its own C++ packaging structure, based on pkg-config description files.
+
+Remaken can be seen as the "one tool to rule them all" for C++ packagers.
+
+## Overview
+
+The need to use a tool such as remaken come from the diversity of package managers for C++ and to speed up development delays.
+
+Indeed, whatever the dependency your project need, there is a chance the dependency already exists in binary format on one of the C++ package manager.
+
+And if it doesn't exist, you can still build your own binary version and share it as a remaken dependency with your team, ensuring the build options are the same, and avoiding other developers to build locally the same dependency.
+
+### Issues in native development without remaken and common development rules:
+
+To setup a native C/C++ project that uses thirparty dependencies, a developer must for each dependency (whichever the build system is in either make, cmake, conan, vcpkg, VS …)  :
+
+1. build each dependency with homogeneous build rules and flags (for instance c++ std version, for each target [debug,release | os | cpu | shared, static])
+2. install each dependency in an accessible path in the system (and eventually, pollute the development environment system for instance using make install, or set a different 'sysroot')
+3. add include paths, libraries paths and libraries link flags for each dependency and sub dependency in its development project
+4. For each new development, even based on same dependencies : reproduce every dependency build step 1.1 to 1.3 (also true for conan when the binary hosted version doesn’t fit with your options)
+5. To package a final application with its dependencies needs to bundle manually every shared dependency with the application before creating the final bundle/setup for the application
+
+NOTE: for cmake, make, VS builds, the target can be overwritten across versions except by adding custom target path to install step
+
+Last but not least, to run a final application : each dependency must either be copied in the same folder than the application or paths must be set to each shared dependency folder.
+
+Shared library or application project heterogeneity across a team can lead to integration issues as the build rules can slightly differ on each developer station.
+
+### Development workflow using remaken
+Remaken :
+
+- provide the same set of build rules across packaging systems (this is verified for packaging systems that perform a local build such as conan, vcpkg, brew)
+- install dependencies from any packaging system (including remaken own packaging and flag finding system) 
+- there is no need to call manually each packaging system, to write a script … all is done at once from the packagedependencies description
+- build flags are populated either from remaken configure step or from builddefs-qmake rules (other rules format will come in the future, cmake, bazel ...)
+- run any application with appropriate environment deduced from described dependencies and/or from xpcf configuration file
+- automate dependencies bundling within an application from dependencies description (either copying external dependencies in bundle destination folder or creating a shell script for native package managers such as apt, yum ...)
+- bundle xpcf applications from xpcf configuration file
+- integrate conan dependencies easily without writing a conanfile.py
+- provide a normalized package installation structure for remaken dependencies [sample structure]
+- provide vcpkg installation and bootstrap
+- provide builddefs-qmake rules installation and update
+ 
+3/ with standardized build rules (currently qmake supported, future other system rules support can be implemented)
+homogeneous builds ..
+ 
+4/ Detailed design
+
+## Installing remaken
+### Linux or mac OS X
+
+First install brew on your system:
+
+```
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+Then enter the following commands from a terminal:
+
+```
+brew tap b-com/sft
+brew install remaken
+``` 
+
+### Windows
+Use the setup file from 
+
+## Package formats supported
+### Cross platforms packaging systems :
+- Conan
+- vcpkg
+- brew (mac OS X and linux)
+- Remaken (pkg-config based)
+
+### Dedicated system tools :
+- apt-get (debian and derivatives)
+- pacman (archlinux)
+- yum (redhat, fedora, centos)
+- zypper (openSUSE)
+- pkg (freebsd)
+- pkgutil (solaris)
+- chocolatey (windows)
+- scoop
+- [others to come]
 
 ## Command line usage samples
 ### Initialize remaken default folder
@@ -82,24 +165,6 @@ remaken can be used to ease application run by gathering all shared libraries pa
 ```remaken run [-c debug|release] run --env [--deps path_to_remaken_dependencies_description_file.txt] [--xpcf path_to_xpcf_configuration_file.xml] [path_to_executable] [executable arguments list]```
 
 **Note** : options in **[executable arguments list]** starting with a dash (-) must be surrounded with quotes and prefixed with \ for instance **"\\-f"** to forward **-f** option to the application (this is due to CLI11 interpretation of options).
-  
-## Package formats supported
-### Cross platforms packaging systems :
-- Conan
-- vcpkg
-- brew (mac OS X and linux)
-- Remaken (pkg-config based)
-
-### Dedicated system tools :
-- apt-get (debian and derivatives)
-- pacman (archlinux)
-- yum (redhat, fedora, centos)
-- zypper (openSUSE)
-- pkg (freebsd)
-- pkgutil (solaris)
-- chocolatey (windows)
-- scoop
-- [others to come]
 
 ## Dependency file syntax
 
@@ -136,6 +201,8 @@ the repository type reflects the identifier value - i.e. identifier = conan mean
 when identifier is not specified :
 
 - @repository_type is mandatory
+
+repository url is the repository url. For brew repositories, the repository will be tapped before the installation. The repository url for brew can be either user/repo or user/repo#repository_url.
 
 when channel is not specified, it defaults to stable for conan dependencies.
 

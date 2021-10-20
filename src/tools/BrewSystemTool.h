@@ -42,7 +42,9 @@ public:
 private:
     std::string retrieveInstallCommand(const Dependency & dependency) override;
     std::vector<std::string> split(const std::string & str, char splitChar = '\n');
-    std::string run(const std::string & command, const std::string & depName, const std::vector<std::string> & options = {});
+    void tap(const std::string & repositoryUrl);
+    std::string run(const std::string & command, const std::vector<std::string> & options = {});
+    std::string run(const std::string & command, const std::string & cmdValue, const std::vector<std::string> & options = {});
     void bundleLib(const std::string & libPath);
     std::string computeToolRef( const Dependency &  dependency) override;
 };

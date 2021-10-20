@@ -178,6 +178,10 @@ CmdOptions::CmdOptions()
     CLI::App * initVcpkgCommand = initCommand->add_subcommand("vcpkg", "setup vcpkg repository");
     initVcpkgCommand->add_option("--tag", m_vcpkgTag, "the vcpkg tag version to install");
 
+#if defined(BOOST_OS_MACOS_AVAILABLE) || defined(BOOST_OS_LINUX_AVAILABLE)
+     CLI::App * initBrewCommand = initCommand->add_subcommand("brew", "setup brew repository");
+#endif
+
     // VERSION COMMAND
     CLI::App * versionCommand = m_cliApp.add_subcommand("version", "display remaken version");
 
