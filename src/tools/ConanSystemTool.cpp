@@ -99,6 +99,16 @@ void ConanSystemTool::install(const Dependency & dependency)
     }
 }
 
+void ConanSystemTool::search(const std::string & pkgName, const std::string & version)
+{
+    std::string package = pkgName;
+    if (!version.empty()) {
+        package += "/" + version;
+    }
+    std::cout<<"Conan::search results:"<<std::endl;
+    bp::system(m_systemInstallerPath, "search", package, "-r", "all");
+}
+
 std::string ConanSystemTool::retrieveInstallCommand(const Dependency & dependency)
 {
     fs::detail::utf8_codecvt_facet utf8;

@@ -197,12 +197,16 @@ std::shared_ptr<BaseSystemTool> SystemTools::createTool(const CmdOptions & optio
 #ifdef BOOST_OS_IOS_AVAILABLE
         return nullptr;// or conan as default? but implies to set conan options
 #endif
-#if defined(BOOST_OS_MACOS_AVAILABLE) || defined(BOOST_OS_LINUX_AVAILABLE)
-        if (dependencyType == Dependency::Type::BREW) {
+#if defined(BOOST_OS_MACOS_AVAILABLE)
+        if ((dependencyType == Dependency::Type::BREW) ||
+            (dependencyType == Dependency::Type::SYSTEM)) {
             return std::make_shared<BrewSystemTool>(options);
         }
 #endif
 #ifdef BOOST_OS_LINUX_AVAILABLE
+        if (dependencyType == Dependency::Type::BREW) {
+            return std::make_shared<BrewSystemTool>(options);
+        }
         if (explicitToolName == "apt-get") {
             return std::make_shared<AptSystemTool>(options);
         }
@@ -224,7 +228,7 @@ std::shared_ptr<BaseSystemTool> SystemTools::createTool(const CmdOptions & optio
             return std::make_shared<ScoopSystemTool>(options);
         }
         if ((dependencyType == Dependency::Type::CHOCO)
-            || (dependencyType == Dependency::Type::SYSTEM)) {
+                || (dependencyType == Dependency::Type::SYSTEM)) {
             return std::make_shared<ChocoSystemTool>(options);
         }
 #endif
@@ -246,6 +250,40 @@ std::shared_ptr<BaseSystemTool> SystemTools::createTool(const CmdOptions & optio
         }
     }
     throw std::runtime_error("Error: unable to find " + explicitToolName + " tool. Please check your configuration and environment.");
+}
+
+std::vector<std::shared_ptr<BaseSystemTool>> SystemTools::retrieveTools (const CmdOptions & options)
+{
+    std::vector<std::shared_ptr<BaseSystemTool>> toolList;
+    std::shared_ptr<BaseSystemTool> tool = createTool(options,Dependency::Type::SYSTEM);
+    if (tool) {
+        toolList.push_back(tool);
+    }
+    tool = createTool(options,Dependency::Type::CONAN);
+    if (tool) {
+        toolList.push_back(tool);
+    }
+    tool = createTool(options,Dependency::Type::VCPKG);
+    if (tool) {
+        toolList.push_back(tool);
+    }
+#if defined(BOOST_OS_LINUX_AVAILABLE)
+    tool = createTool(options,Dependency::Type::BREW);
+    if (tool) {
+        toolList.push_back(tool);
+    }
+#endif
+#ifdef BOOST_OS_WINDOWS_AVAILABLE
+    tool = createTool(options,Dependency::Type::CHOCO);
+    if (tool) {
+        toolList.push_back(tool);
+    }
+    tool = createTool(options,Dependency::Type::SCOOP);
+    if (tool) {
+        toolList.push_back(tool);
+    }
+#endif
+    return toolList;
 }
 
 

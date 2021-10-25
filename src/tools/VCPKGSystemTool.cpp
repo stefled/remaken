@@ -86,6 +86,13 @@ bool VCPKGSystemTool::installed(const Dependency & dependency)
     return false;
 }
 
+void VCPKGSystemTool::search(const std::string & pkgName, const std::string & version)
+{
+    std::string package = pkgName;
+    std::cout<<"Vcpkg::search results:"<<std::endl;
+    bp::system(m_systemInstallerPath, "search", pkgName);
+}
+
 std::string VCPKGSystemTool::retrieveInstallCommand(const Dependency & dependency)
 {
     fs::detail::utf8_codecvt_facet utf8;

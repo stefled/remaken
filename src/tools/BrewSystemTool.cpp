@@ -63,6 +63,17 @@ void BrewSystemTool::tap(const std::string & repositoryUrl)
     }
 }
 
+void BrewSystemTool::search(const std::string & pkgName, const std::string & version)
+{
+    std::string package = pkgName;
+    if (!version.empty()) {
+        package += "@" + version;
+    }
+    std::string result = run ("search", package);
+    std::cout<<"Brew::search results:"<<std::endl;
+    std::cout<<result<<std::endl;
+}
+
 std::string BrewSystemTool::run(const std::string & command, const std::string & cmdValue, const std::vector<std::string> & options)
 {
     fs::detail::utf8_codecvt_facet utf8;

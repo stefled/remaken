@@ -207,6 +207,10 @@ public:
         return m_packageCompressOptions;
     }
 
+    const std::map<std::string,std::string> & getSearchCommandOptions() const {
+        return m_searchOptions;
+    }
+
     const std::map<std::string,std::string> & getListCommandOptions() const {
         return m_listOptions;
     }
@@ -248,6 +252,7 @@ private:
     std::map<std::string,std::string> m_packageOptions;
     std::map<std::string,std::string> m_packageCompressOptions;
     std::map<std::string,std::string> m_listOptions;
+    std::map<std::string,std::string> m_searchOptions;
     std::vector<std::string> m_applicationArguments;
     std::string m_buildConfig;
     std::string m_subcommand;

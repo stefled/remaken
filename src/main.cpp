@@ -14,6 +14,7 @@
 #include "commands/VersionCommand.h"
 #include "commands/ProfileCommand.h"
 #include "commands/RunCommand.h"
+#include "commands/SearchCommand.h"
 #include <memory>
 
 using namespace std;
@@ -39,6 +40,7 @@ int main(int argc, char** argv)
         dispatcher["bundle"] = make_shared<BundleCommand>(opts);
         dispatcher["bundleXpcf"] = make_shared<BundleXpcfCommand>(opts);
         dispatcher["profile"] = make_shared<ProfileCommand>(opts);
+        dispatcher["search"] = make_shared<SearchCommand>(opts);
         dispatcher["version"] = make_shared<VersionCommand>();
         if (mapContains(dispatcher, opts.getAction())) {
             return dispatcher.at(opts.getAction())->execute();

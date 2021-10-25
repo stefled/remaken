@@ -44,6 +44,7 @@ public:
     virtual void bundle ([[maybe_unused]] const Dependency & dependency) = 0;
     virtual void bundleScript ([[maybe_unused]] const Dependency & dependency, [[maybe_unused]] const fs::path & scriptFile) = 0;
     virtual void install (const Dependency & dependency) = 0;
+    virtual void search (const std::string & pkgName, const std::string & version = "") = 0;
     virtual bool installed (const Dependency & dependency) = 0;
     virtual std::vector<fs::path> binPaths ([[maybe_unused]] const Dependency & dependency);
     virtual std::vector<fs::path> libPaths ([[maybe_unused]] const Dependency & dependency);
@@ -67,6 +68,7 @@ public:
     static std::string getToolIdentifier (Dependency::Type type = Dependency::Type::SYSTEM);
     static bool isToolSupported (const std::string & tool);
     static std::shared_ptr<BaseSystemTool> createTool (const CmdOptions & options, Dependency::Type dependencyType=Dependency::Type::SYSTEM);
+    static std::vector<std::shared_ptr<BaseSystemTool>> retrieveTools (const CmdOptions & options);
 };
 
 

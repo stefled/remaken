@@ -35,6 +35,7 @@ public:
     void bundleScript ([[maybe_unused]] const Dependency & dependency, [[maybe_unused]] const fs::path & scriptFile) override {}
     void install(const Dependency & dependency) override;
     bool installed(const Dependency & dependency) override;
+    void search (const std::string & pkgName, const std::string & version) override;
     fs::path invokeGenerator(const std::vector<Dependency> & deps, GeneratorType generator) override;
     std::vector<fs::path> binPaths([[maybe_unused]] const Dependency & dependency) override;
     std::vector<fs::path> libPaths([[maybe_unused]] const Dependency & dependency) override;

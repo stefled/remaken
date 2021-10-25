@@ -212,6 +212,14 @@ CmdOptions::CmdOptions()
     listCommand->add_option("package", m_listOptions["pkgName"], "the package name");
     listCommand->add_option("version", m_listOptions["pkgVersion"], "the package version ");
 
+    // SEARCH COMMAND
+    CLI::App * searchCommand = m_cliApp.add_subcommand("search", "search for a package [/version] in remotes");
+    // m_packagingSystem = ...
+    searchCommand->add_option("--restrict", m_searchOptions["packagingSystem"], "restrict search to the packaging system provided []");
+    searchCommand->add_option("package", m_searchOptions["pkgName"], "the package name");
+    searchCommand->add_option("version", m_searchOptions["pkgVersion"], "the package version ");
+
+
     // RUN COMMAND
     CLI::App * runCommand = m_cliApp.add_subcommand("run", "run binary (and set dependencies path depending on the run environment)");
     runCommand->add_option("--xpcf", m_xpcfConfigurationFile, "XPCF xml module declaration file path");

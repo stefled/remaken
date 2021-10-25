@@ -37,7 +37,7 @@ Shared library or application project heterogeneity across a team can lead to in
 ### Development workflow using remaken
 Remaken :
 
-- provide the same set of build rules across packaging systems (this is verified for packaging systems that perform a local build such as conan, vcpkg, brew)
+- provide the same set of build rules across packaging systems (certified for packaging systems that perform a local build such as conan, vcpkg, brew)
 - install dependencies from any packaging system (including remaken own packaging and flag finding system) 
 - there is no need to call manually each packaging system, to write a script … all is done at once from the packagedependencies description
 - build flags are populated either from remaken configure step or from builddefs-qmake rules (other rules format will come in the future, cmake, bazel ...)
@@ -260,11 +260,13 @@ Moreover, some OSes don't have a package manager, hence don't rely on system for
 ## Remaken packaging structure
 ### Default behavior
 ### Package tree
+```
 package_name/package_version/
-package_name-package_version_remakeninfo.txt (or libname ??)
-bcom-lib_name.pc (should be renamed to remaken-\*.pc ?)
-interfaces/
-lib/[arch]/[mode]/[config]/
+`|- package_name-package_version_remakeninfo.txt (or libname ??)
+ |- bcom-lib_name.pc (should be renamed to remaken-\*.pc ?)
+ |- interfaces/
+ `- lib/[arch]/[mode]/[config]/
+```
 
 ## Building remaken
 Install Qt Creator from https://www.qt.io/download

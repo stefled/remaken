@@ -33,6 +33,9 @@ public:
     virtual void bundle ([[maybe_unused]] const Dependency & dependency) override {
         BOOST_LOG_TRIVIAL(warning)<<"bundle() not implemented yet for tool "<<m_systemInstallerPath;
     }
+    virtual void search (const std::string & pkgName, const std::string & version) override {
+        BOOST_LOG_TRIVIAL(warning)<<"search() not implemented yet for tool "<<m_systemInstallerPath;
+    }
     virtual void bundleScript ([[maybe_unused]] const Dependency & dependency, [[maybe_unused]] const fs::path & scriptFile) override;
 
 protected:
