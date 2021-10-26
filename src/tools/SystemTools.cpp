@@ -18,24 +18,10 @@ namespace nj = nlohmann;
 
 BaseSystemTool::BaseSystemTool(const CmdOptions & options, const std::string & installer):m_options(options)
 {
-    fs::path p = options.getRemakenRoot() / "vcpkg";
-    std::vector<fs::path> envPath = boost::this_process::path();
-    envPath.push_back(p);
-    // TODO must add brew search path here, not /usr/local/bin as it is the brew path on mac only
-#ifdef BOOST_OS_MACOS_AVAILABLE
-    if (fs::exists("/usr/local/bin")) {
-        envPath.push_back("/usr/local/bin");
-    }
-#endif
-#ifdef BOOST_OS_LINUX_AVAILABLE
-    if (fs::exists("/home/linuxbrew/.linuxbrew/bin")) {
-        envPath.push_back("/home/linuxbrew/.linuxbrew/bin");
-    }
-#endif
-    m_systemInstallerPath = bp::search_path(installer, envPath); //or get it from somewhere else.
+    m_systemInstallerPath = SystemTools::getToolPath(options, installer);
     m_sudoCmd = bp::search_path("sudo"); //or get it from somewhere else.
-    if (m_systemInstallerPath.empty()) {
-        throw std::runtime_error("Error : " + installer + " command not found on the system. Please install it first.");
+    if (m_sudoCmd.empty()) {
+        throw std::runtime_error("Error : sudo command not found on the system. Please check your environment first.");
     }
 }
 
@@ -98,27 +84,61 @@ std::vector<std::string> BaseSystemTool::split(const std::string & str, char spl
 
 std::string BaseSystemTool::run(const std::string & command, const std::string & cmdValue, const std::vector<std::string> & options)
 {
-    fs::detail::utf8_codecvt_facet utf8;
-    boost::asio::io_context ios;
-    std::future<std::string> listOutputFut;
-    int result = -1;
-    if (cmdValue.empty()) {
-        result = bp::system(m_systemInstallerPath, command, bp::args(options), bp::std_out > listOutputFut, ios);
-    }
-    else {
-        result = bp::system(m_systemInstallerPath, command, bp::args(options),  cmdValue, bp::std_out > listOutputFut, ios);
-    }
-    if (result != 0) {
-        throw std::runtime_error("Error running " + m_systemInstallerPath.generic_string(utf8) +" command '" + command + "' for '" + cmdValue + "'");
-    }
-    auto resultStringList = listOutputFut.get();
-    return resultStringList;
+    return SystemTools::run(m_systemInstallerPath, command, cmdValue, options);
 }
 
 
 std::string BaseSystemTool::run(const std::string & command, const std::vector<std::string> & options)
 {
     return run(command,"",options);
+}
+
+fs::path SystemTools::getToolPath(const CmdOptions & options, const std::string & installer)
+{
+    fs::path p = options.getRemakenRoot() / "vcpkg";
+    std::vector<fs::path> envPath = boost::this_process::path();
+    envPath.push_back(p);
+    // TODO must add brew search path here, not /usr/local/bin as it is the brew path on mac only
+#ifdef BOOST_OS_MACOS_AVAILABLE
+    if (fs::exists("/usr/local/bin")) {
+        envPath.push_back("/usr/local/bin");
+    }
+#endif
+#ifdef BOOST_OS_LINUX_AVAILABLE
+    if (fs::exists("/home/linuxbrew/.linuxbrew/bin")) {
+        envPath.push_back("/home/linuxbrew/.linuxbrew/bin");
+    }
+#endif
+    fs::path systemInstallerPath = bp::search_path(installer, envPath); //or get it from somewhere else.
+    if (systemInstallerPath.empty()) {
+        throw std::runtime_error("Error : " + installer + " command not found on the system. Please install it first.");
+    }
+    return systemInstallerPath;
+}
+
+std::string SystemTools::run(const fs::path & tool, const std::string & command, const std::string & cmdValue, const std::vector<std::string> & options)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    boost::asio::io_context ios;
+    std::future<std::string> listOutputFut;
+    int result = -1;
+    if (cmdValue.empty()) {
+        result = bp::system(tool, command, bp::args(options), bp::std_out > listOutputFut, ios);
+    }
+    else {
+        result = bp::system(tool, command, bp::args(options),  cmdValue, bp::std_out > listOutputFut, ios);
+    }
+    if (result != 0) {
+        throw std::runtime_error("Error running " + tool.generic_string(utf8) +" command '" + command + "' for '" + cmdValue + "'");
+    }
+    auto resultStringList = listOutputFut.get();
+    return resultStringList;
+}
+
+
+std::string SystemTools::run(const fs::path & tool, const std::string & command, const std::vector<std::string> & options)
+{
+    return run(tool, command, "", options);
 }
 
 std::string SystemTools::getToolIdentifier(Dependency::Type type)

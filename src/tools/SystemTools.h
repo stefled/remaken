@@ -72,6 +72,10 @@ public:
     static bool isToolSupported (const std::string & tool);
     static std::shared_ptr<BaseSystemTool> createTool (const CmdOptions & options, Dependency::Type dependencyType=Dependency::Type::SYSTEM);
     static std::vector<std::shared_ptr<BaseSystemTool>> retrieveTools (const CmdOptions & options);
+    static fs::path getToolPath(const CmdOptions & options, const std::string & installer);
+    static std::string run(const fs::path & tool, const std::string & command, const std::vector<std::string> & options = {});
+    static std::string run(const fs::path & tool, const std::string & command, const std::string & cmdValue, const std::vector<std::string> & options = {});
+
 };
 
 

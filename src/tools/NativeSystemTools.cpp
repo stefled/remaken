@@ -59,6 +59,17 @@ std::string AptSystemTool::retrieveInstallCommand(const Dependency & dependency)
     return installCmd;
 }
 
+void AptSystemTool::search(const std::string & pkgName, const std::string & version)
+{
+    std::string package = pkgName;
+    fs::path aptCache = SystemTools::getToolPath(m_options, "apt-cache");
+    std::vector<std::string> foundDeps = split( SystemTools::run (aptCache, "search", package) );
+    std::cout<<"Scoop::search results:"<<std::endl;
+    for (auto & dep : foundDeps) {
+        std::cout<<dep<<"\t\t\t"<<dep<<"||"<<dep<<"|scoop|"<<std::endl;
+    }
+}
+
 void YumSystemTool::update()
 {
     int result = bp::system(sudo(), m_systemInstallerPath, "update","-y");
