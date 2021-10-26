@@ -167,7 +167,10 @@ INCLUDEPATH += libs/nlohmann-json/single_include libs/CLI11/include
 
 DISTFILES += \
     packagedependencies.txt \
+    samples/packagedependencies-artifactory.txt \
+    samples/packagedependencies-brew.txt \
     samples/packagedependencies-github.txt \
     samples/packagedependencies-mixed.txt \
     resources/install_remaken_3rdparties.nsh \
-    resources/install_remaken_custom_pages.nsh
+    resources/install_remaken_custom_pages.nsh \
+    samples/packagedependencies-system-linux.txt

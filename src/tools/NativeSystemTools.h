@@ -117,6 +117,7 @@ public:
     void update() override;
     void install(const Dependency & dependency) override;
     bool installed(const Dependency & dependency) override;
+    void search (const std::string & pkgName, const std::string & version) override;
 
 private:
     std::string retrieveInstallCommand(const Dependency & dependency) override;
@@ -130,6 +131,7 @@ public:
     void update() override;
     void install(const Dependency & dependency) override;
     bool installed(const Dependency & dependency) override;
+    void search (const std::string & pkgName, [[maybe_unused]] const std::string & version) override;
 
 private:
     std::string retrieveInstallCommand(const Dependency & dependency) override;

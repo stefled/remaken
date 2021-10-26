@@ -81,6 +81,46 @@ fs::path BaseSystemTool::invokeGenerator([[maybe_unused]] const std::vector<Depe
     return pkgConfig.generate(generator,cflags,libs,Dependency::Type::SYSTEM);
 }
 
+std::vector<std::string> BaseSystemTool::split(const std::string & str, char splitChar)
+{
+    std::vector<std::string> outVect;
+    boost::split(outVect, str, [&](char c){return c == splitChar;});
+    if (outVect.size() == 1) {
+        if (outVect.at(0).empty()) {
+            outVect.clear();
+        }
+    }
+    else {
+        outVect.erase(std::remove_if(outVect.begin(), outVect.end(),[](std::string s) { return s.empty(); }), outVect.end());
+    }
+    return outVect;
+}
+
+std::string BaseSystemTool::run(const std::string & command, const std::string & cmdValue, const std::vector<std::string> & options)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    boost::asio::io_context ios;
+    std::future<std::string> listOutputFut;
+    int result = -1;
+    if (cmdValue.empty()) {
+        result = bp::system(m_systemInstallerPath, command, bp::args(options), bp::std_out > listOutputFut, ios);
+    }
+    else {
+        result = bp::system(m_systemInstallerPath, command, bp::args(options),  cmdValue, bp::std_out > listOutputFut, ios);
+    }
+    if (result != 0) {
+        throw std::runtime_error("Error running " + m_systemInstallerPath.generic_string(utf8) +" command '" + command + "' for '" + cmdValue + "'");
+    }
+    auto resultStringList = listOutputFut.get();
+    return resultStringList;
+}
+
+
+std::string BaseSystemTool::run(const std::string & command, const std::vector<std::string> & options)
+{
+    return run(command,"",options);
+}
+
 std::string SystemTools::getToolIdentifier(Dependency::Type type)
 {
     if (type != Dependency::Type::SYSTEM) {

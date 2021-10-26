@@ -44,7 +44,7 @@ public:
     virtual void bundle ([[maybe_unused]] const Dependency & dependency) = 0;
     virtual void bundleScript ([[maybe_unused]] const Dependency & dependency, [[maybe_unused]] const fs::path & scriptFile) = 0;
     virtual void install (const Dependency & dependency) = 0;
-    virtual void search (const std::string & pkgName, const std::string & version = "") = 0;
+    virtual void search (const std::string & pkgName, [[maybe_unused]] const std::string & version = "") = 0;
     virtual bool installed (const Dependency & dependency) = 0;
     virtual std::vector<fs::path> binPaths ([[maybe_unused]] const Dependency & dependency);
     virtual std::vector<fs::path> libPaths ([[maybe_unused]] const Dependency & dependency);
@@ -53,6 +53,9 @@ public:
     virtual fs::path invokeGenerator([[maybe_unused]] const std::vector<Dependency> & deps, [[maybe_unused]] GeneratorType generator);
 
 protected:
+    std::string run(const std::string & command, const std::vector<std::string> & options = {});
+    std::string run(const std::string & command, const std::string & cmdValue, const std::vector<std::string> & options = {});
+    std::vector<std::string> split(const std::string & str, char splitChar = '\n');
     virtual std::string retrieveInstallCommand(const Dependency & dependency) = 0;
     virtual std::string computeToolRef ( const Dependency &  dependency);
     fs::path m_systemInstallerPath;

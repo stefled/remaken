@@ -29,21 +29,6 @@ void BrewSystemTool::update ()
     }
 }
 
-std::vector<std::string> BrewSystemTool::split(const std::string & str, char splitChar)
-{
-    std::vector<std::string> outVect;
-    boost::split(outVect, str, [&](char c){return c == splitChar;});
-    if (outVect.size() == 1) {
-        if (outVect.at(0).empty()) {
-            outVect.clear();
-        }
-    }
-    else {
-        outVect.erase(std::remove_if(outVect.begin(), outVect.end(),[](std::string s) { return s.empty(); }));
-    }
-    return outVect;
-}
-
 void BrewSystemTool::tap(const std::string & repositoryUrl)
 {
     if (repositoryUrl.empty()) {
@@ -69,36 +54,14 @@ void BrewSystemTool::search(const std::string & pkgName, const std::string & ver
     if (!version.empty()) {
         package += "@" + version;
     }
-    std::string result = run ("search", package);
+    std::vector<std::string> foundDeps = split( run ("search", package) );
     std::cout<<"Brew::search results:"<<std::endl;
-    std::cout<<result<<std::endl;
-}
-
-std::string BrewSystemTool::run(const std::string & command, const std::string & cmdValue, const std::vector<std::string> & options)
-{
-    fs::detail::utf8_codecvt_facet utf8;
-    boost::asio::io_context ios;
-    std::future<std::string> listOutputFut;
-    int result = -1;
-    if (cmdValue.empty()) {
-        result = bp::system(m_systemInstallerPath, command, bp::args(options), bp::std_out > listOutputFut, ios);
+    for (auto & dep : foundDeps) {
+        if (dep.find("==>") == std::string::npos) {
+            std::cout<<dep<<"\t\t\t"<<dep<<"||"<<dep<<"|brew|"<<std::endl;
+        }
     }
-    else {
-        result = bp::system(m_systemInstallerPath, command, bp::args(options),  cmdValue, bp::std_out > listOutputFut, ios);
-    }
-    if (result != 0) {
-        throw std::runtime_error("Error running brew command '" + command + "' for '" + cmdValue + "'");
-    }
-    auto libsString = listOutputFut.get();
-    return libsString;
 }
-
-
-std::string BrewSystemTool::run(const std::string & command, const std::vector<std::string> & options)
-{
-    return run(command,"",options);
-}
-
 
 void BrewSystemTool::bundleLib(const std::string & libPath)
 {

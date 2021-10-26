@@ -223,6 +223,16 @@ std::string ChocoSystemTool::retrieveInstallCommand(const Dependency & dependenc
     return installCmd;
 }
 
+void ChocoSystemTool::search(const std::string & pkgName, const std::string & version)
+{
+    std::string package = pkgName;
+    std::vector<std::string> foundDeps = split( run ("search", package) );
+    std::cout<<"Scoop::search results:"<<std::endl;
+    for (auto & dep : foundDeps) {
+        std::cout<<dep<<"\t\t\t"<<dep<<"||"<<dep<<"|scoop|"<<std::endl;
+    }
+}
+
 void ScoopSystemTool::update()
 {
     int result = bp::system(m_systemInstallerPath, "update");
@@ -252,6 +262,16 @@ std::string ScoopSystemTool::retrieveInstallCommand(const Dependency & dependenc
     std::string installCmd = m_systemInstallerPath.generic_string(utf8);
     installCmd += " install","--yes " + source;
     return installCmd;
+}
+
+void ScoopSystemTool::search(const std::string & pkgName, const std::string & version)
+{
+    std::string package = pkgName;
+    std::vector<std::string> foundDeps = split( run ("search", package) );
+    std::cout<<"Scoop::search results:"<<std::endl;
+    for (auto & dep : foundDeps) {
+        std::cout<<dep<<"\t\t\t"<<dep<<"||"<<dep<<"|scoop|"<<std::endl;
+    }
 }
 
 void ZypperSystemTool::update()
