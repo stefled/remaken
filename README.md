@@ -114,6 +114,15 @@ It can be changed in various ways:
 - provide the package path with the ```--remaken-root``` parameter from remaken command line invocation
 - put the ```remaken-root``` parameter and its value in the remaken ```config``` file in located in ```$(HOME)/.remaken```
 
+### Searching dependencies
+```remaken search [--restrict packaging_system_name] package_name [package_version] ```
+
+```packaging_system_name``` is the name of the packaging system to search for this dependency. Its value depends on the operating system where remaken is used. 
+
+On mac OS X and linux, its value is one of ```[brew, conan, system or vcpkg]```.
+
+On windows, its value is one of ```[choco, conan, scoop, system or vcpkg]```.
+
 ### Installing dependencies
 add conditions configuration description
 ```remaken install [--conan_profile conan_profile_name] [-r  path_to_remaken_root] -i [-o linux] -t github [-l nexus -u http://url_to_root_nexus_repo] [--cpp-std 17] [-c debug|release] [--project_mode,-p] [path_to_remaken_dependencies_description_file.txt] ```
