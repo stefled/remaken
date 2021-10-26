@@ -64,9 +64,10 @@ void AptSystemTool::search(const std::string & pkgName, const std::string & vers
     std::string package = pkgName;
     fs::path aptCache = SystemTools::getToolPath(m_options, "apt-cache");
     std::vector<std::string> foundDeps = split( SystemTools::run (aptCache, "search", package) );
-    std::cout<<"Scoop::search results:"<<std::endl;
+    std::cout<<"Apt::search results:"<<std::endl;
     for (auto & dep : foundDeps) {
-        std::cout<<dep<<"\t\t\t"<<dep<<"||"<<dep<<"|scoop|"<<std::endl;
+        std::vector<std::string> depDetails = split(dep,' ');
+        std::cout<<dep<<"\t\t\t"<<depDetails.at(0)<<"||"<<depDetails.at(0)<<"|apt-get@system|"<<std::endl;
     }
 }
 

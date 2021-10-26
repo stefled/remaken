@@ -233,7 +233,7 @@ bool SystemTools::isToolSupported(const std::string & tool)
     return false;
 }
 
-std::shared_ptr<BaseSystemTool> SystemTools::createTool(const CmdOptions & options, Dependency::Type dependencyType)
+std::shared_ptr<BaseSystemTool> SystemTools::createTool(const CmdOptions & options, Dependency::Type dependencyType, bool dontThrowOnMissing)
 {
     fs::path p = options.getRemakenRoot() / "vcpkg";
     std::vector<fs::path> envPath = boost::this_process::path();
@@ -309,36 +309,40 @@ std::shared_ptr<BaseSystemTool> SystemTools::createTool(const CmdOptions & optio
             return std::make_shared<ConanSystemTool>(options);
         }
     }
+    if (dontThrowOnMissing) {
+        return nullptr;
+    }
     throw std::runtime_error("Error: unable to find " + explicitToolName + " tool. Please check your configuration and environment.");
 }
 
 std::vector<std::shared_ptr<BaseSystemTool>> SystemTools::retrieveTools (const CmdOptions & options)
 {
     std::vector<std::shared_ptr<BaseSystemTool>> toolList;
-    std::shared_ptr<BaseSystemTool> tool = createTool(options,Dependency::Type::SYSTEM);
+    std::shared_ptr<BaseSystemTool> tool;
+    tool = createTool(options, Dependency::Type::SYSTEM, true);
     if (tool) {
         toolList.push_back(tool);
     }
-    tool = createTool(options,Dependency::Type::CONAN);
+    tool = createTool(options, Dependency::Type::CONAN, true);
     if (tool) {
         toolList.push_back(tool);
     }
-    tool = createTool(options,Dependency::Type::VCPKG);
+    tool = createTool(options, Dependency::Type::VCPKG, true);
     if (tool) {
         toolList.push_back(tool);
     }
 #if defined(BOOST_OS_LINUX_AVAILABLE)
-    tool = createTool(options,Dependency::Type::BREW);
+    tool = createTool(options, Dependency::Type::BREW, true);
     if (tool) {
         toolList.push_back(tool);
     }
 #endif
 #ifdef BOOST_OS_WINDOWS_AVAILABLE
-    tool = createTool(options,Dependency::Type::CHOCO);
+    tool = createTool(options,Dependency::Type::CHOCO, true);
     if (tool) {
         toolList.push_back(tool);
     }
-    tool = createTool(options,Dependency::Type::SCOOP);
+    tool = createTool(options,Dependency::Type::SCOOP, true);
     if (tool) {
         toolList.push_back(tool);
     }

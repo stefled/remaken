@@ -66,15 +66,15 @@ static const map<std::string,std::vector<std::string>> validationMap ={{"action"
                                                                        {"--alternate-remote-type",{"github","artifactory","nexus","path","http"}},
                                                                        {"--operating-system",{"mac","win","unix","android","ios","linux"}},
                                                                        {"--cpp-std",{"11","14","17","20"}},
-#ifdef BOOST_OS_LINUX_AVAILABLE
+                                                                       #ifdef BOOST_OS_LINUX_AVAILABLE
                                                                        {"--restrict",{"brew","conan","system","vcpkg"}}
-#endif
-#ifdef BOOST_OS_MACOS_AVAILABLE
+                                                                       #endif
+                                                                       #ifdef BOOST_OS_MACOS_AVAILABLE
                                                                        {"--restrict",{"brew","conan","system","vcpkg"}}
-#endif
-#ifdef BOOST_OS_WINDOWS_AVAILABLE
+                                                                       #endif
+                                                                       #ifdef BOOST_OS_WINDOWS_AVAILABLE
                                                                        {"--restrict",{"choco","conan","scoop","system","vcpkg"}}
-#endif
+                                                                       #endif
                                                                       };
 
 
@@ -188,7 +188,7 @@ CmdOptions::CmdOptions()
     initVcpkgCommand->add_option("--tag", m_vcpkgTag, "the vcpkg tag version to install");
 
 #if defined(BOOST_OS_MACOS_AVAILABLE) || defined(BOOST_OS_LINUX_AVAILABLE)
-     CLI::App * initBrewCommand = initCommand->add_subcommand("brew", "setup brew repository");
+    CLI::App * initBrewCommand = initCommand->add_subcommand("brew", "setup brew repository");
 #endif
 
     // VERSION COMMAND
@@ -224,6 +224,7 @@ CmdOptions::CmdOptions()
     // SEARCH COMMAND
     CLI::App * searchCommand = m_cliApp.add_subcommand("search", "search for a package [/version] in remotes");
     // m_packagingSystem = ...
+    m_searchOptions["packagingSystem"] = "";
     searchCommand->add_option("--restrict", m_searchOptions["packagingSystem"], "restrict search to the packaging system provided [" + getOptionString("--restrict") + "]");
     searchCommand->add_option("package", m_searchOptions["pkgName"], "the package name");
     searchCommand->add_option("version", m_searchOptions["pkgVersion"], "the package version ");
@@ -315,13 +316,17 @@ void CmdOptions::validateOptions()
         for (auto opt : sub->get_options()) {
             auto name = opt->get_name();
             auto value = opt->as<std::string>();
-            if (validationMap.find(name) != validationMap.end()) {
-                auto && validValues = validationMap.at(name);
-                if (std::find(validValues.begin(), validValues.end(), value) == validValues.end()) {
-                    string message("Option " + name);
-                    message += " was set with invalid value " ;
-                    message += value;
-                    throw std::runtime_error(message);
+            if (name == "--restrict") {
+                if (!value.empty()) {
+                    if (validationMap.find(name) != validationMap.end()) {
+                        auto && validValues = validationMap.at(name);
+                        if (std::find(validValues.begin(), validValues.end(), value) == validValues.end()) {
+                            string message("Option " + name);
+                            message += " was set with invalid value " ;
+                            message += value;
+                            throw std::runtime_error(message);
+                        }
+                    }
                 }
             }
         }

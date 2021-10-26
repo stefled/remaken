@@ -70,7 +70,7 @@ public:
     ~SystemTools () = delete;
     static std::string getToolIdentifier (Dependency::Type type = Dependency::Type::SYSTEM);
     static bool isToolSupported (const std::string & tool);
-    static std::shared_ptr<BaseSystemTool> createTool (const CmdOptions & options, Dependency::Type dependencyType=Dependency::Type::SYSTEM);
+    static std::shared_ptr<BaseSystemTool> createTool (const CmdOptions & options, Dependency::Type dependencyType=Dependency::Type::SYSTEM, bool dontThrowOnMissing = false);
     static std::vector<std::shared_ptr<BaseSystemTool>> retrieveTools (const CmdOptions & options);
     static fs::path getToolPath(const CmdOptions & options, const std::string & installer);
     static std::string run(const fs::path & tool, const std::string & command, const std::vector<std::string> & options = {});
