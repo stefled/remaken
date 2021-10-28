@@ -58,7 +58,13 @@ void BrewSystemTool::search(const std::string & pkgName, const std::string & ver
     std::cout<<"Brew::search results:"<<std::endl;
     for (auto & dep : foundDeps) {
         if (dep.find("==>") == std::string::npos) {
-            std::cout<<dep<<"\t\t\t"<<dep<<"||"<<dep<<"|brew|"<<std::endl;
+            std::vector<std::string> depDetails = split(dep,'@');
+            std::string name, version;
+            name = depDetails.at(0);
+            if (depDetails.size() == 2) {
+                version = depDetails.at(1);
+            }
+            std::cout<<dep<<"\t\t\t"<<name<<"|"<<version<<"|"<<name<<"|brew|"<<std::endl;
         }
     }
 }

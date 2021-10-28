@@ -102,22 +102,41 @@ void ConanSystemTool::install(const Dependency & dependency)
 void ConanSystemTool::search(const std::string & pkgName, const std::string & version)
 {
     std::string package = pkgName;
-    if (!version.empty()) {
-        package += "/" + version;
-    }
-    std::vector<std::string> foundDeps = split( run ("search", package, {"-r","all"}) );
-    std::cout<<"Conan::search results:"<<std::endl;
-    std::string currentRemote;
-    for (auto & dep : foundDeps) {
-        if (dep.find("Remote") != std::string::npos) {
-            std::vector<std::string> remoteDetails = split(dep,'\'');
-            currentRemote = remoteDetails.at(1);
-        }
-        if (dep.find('/') != std::string::npos) {
-            std::vector<std::string> depDetails = split(dep,'/');
-            std::cout<<dep<<"\t"<<depDetails.at(0)<<"|"<<depDetails.at(1)<<"|"<<depDetails.at(0)<<"|conan|"<<currentRemote<<"|"<<std::endl;
-        }
-    }
+       if (!version.empty()) {
+           package += "/" + version;
+       }
+       std::vector<std::string> foundDeps = split( run ("search", package, {"-r","all"}) );
+       std::cout<<"Conan::search results:"<<std::endl;
+       std::string currentRemote;
+       for (auto & dep : foundDeps) {
+           if (dep.find("Remote") != std::string::npos) {
+               std::vector<std::string> remoteDetails = split(dep,'\'');
+               currentRemote = remoteDetails.at(1);
+           }
+           std::string pkg = dep;
+           std::string user, channel;
+           if (dep.find('@') != std::string::npos) {
+               std::vector<std::string> depInfos = split(dep,'@');
+               pkg = depInfos.at(0);
+               if (depInfos.size() == 2) {
+                   std::vector<std::string> infoDetails = split(depInfos.at(1),'/');
+                   user = infoDetails.at(0) + "@";
+                   if (depInfos.size() == 2) {
+                       channel = "#" + infoDetails.at(1);
+                   }
+               }
+
+           }
+           if (pkg.find('/') != std::string::npos) {
+               std::vector<std::string> depDetails = split(pkg,'/');
+               std::string name, version;
+               name = depDetails.at(0);
+               if (depDetails.size() == 2) {
+                   version = depDetails.at(1);
+               }
+               std::cout<<dep<<"\t"<<name<<channel<<"|"<<version<<"|"<<name<<"|"<<user<<"conan|"<<currentRemote<<"|"<<std::endl;
+           }
+       }
 }
 
 std::string ConanSystemTool::retrieveInstallCommand(const Dependency & dependency)
