@@ -239,10 +239,10 @@ std::string ChocoSystemTool::retrieveInstallCommand(const Dependency & dependenc
 void ChocoSystemTool::search(const std::string & pkgName, const std::string & version)
 {
     std::string package = pkgName;
-    std::vector<std::string> foundDeps = split( run ("search", package) );
+    std::vector<std::string> foundDeps = split( run ("search", package, {"--by-id-only"}) );
     std::cout<<"Choco::search results:"<<std::endl;
     for (auto & dep : foundDeps) {
-        if (dep.find("Chocolatey") == std::string::npos) {
+        if (dep.find("Chocolatey") == std::string::npos && dep.find("packages found.") == std::string::npos) {
             std::vector<std::string> depDetails = split(dep,' ');
             std::cout<<depDetails.at(0)<<"\t"<<depDetails.at(1)<<"\t\t"<<depDetails.at(0)<<"|"<<depDetails.at(1)<<"|choco|"<<std::endl;
         }

@@ -77,7 +77,7 @@ std::vector<std::string> BaseSystemTool::split(const std::string & str, char spl
     std::string strNoCarriageReturn = str;
 
     boost::erase_all(strNoCarriageReturn, "\r");
-    boost::split(outVect, str, [&](char c) {return c == splitChar;});
+    boost::split(outVect, strNoCarriageReturn, [&](char c) {return c == splitChar;});
     if (outVect.size() == 1) {
         if (outVect.at(0).empty()) {
             outVect.clear();
