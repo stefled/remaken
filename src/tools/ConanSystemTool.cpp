@@ -115,7 +115,7 @@ void ConanSystemTool::search(const std::string & pkgName, const std::string & ve
         }
         if (dep.find('/') != std::string::npos) {
             std::vector<std::string> depDetails = split(dep,'/');
-            std::cout<<dep<<"\t"<<depDetails.at(0)<<"|"<<depDetails.at(1)<<"|"<<depDetails.at(0)<<"|"<<currentRemote<<"|"<<std::endl;
+            std::cout<<dep<<"\t"<<depDetails.at(0)<<"|"<<depDetails.at(1)<<"|"<<depDetails.at(0)<<"|conan|"<<currentRemote<<"|"<<std::endl;
         }
     }
 }

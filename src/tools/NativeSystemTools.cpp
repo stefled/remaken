@@ -3,6 +3,7 @@
 
 #include <boost/process.hpp>
 #include <boost/predef.h>
+#include <boost/algorithm/string.hpp>
 #include <string>
 #include <map>
 #include <fstream>
@@ -241,7 +242,10 @@ void ChocoSystemTool::search(const std::string & pkgName, const std::string & ve
     std::vector<std::string> foundDeps = split( run ("search", package) );
     std::cout<<"Choco::search results:"<<std::endl;
     for (auto & dep : foundDeps) {
-        std::cout<<dep<<"\t\t\t"<<dep<<"||"<<dep<<"|choco|"<<std::endl;
+        if (dep.find("Chocolatey") == std::string::npos) {
+            std::vector<std::string> depDetails = split(dep,' ');
+            std::cout<<depDetails.at(0)<<"\t"<<depDetails.at(1)<<"\t\t"<<depDetails.at(0)<<"|"<<depDetails.at(1)<<"|choco|"<<std::endl;
+        }
     }
 }
 
@@ -282,7 +286,12 @@ void ScoopSystemTool::search(const std::string & pkgName, const std::string & ve
     std::vector<std::string> foundDeps = split( run ("search", package) );
     std::cout<<"Scoop::search results:"<<std::endl;
     for (auto & dep : foundDeps) {
-        std::cout<<dep<<"\t\t\t"<<dep<<"||"<<dep<<"|scoop|"<<std::endl;
+        if (dep.find("bucket:") == std::string::npos) {
+            boost::erase_all(dep, "(");
+            boost::erase_all(dep, ")");
+            std::vector<std::string> depDetails = split(dep,' ');
+            std::cout<<depDetails.at(0)<<"\t"<<depDetails.at(1)<<"\t\t"<<depDetails.at(0)<<"|"<<depDetails.at(1)<<"|scoop|"<<std::endl;
+        }
     }
 }
 

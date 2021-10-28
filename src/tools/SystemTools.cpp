@@ -7,6 +7,7 @@
 
 #include <boost/process.hpp>
 #include <boost/predef.h>
+#include <boost/algorithm/string.hpp>
 #include <string>
 #include <map>
 #include <nlohmann/json.hpp>
@@ -19,10 +20,13 @@ namespace nj = nlohmann;
 BaseSystemTool::BaseSystemTool(const CmdOptions & options, const std::string & installer):m_options(options)
 {
     m_systemInstallerPath = SystemTools::getToolPath(options, installer);
+
+#if defined(BOOST_OS_MACOS_AVAILABLE) || defined(BOOST_OS_LINUX_AVAILABLE)
     m_sudoCmd = bp::search_path("sudo"); //or get it from somewhere else.
     if (m_sudoCmd.empty()) {
         throw std::runtime_error("Error : sudo command not found on the system. Please check your environment first.");
     }
+#endif
 }
 
 
@@ -70,7 +74,10 @@ fs::path BaseSystemTool::invokeGenerator([[maybe_unused]] const std::vector<Depe
 std::vector<std::string> BaseSystemTool::split(const std::string & str, char splitChar)
 {
     std::vector<std::string> outVect;
-    boost::split(outVect, str, [&](char c){return c == splitChar;});
+    std::string strNoCarriageReturn = str;
+
+    boost::erase_all(strNoCarriageReturn, "\r");
+    boost::split(outVect, str, [&](char c) {return c == splitChar;});
     if (outVect.size() == 1) {
         if (outVect.at(0).empty()) {
             outVect.clear();
