@@ -338,10 +338,6 @@ std::vector<std::shared_ptr<BaseSystemTool>> SystemTools::retrieveTools (const C
     }
 #endif
 #ifdef BOOST_OS_WINDOWS_AVAILABLE
-    tool = createTool(options,Dependency::Type::CHOCO, true);
-    if (tool) {
-        toolList.push_back(tool);
-    }
     tool = createTool(options,Dependency::Type::SCOOP, true);
     if (tool) {
         toolList.push_back(tool);

@@ -239,9 +239,9 @@ void ChocoSystemTool::search(const std::string & pkgName, const std::string & ve
 {
     std::string package = pkgName;
     std::vector<std::string> foundDeps = split( run ("search", package) );
-    std::cout<<"Scoop::search results:"<<std::endl;
+    std::cout<<"Choco::search results:"<<std::endl;
     for (auto & dep : foundDeps) {
-        std::cout<<dep<<"\t\t\t"<<dep<<"||"<<dep<<"|scoop|"<<std::endl;
+        std::cout<<dep<<"\t\t\t"<<dep<<"||"<<dep<<"|choco|"<<std::endl;
     }
 }
 
