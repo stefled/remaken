@@ -256,7 +256,8 @@ void ChocoSystemTool::search(const std::string & pkgName, const std::string & ve
     std::vector<std::string> foundDeps = split( run ("search", package, {"--by-id-only"}) );
     std::cout<<"Choco::search results:"<<std::endl;
     for (auto & dep : foundDeps) {
-        if (dep.find("Chocolatey") == std::string::npos && dep.find("packages found.") == std::string::npos) {
+        if (dep.find("hocolatey") == std::string::npos && dep.find("packages found.") == std::string::npos &&
+            dep.find("Did you know Pro") == std::string::npos && dep.find("Features? Learn more") == std::string::npos) {
             std::vector<std::string> depDetails = split(dep,' ');
             std::cout<<depDetails.at(0)<<"\t"<<depDetails.at(1)<<"\t\t"<<depDetails.at(0)<<"|"<<depDetails.at(1)<<"|choco|"<<std::endl;
         }
