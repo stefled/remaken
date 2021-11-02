@@ -31,9 +31,23 @@ void AptSystemTool::update()
     }
 }
 
+void AptSystemTool::addPpaSource(const std::string & repositoryUrl)
+{
+    if (repositoryUrl.empty()) {
+        return;
+    }
+    std::string ppaList = run ("grep","/etc/apt/sources.list*",{"-Erh","'^deb'"});
+    if (ppaList.find(repositoryUrl) == std::string::npos) {
+        std::cout<<"Adding ppa repository: "<<repositoryUrl<<std::endl;
+        std::string result = runAsRoot("add-apt-repository",repositoryUrl, {"-y"});
+    }
+}
+
 void AptSystemTool::install(const Dependency & dependency)
 {
     std::string source = computeToolRef(dependency);
+
+    addPpaSource(dependency.getBaseRepository());
 
     int result = bp::system(sudo(), m_systemInstallerPath, "install","-y", source.c_str());
 

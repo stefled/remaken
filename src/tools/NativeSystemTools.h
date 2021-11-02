@@ -53,6 +53,7 @@ public:
     void search (const std::string & pkgName, [[maybe_unused]] const std::string & version) override;
 
 private:
+    void addPpaSource(const std::string & repositoryUrl);
     std::string retrieveInstallCommand(const Dependency & dependency) override;
 };
 
