@@ -60,6 +60,7 @@ public:
     std::vector<std::string> buildOptions(const Dependency & dep);
 
 private:
+    void addRemote(const std::string & repositoryUrl);
     std::string retrieveInstallCommand(const Dependency & dependency) override;
     fs::path createConanFile(const std::vector<Dependency> & deps);
     std::string computeToolRef( const Dependency &  dependency) override;

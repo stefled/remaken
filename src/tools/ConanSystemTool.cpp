@@ -56,9 +56,36 @@ void ConanSystemTool::bundle(const Dependency & dependency)
     }
 }
 
+void ConanSystemTool::addRemote(const std::string & repositoryUrl)
+{
+    if (repositoryUrl.empty()) {
+        return;
+    }
+    std::string remoteList = run ("remote","list");
+    auto repoParts = split(repositoryUrl,'#');
+    std::string repoId = repositoryUrl;
+    std::vector<std::string> options;
+    if (repoParts.size() >= 2) {
+        repoId = repoParts.at(0);
+        options.push_back(repoId);
+        options.push_back(repoParts.at(1));
+    }
+    std::cout<<"Adding conan remote: "<<repoId;
+    if (repoParts.size() == 3) {
+        std::cout<<" position: "<<repoParts.at(2);
+        options.push_back("--insert");
+        options.push_back(repoParts.at(2));
+    }
+    std::cout<<std::endl;
+    if (remoteList.find(repoId) == std::string::npos) {
+        std::string result = run ("remote","add",options);
+    }
+}
+
 void ConanSystemTool::install(const Dependency & dependency)
 {
     std::string source = computeToolRef(dependency);
+    addRemote(dependency.getBaseRepository());
     std::string buildType = "build_type=Debug";
 
     if (m_options.getConfig() == "release") {

@@ -211,7 +211,11 @@ when identifier is not specified :
 
 - @repository_type is mandatory
 
-repository url is the repository url. For brew repositories, the repository will be tapped before the installation. The repository url for brew can be either user/repo or user/repo#repository_url.
+repository url is the repository url. 
+For brew repositories, the repository will be tapped before the installation. The repository url for brew can be either user/repo or user/repo#repository_url.
+For conan repositories, the repository will be added before the installation. The repository url for conan can be either  repositoryid#repository_url or epositoryid#repository_url#position.
+For apt repositories, the repository will be added before the installation. The repository url for apt is the ppa url repository_url.
+
 
 when channel is not specified, it defaults to stable for conan dependencies.
 
