@@ -200,7 +200,7 @@ CmdOptions::CmdOptions()
     installCommand->add_option("--alternate-remote-url,-u", m_altRepoUrl, "alternate remote url to use when the declared remote fails to provide a dependency");
     installCommand->add_flag("--invert-remote-order", m_invertRepositoryOrder, "invert alternate and base remote search order : alternate remote is searched before packagedependencies declared remote");
     installCommand->add_option("--apiKey,-k", m_apiKey, "Artifactory api key");
-    installCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files", true);
+    installCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files : can be a local file or an url to the file", true);
     installCommand->add_option("--conan_profile", m_conanProfile, "force conan profile name to use (overrides detected profile)",true);
     installCommand->add_flag("--project_mode,-p", m_projectMode, "enable project mode to generate project build files from packaging tools (conanbuildinfo ...).");//\nProject mode is enabled automatically when the folder containing the packagedependencies file also contains a QT project file");
 

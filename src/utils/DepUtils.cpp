@@ -273,8 +273,8 @@ fs::path DepUtils::downloadFile(const CmdOptions & options, const std::string & 
     if (!fs::exists(outputDirectory)) {
         fs::create_directories(outputDirectory);
     }
-    int result = fs::copy_file(compressedDependency,outputDirectory/name,fs::copy_option::overwrite_if_exists);
-    if (result != 0) {
+    bool result = fs::copy_file(compressedDependency,outputDirectory/name,fs::copy_option::overwrite_if_exists);
+    if (!result) {
         throw std::runtime_error("Error copying file " + source);
     }
     fs::remove(compressedDependency);
