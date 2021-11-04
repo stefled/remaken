@@ -1,6 +1,7 @@
 #include "DepUtils.h"
 #include "Constants.h"
 #include "FileHandlerFactory.h"
+#include "retrievers/HttpFileRetriever.h"
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 #include <boost/log/trivial.hpp>
 #include <regex>
@@ -44,7 +45,6 @@ fs::path DepUtils::buildDependencyPath(const std::string & filePath)
 {
     fs::detail::utf8_codecvt_facet utf8;
     fs::path currentPath(boost::filesystem::initial_path().generic_string(utf8));
-
     fs::path dependenciesFile (filePath, utf8);
 
     if (!dependenciesFile.is_absolute()){
@@ -264,5 +264,22 @@ void DepUtils::readInfos(const fs::path &  dependenciesFile, const CmdOptions & 
     }
     indentLevel --;
 }
+
+fs::path DepUtils::downloadFile(const CmdOptions & options, const std::string & source, const fs::path & outputDirectory, const std::string & name )
+{
+    auto fileRetriever = std::make_shared<HttpFileRetriever>(options);
+    fs::detail::utf8_codecvt_facet utf8;
+    fs::path compressedDependency = fileRetriever->retrieveArtefact(source);
+    if (!fs::exists(outputDirectory)) {
+        fs::create_directories(outputDirectory);
+    }
+    int result = fs::copy_file(compressedDependency,outputDirectory/name,fs::copy_option::overwrite_if_exists);
+    if (result != 0) {
+        throw std::runtime_error("Error copying file " + source);
+    }
+    fs::remove(compressedDependency);
+    return outputDirectory/name;
+}
+
 
 

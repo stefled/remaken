@@ -50,6 +50,7 @@ public:
     static void readInfos(const fs::path &  dependenciesFile, const CmdOptions & options, uint32_t indentLevel = 0);
     static std::map<std::string,bool> parseConditionsFile(const fs::path & rootFolderPath);
     static std::vector<Dependency> filterConditionDependencies(const std::map<std::string,bool> & conditions, const std::vector<Dependency> & depCollection);
+    static fs::path downloadFile(const CmdOptions & options, const std::string & source, const fs::path & outputDirectory, const std::string & name = "");
 };
 
 bool yesno_prompt(char const* prompt);

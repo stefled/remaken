@@ -24,7 +24,15 @@ DependencyManager::DependencyManager(const CmdOptions & options):m_options(optio
 
 fs::path DependencyManager::buildDependencyPath()
 {
-    return DepUtils::buildDependencyPath(m_options.getDependenciesFile());
+    std::string filePath = m_options.getDependenciesFile();
+    if ((filePath.find("https://") != std::string::npos) ||
+        (filePath.find("http://") != std::string::npos)) {//filepath is an url
+        fs::path destFolder = OsUtils::acquireTempFolderPath();
+        fs::path dependenciesPath = DepUtils::downloadFile(m_options,filePath,destFolder,"packagedependencies.txt");
+        return dependenciesPath;
+    }
+
+    return DepUtils::buildDependencyPath(filePath);
 }
 
 int DependencyManager::retrieve()
