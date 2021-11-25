@@ -2,6 +2,8 @@
 #include "Constants.h"
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/log/trivial.hpp>
 
 #ifdef BOOST_OS_WINDOWS_AVAILABLE
 #include <wbemidl.h>
@@ -123,6 +125,40 @@ void OsUtils::copyLibraries(const fs::path & sourceRootFolder, const fs::path & 
                 fs::copy_file(filepath , destinationFolderPath/filepath.filename(), fs::copy_option::overwrite_if_exists);
             }
         }
+    }
+}
+
+template <class T> void copyFolder(const fs::path & srcFolderPath, const fs::path & dstFolderPath)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    for ( const fs::directory_entry& x : T{srcFolderPath} ) {
+        const auto& path = x.path();
+        auto relativePathStr = path.generic_string(utf8);
+        boost::algorithm::replace_first(relativePathStr, srcFolderPath.generic_string(utf8), "");
+        fs::copy(path, dstFolderPath / relativePathStr,fs::copy_options::overwrite_existing);
+    }
+}
+
+void OsUtils::copyFolder(const fs::path & srcFolderPath, const fs::path & dstFolderPath, bool bRecurse)
+{
+
+    if (!fs::exists(srcFolderPath) || !fs::is_directory(srcFolderPath))
+    {
+        throw std::runtime_error("Source directory " + srcFolderPath.string() + " does not exist or is not a directory");
+    }
+    if (!fs::exists(dstFolderPath))
+    {
+        BOOST_LOG_TRIVIAL(info)<<"==> creating directory "<<dstFolderPath;
+        if (!fs::create_directory(dstFolderPath)) {
+            throw std::runtime_error("Cannot create destination directory " + dstFolderPath.string());
+        }
+    }
+
+    if (bRecurse) {
+        ::copyFolder<fs::recursive_directory_iterator>(srcFolderPath, dstFolderPath);
+    }
+    else {
+        ::copyFolder<fs::directory_iterator>(srcFolderPath, dstFolderPath);
     }
 }
 

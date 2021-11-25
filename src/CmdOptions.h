@@ -175,6 +175,10 @@ public:
         return m_crossCompile;
     }
 
+    bool installWizards() const {
+        return m_installWizards;
+    }
+
     const std::string & getBuildConfig() const {
         return m_buildConfig;
     }
@@ -221,7 +225,7 @@ public:
         }
     }
 
-    void writeConfigurationFile() const;
+    void writeConfigurationFile(const std::string & profileName = "default") const;
     void displayConfigurationSettings() const;
 
 private:
@@ -259,6 +263,7 @@ private:
     std::string m_qmakeRulesTag;
     std::string m_vcpkgTag = "";
     std::string m_conanProfile = "default";
+    std::string m_profileName = "default";
     fs::path m_moduleSubfolderPath;
     bool m_ignoreCache;
     bool m_invertRepositoryOrder = false;
@@ -274,6 +279,7 @@ private:
     bool m_override = false;
     bool m_defaultProfileOptions = false;
     bool m_crossCompile = false;
+    bool m_installWizards = false;
     CLI::App m_cliApp{"remaken"};
 };
 

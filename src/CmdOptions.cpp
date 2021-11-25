@@ -119,10 +119,10 @@ CmdOptions::CmdOptions()
     }
 
 
-    fs::path configPath = PathBuilder::getHomePath() / Constants::REMAKEN_FOLDER / "config";
+    fs::path profilePath = PathBuilder::getHomePath() / Constants::REMAKEN_FOLDER / Constants::REMAKEN_PROFILES_FOLDER/ "default";
     m_cliApp.require_subcommand(1);
     m_cliApp.fallthrough(true);
-    m_cliApp.set_config("--configfile",configPath.generic_string(utf8),"remaken configuration file to read");
+    m_cliApp.set_config("--profile",profilePath.generic_string(utf8),"remaken profile file to read");
 
     m_config = "release";
     m_cliApp.add_option("--config,-c", m_config, "Config: " + getOptionString("--config"), true);
@@ -174,18 +174,24 @@ CmdOptions::CmdOptions()
 
     // PROFILE COMMAND
     CLI::App * profileCommand = m_cliApp.add_subcommand("profile", "manage remaken profiles configuration");
-    CLI::App * initProfileCommand = profileCommand->add_subcommand("init", "create remaken default profile from current options");
+    CLI::App * initProfileCommand = profileCommand->add_subcommand("init", "create remaken profile from current options");
+    initProfileCommand ->add_flag("--with-default,-w", m_defaultProfileOptions, "create remaken profile with all profile options : current profile and provided");
+    initProfileCommand->add_option("profile_name", m_profileName, "profile name to create (default profile name is \"default\")", true);
     CLI::App * displayProfileCommand = profileCommand->add_subcommand("display", "display remaken current profile (display current options and profile options)");
     m_defaultProfileOptions = false;
-    displayProfileCommand->add_flag("--with-default,-w", m_defaultProfileOptions, "display all profile options : default and provided");
-    initProfileCommand ->add_flag("--with-default,-w", m_defaultProfileOptions, "create remaken profile with all profile options : default and provided");
+    displayProfileCommand->add_flag("--with-default,-w", m_defaultProfileOptions, "display all profile options : current profile and provided");
+    displayProfileCommand->add_option("profile_name", m_profileName, "profile name to create (default profile name is \"default\")", true);
+
+
 
     // INIT COMMAND
     CLI::App * initCommand = m_cliApp.add_subcommand("init", "initialize remaken root folder and retrieve qmake rules");
     m_qmakeRulesTag = Constants::QMAKE_RULES_DEFAULT_TAG;
     initCommand->add_option("--tag", m_qmakeRulesTag, "the qmake rules tag version to install - either provide a tag or the keyword 'latest' to install latest qmake rules",true);
+    initCommand->add_flag("--installwizards,-w", m_installWizards, "installs qtcreator wizards for remaken/Xpcf projects");
     CLI::App * initVcpkgCommand = initCommand->add_subcommand("vcpkg", "setup vcpkg repository");
     initVcpkgCommand->add_option("--tag", m_vcpkgTag, "the vcpkg tag version to install");
+    CLI::App * initWizardsCommand = initCommand->add_subcommand("wizards", "installs qtcreator wizards for remaken/Xpcf projects");
 
 #if defined(BOOST_OS_MACOS_AVAILABLE) || defined(BOOST_OS_LINUX_AVAILABLE)
     CLI::App * initBrewCommand = initCommand->add_subcommand("brew", "setup brew repository");
@@ -250,7 +256,7 @@ CmdOptions::CmdOptions()
     packageCommand->add_option("--ignore-mode,-n", m_packageOptions["ignoreMode"], " forces the pkg-config generated file to ignore the mode when providing -L flags\n");
     m_mode = "shared";
     packageCommand->add_option("--mode,-m", m_mode, "Mode: " + getOptionString("--mode"), true);
-    packageCommand->add_option("--withsuffix,-w", m_packageOptions["withsuffix"], " specify the suffix used by the thirdparty when building with mode mode\n");
+    packageCommand->add_option("--withsuffix", m_packageOptions["withsuffix"], " specify the suffix used by the thirdparty when building with mode mode\n");
     packageCommand->add_option("--useOriginalPCfiles,-u", m_packageOptions["useOriginalPCfiles"], " specify to search and use original pkgconfig files from the thirdparty, instead of generating them\n");
     packageCommand->fallthrough(false);
     /*print "    -s, --sourcedir                  => product root directory (where libs and includes are located)\n");
@@ -432,14 +438,14 @@ CmdOptions::OptionResult CmdOptions::parseArguments(int argc, char** argv)
     return OptionResult::RESULT_SUCCESS;
 }
 
-void CmdOptions::writeConfigurationFile() const
+void CmdOptions::writeConfigurationFile(const std::string & profileName) const
 {
     fs::detail::utf8_codecvt_facet utf8;
     fs::path remakenRootPath = PathBuilder::getHomePath() / Constants::REMAKEN_FOLDER;
     fs::path remakenProfilesPath = remakenRootPath / Constants::REMAKEN_PROFILES_FOLDER;
-    fs::path remakenConfigPath = remakenRootPath/"config";
+    fs::path remakenProfilePath = remakenProfilesPath/m_profileName;
     ofstream fos;
-    fos.open(remakenConfigPath.generic_string(utf8),ios::out|ios::trunc);
+    fos.open(remakenProfilePath.generic_string(utf8),ios::out|ios::trunc);
     fos<<m_cliApp.config_to_str(m_defaultProfileOptions,true);
     fos.close();
 }

@@ -105,6 +105,10 @@ All qmake rules are retrieved from [builddefs-qmake](https://github.com/b-com-so
 
 The ```remaken init``` command also supports the ```--force``` (alias ```-f```) to force reinstalling qmake rules and/or ```--override```  (alias ```-e```) to override existing files.
 
+### Install IDE wizards
+For now, only QtCreator wizards are provided.
+To install the remaken and xpcf projects and classes wizards, use: ```remaken init -w```
+
 ### Set remaken packages root folder
 The remaken packages folder is the location where packages are installed, searched from ...
 This folder defaults to ```$(HOME)/.remaken/packages```.
@@ -113,6 +117,9 @@ It can be changed in various ways:
 - create a ```.packagespath``` file in remaken root folder  ```$(HOME)/.remaken```. In this file, provide the path to your packages folder in the first line
 - provide the package path with the ```--remaken-root``` parameter from remaken command line invocation
 - put the ```remaken-root``` parameter and its value in the remaken ```config``` file in located in ```$(HOME)/.remaken```
+
+### Managing remaken profiles
+
 
 ### Searching dependencies
 ```remaken search [--restrict packaging_system_name] package_name [package_version] ```

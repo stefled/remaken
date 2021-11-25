@@ -15,7 +15,7 @@ InitCommand::InitCommand(const CmdOptions & options):AbstractCommand(InitCommand
 {
 }
 
-fs::path installArtefact(const CmdOptions & options, const std::string & source, const fs::path & outputDirectory, const std::string & name = "" )
+fs::path installArtefact(const CmdOptions & options, const std::string & source, const fs::path & outputDirectory)
 {
     auto fileRetriever = std::make_shared<HttpFileRetriever>(options);
     fs::detail::utf8_codecvt_facet utf8;
@@ -47,11 +47,11 @@ int setupVCPKG(const fs::path & remakenRootPackagesPath, const std::string & tag
     if (result != 0) {
         return result;
     }
-    #ifdef BOOST_OS_WINDOWS_AVAILABLE
-        result = bp::system(remakenRootPackagesPath / "vcpkg" / "bootstrap-vcpkg.bat");
-    #else
-        result = bp::system(remakenRootPackagesPath / "vcpkg" / "bootstrap-vcpkg.sh");
-    #endif
+#ifdef BOOST_OS_WINDOWS_AVAILABLE
+    result = bp::system(remakenRootPackagesPath / "vcpkg" / "bootstrap-vcpkg.bat");
+#else
+    result = bp::system(remakenRootPackagesPath / "vcpkg" / "bootstrap-vcpkg.sh");
+#endif
     return result;
 }
 
@@ -63,6 +63,35 @@ int setupBrew()
     return result;
 }
 #endif
+
+int setupWizards(const fs::path & rulesPath)
+{
+    BOOST_LOG_TRIVIAL(info)<<"Installing qt creator wizards";
+#ifdef BOOST_OS_WINDOWS_AVAILABLE
+    fs::path qtWizardsPath = PathBuilder::getUTF8PathObserver(getenv("APPDATA"));
+#else
+    fs::path qtWizardsPath = PathBuilder::getHomePath()/".config";
+#endif
+    qtWizardsPath /= "QtProject";
+    qtWizardsPath /= "qtcreator";
+    qtWizardsPath /= "templates";
+    qtWizardsPath /= "wizards";
+    if (!fs::exists(qtWizardsPath)) {
+        BOOST_LOG_TRIVIAL(info)<<"==> creating directory "<<qtWizardsPath;
+        fs::create_directories(qtWizardsPath);
+    }
+    if (!fs::exists(qtWizardsPath/"classes")) {
+        BOOST_LOG_TRIVIAL(info)<<"==> creating directory "<<qtWizardsPath/"classes";
+        fs::create_directory(qtWizardsPath/"classes");
+    }
+    if (!fs::exists(qtWizardsPath/"projects")) {
+        BOOST_LOG_TRIVIAL(info)<<"==> creating directory "<<qtWizardsPath/"projects";
+        fs::create_directory(qtWizardsPath/"projects");
+    }
+    OsUtils::copyFolder(rulesPath/"wizards"/"qtcreator"/"classes",qtWizardsPath/"classes",true);
+    OsUtils::copyFolder(rulesPath/"wizards"/"qtcreator"/"projects",qtWizardsPath/"projects",true);
+    return 0;
+}
 
 int InitCommand::execute()
 {
@@ -112,6 +141,9 @@ int InitCommand::execute()
 
     if (fs::exists(artefactFolder)) {
         fs::create_symlink(artefactFolder.filename(),qmakeRootPath);
+    }
+    if (m_options.installWizards()) {
+        setupWizards(qmakeRootPath);
     }
     return 0;
 }
