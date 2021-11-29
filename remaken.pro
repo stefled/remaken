@@ -31,6 +31,7 @@ CONFIG += app_setup
 include (builddefs/qmake/templateappconfig.pri)
 
 HEADERS += \
+    src/commands/RemoteCommand.h \
     src/commands/SearchCommand.h \
     src/managers/BundleManager.h \
     src/commands/BundleXpcfCommand.h \
@@ -79,6 +80,7 @@ HEADERS += \
     src/tinyxmlhelper.h
 
 SOURCES += \
+    src/commands/RemoteCommand.cpp \
     src/commands/SearchCommand.cpp \
     src/managers/BundleManager.cpp \
     src/commands/BundleXpcfCommand.cpp \

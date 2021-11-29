@@ -57,7 +57,6 @@ std::string computeToolChain()
 #endif
 }
 
-
 static const map<std::string,std::vector<std::string>> validationMap ={{"action",{"info","init","install","parse","version","bundle","bundleXpcf"}},
                                                                        {"--architecture",{"x86_64","i386","arm","arm64","arm64-v8a","armeabi-v7a","armv6","armv7","armv7hf","armv8"}},
                                                                        {"--config",{"release","debug"}},
@@ -76,7 +75,6 @@ static const map<std::string,std::vector<std::string>> validationMap ={{"action"
                                                                        {"--restrict",{"choco","conan","scoop","system","vcpkg"}}
                                                                        #endif
                                                                       };
-
 
 std::string CmdOptions::getOptionString(const std::string & optionName)
 {
@@ -118,7 +116,6 @@ CmdOptions::CmdOptions()
         remakenRootPath = pkgPath;
     }
 
-
     fs::path profilePath = PathBuilder::getHomePath() / Constants::REMAKEN_FOLDER / Constants::REMAKEN_PROFILES_FOLDER/ "default";
     m_cliApp.require_subcommand(1);
     m_cliApp.fallthrough(true);
@@ -143,7 +140,6 @@ CmdOptions::CmdOptions()
     m_override = false;
     m_cliApp.add_flag("--override,-e", m_override, "override existing files while (re)-installing packages/rules...");
     m_dependenciesFile = "packagedependencies.txt";
-
 
     // BUNDLE COMMAND
     CLI::App * bundleCommand = m_cliApp.add_subcommand("bundle","copy shared libraries dependencies to a destination folder");
@@ -182,8 +178,6 @@ CmdOptions::CmdOptions()
     displayProfileCommand->add_flag("--with-default,-w", m_defaultProfileOptions, "display all profile options : current profile and provided");
     displayProfileCommand->add_option("profile_name", m_profileName, "profile name to create (default profile name is \"default\")", true);
 
-
-
     // INIT COMMAND
     CLI::App * initCommand = m_cliApp.add_subcommand("init", "initialize remaken root folder and retrieve qmake rules");
     m_qmakeRulesTag = Constants::QMAKE_RULES_DEFAULT_TAG;
@@ -210,7 +204,6 @@ CmdOptions::CmdOptions()
     installCommand->add_option("--conan_profile", m_conanProfile, "force conan profile name to use (overrides detected profile)",true);
     installCommand->add_flag("--project_mode,-p", m_projectMode, "enable project mode to generate project build files from packaging tools (conanbuildinfo ...).");//\nProject mode is enabled automatically when the folder containing the packagedependencies file also contains a QT project file");
 
-
     m_ignoreCache = false;
     installCommand->add_flag("--ignore-cache,-i", m_ignoreCache, "ignore cache entries : dependencies update is forced");
     m_mode = "shared";
@@ -219,6 +212,8 @@ CmdOptions::CmdOptions()
     installCommand->add_option("--type,-t", m_repositoryType, "Repository type: " + getOptionString("--type"), true);
     m_zipTool = ZipTool::getZipToolIdentifier();
     installCommand->add_option("--ziptool,-z", m_zipTool, "unzipper tool name : unzip, compact ...", true);
+    installCommand->add_flag("--remote-only", m_projectMode, "Only add remote/source/tap from package dependencies, dependencies are not installed");//\nProject mode is enabled automatically when the folder containing the packagedependencies file also contains a QT project file");
+
 
     // LIST COMMAND
     CLI::App * listCommand = m_cliApp.add_subcommand("list", "list remaken installed dependencies. If package is provided, list the package available version. If package and version are provided, list the package files");
@@ -234,6 +229,18 @@ CmdOptions::CmdOptions()
     searchCommand->add_option("--restrict", m_searchOptions["packagingSystem"], "restrict search to the packaging system provided [" + getOptionString("--restrict") + "]");
     searchCommand->add_option("package", m_searchOptions["pkgName"], "the package name");
     searchCommand->add_option("version", m_searchOptions["pkgVersion"], "the package version ");
+
+    // REMOTE COMMAND
+    CLI::App * remoteCommand = m_cliApp.add_subcommand("remote", "Remote/sources/repositories/tap management");
+    CLI::App * remoteListCommand = remoteCommand->add_subcommand("list", "list all remotes/sources/tap from installed packaging systems");
+    CLI::App * remoteListFileCommand = remoteCommand->add_subcommand("listfile", "list remotes/sources/tap declared from packagedependencies file");
+    m_recurse = false;
+    remoteListFileCommand->add_flag("--recurse", m_recurse, "recursive mode : list remote recursively from dependencies files");
+    remoteListFileCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files", true);
+    CLI::App * remoteAddCommand = remoteCommand->add_subcommand("add", "add remotes/sources/tap declared from packagedependencies file");
+    m_recurse = false;
+    remoteAddCommand->add_flag("--recurse", m_recurse, "recursive mode : add remote recursively from dependencies files");
+    remoteAddCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files", true);
 
 
     // RUN COMMAND
@@ -338,10 +345,11 @@ void CmdOptions::validateOptions()
         }
     }
 
-    if (sub->get_name() == "profile") {
+    if ((sub->get_name() == "profile") || (sub->get_name() == "remote")) {
         if (sub->get_subcommands().size() == 0) {
-            string message("Command profile ");
-            message += " was used without subcommand" ;
+            string message("Command '");
+            message += sub->get_name();
+            message += "' called without subcommand !" ;
             throw std::runtime_error(message);
         }
     }
@@ -402,6 +410,17 @@ CmdOptions::OptionResult CmdOptions::parseArguments(int argc, char** argv)
                 }
             }
         }
+        if (sub->get_name() == "remote") {
+            if (sub->get_subcommands().size() > 0) {
+                m_subcommand = sub->get_subcommands().at(0)->get_name();
+                if (!m_subcommand.empty()) {
+                    if ((m_subcommand != "add") && (m_subcommand != "list") && (m_subcommand != "listfile")) {
+                        cout << "Error : remote subcommand must be one of [ add | list | lisfile ]. "<<m_subcommand<<" is an invalid subcommand !"<<endl;
+                        return OptionResult::RESULT_ERROR;
+                    }
+                }
+            }
+        }
         if (sub->get_name() == "run") {
             if (environmentOnly() && !getApplicationFile().empty()) {
                 cout << "Error : application file and environment set ! choose between --env or provide an application file to run but don't provide both options simultaneously!"<<endl;
@@ -449,7 +468,6 @@ void CmdOptions::writeConfigurationFile(const std::string & profileName) const
     fos<<m_cliApp.config_to_str(m_defaultProfileOptions,true);
     fos.close();
 }
-
 
 void CmdOptions::displayConfigurationSettings() const
 {

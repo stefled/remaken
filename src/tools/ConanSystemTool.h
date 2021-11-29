@@ -58,6 +58,7 @@ public:
     fs::path invokeGenerator(const std::vector<Dependency> & deps, GeneratorType generator) override;
     std::vector<fs::path> retrievePaths(const Dependency & dependency, BaseSystemTool::PathType conanNode, const fs::path & destination);
     std::vector<std::string> buildOptions(const Dependency & dep);
+    void listRemotes() override;
 
 private:
     void addRemote(const std::string & repositoryUrl);

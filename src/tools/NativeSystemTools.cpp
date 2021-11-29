@@ -31,6 +31,16 @@ void AptSystemTool::update()
     }
 }
 
+void AptSystemTool::listRemotes()
+{
+    std::vector<std::string> remoteList = split( run ("grep","/etc/apt/sources.list*",{"-Erh","'^deb'"}) );
+    std::cout<<"Apt sources:"<<std::endl;
+    for (const auto & remote: remoteList) {
+         std::cout<<"=> "<<remote<<std::endl;
+    }
+}
+
+
 void AptSystemTool::addPpaSource(const std::string & repositoryUrl)
 {
     if (repositoryUrl.empty()) {

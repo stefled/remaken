@@ -31,7 +31,7 @@ class ListCommand : public AbstractCommand
 public:
     ListCommand(const CmdOptions & options);
     int execute() override;
-    static constexpr const char * NAME="clean";
+    static constexpr const char * NAME="list";
 
 private:
     int listPackages();

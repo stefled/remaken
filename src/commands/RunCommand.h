@@ -30,7 +30,7 @@ class RunCommand : public AbstractCommand
 public:
     RunCommand(const CmdOptions & options);
     int execute() override;
-    static constexpr const char * NAME="info";
+    static constexpr const char * NAME="run";
 
 private:
     const CmdOptions & m_options;

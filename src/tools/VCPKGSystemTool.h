@@ -39,6 +39,7 @@ public:
     void search (const std::string & pkgName, const std::string & version) override;
     std::vector<fs::path> binPaths(const Dependency & dependency) override;
     std::vector<fs::path> libPaths(const Dependency & dependency) override;
+    void listRemotes() override { BOOST_LOG_TRIVIAL(info)<<"remote() is unique for "<<m_systemInstallerPath; }
 
 protected:
     void bundleLib(const std::string & libPath);

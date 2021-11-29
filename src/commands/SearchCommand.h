@@ -31,7 +31,7 @@ class SearchCommand : public AbstractCommand
 public:
     SearchCommand(const CmdOptions & options);
     int execute() override;
-    static constexpr const char * NAME="parse";
+    static constexpr const char * NAME="search";
 
 private:
     const CmdOptions & m_options;

@@ -20,21 +20,21 @@
  * @date 2019-11-15
  */
 
-#ifndef PROFILECOMMAND_H
-#define PROFILECOMMAND_H
+#ifndef REMOTECOMMAND_H
+#define REMOTECOMMAND_H
 
 #include "AbstractCommand.h"
 #include "CmdOptions.h"
 
-class ProfileCommand : public AbstractCommand
+class RemoteCommand : public AbstractCommand
 {
 public:
-    ProfileCommand(const CmdOptions & options);
+    RemoteCommand(const CmdOptions & options);
     int execute() override;
-    static constexpr const char * NAME="profile";
+    static constexpr const char * NAME="remote";
 
 private:
     const CmdOptions & m_options;
 };
 
-#endif // PROFILECOMMAND_H
+#endif // REMOTECOMMAND_H

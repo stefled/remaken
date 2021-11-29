@@ -39,6 +39,7 @@ public:
     fs::path invokeGenerator(const std::vector<Dependency> & deps, GeneratorType generator) override;
     std::vector<fs::path> binPaths([[maybe_unused]] const Dependency & dependency) override;
     std::vector<fs::path> libPaths([[maybe_unused]] const Dependency & dependency) override;
+    void listRemotes() override;
 
 private:
     std::string retrieveInstallCommand(const Dependency & dependency) override;

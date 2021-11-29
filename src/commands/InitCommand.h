@@ -31,7 +31,7 @@ class InitCommand : public AbstractCommand
 public:
     InitCommand(const CmdOptions & options);
     int execute() override;
-    static constexpr const char * NAME="clean";
+    static constexpr const char * NAME="init";
 
 private:
     const CmdOptions & m_options;

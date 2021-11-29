@@ -51,6 +51,7 @@ public:
     virtual std::string computeSourcePath (const Dependency &  dependency);
     virtual fs::path sudo () { return m_sudoCmd; }
     virtual fs::path invokeGenerator([[maybe_unused]] const std::vector<Dependency> & deps, [[maybe_unused]] GeneratorType generator);
+    virtual void listRemotes() = 0;
 
 protected:
     std::string run(const std::string & command, const std::vector<std::string> & options = {});

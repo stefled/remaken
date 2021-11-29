@@ -48,6 +48,15 @@ void BrewSystemTool::tap(const std::string & repositoryUrl)
     }
 }
 
+void BrewSystemTool::listRemotes()
+{
+    std::vector<std::string> tapList = split( run ("tap") );
+    std::cout<<"Brew taps:"<<std::endl;
+    for (const auto & tap: tapList) {
+         std::cout<<"=> "<<tap<<std::endl;
+    }
+}
+
 void BrewSystemTool::search(const std::string & pkgName, const std::string & version)
 {
     std::string package = pkgName;

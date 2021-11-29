@@ -82,6 +82,15 @@ void ConanSystemTool::addRemote(const std::string & repositoryUrl)
     }
 }
 
+void ConanSystemTool::listRemotes()
+{
+    std::vector<std::string> remoteList = split( run ("remote","list") );
+    std::cout<<"Conan remotes:"<<std::endl;
+    for (const auto & remote: remoteList) {
+         std::cout<<"=> "<<remote<<std::endl;
+    }
+}
+
 void ConanSystemTool::install(const Dependency & dependency)
 {
     std::string source = computeToolRef(dependency);

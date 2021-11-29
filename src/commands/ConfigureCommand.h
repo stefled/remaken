@@ -30,7 +30,7 @@ class ConfigureCommand : public AbstractCommand
 public:
     ConfigureCommand(const CmdOptions & options);
     int execute() override;
-    static constexpr const char * NAME="info";
+    static constexpr const char * NAME="configure";
 
 private:
     const CmdOptions & m_options;

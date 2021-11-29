@@ -124,7 +124,7 @@ int InitCommand::execute()
     }
     else if (linkStatus.type() != fs::file_not_found || fs::exists(qmakeRootPath)) {
         BOOST_LOG_TRIVIAL(info)<<"qmake rules already installed ! skipping...";
-        return 0;
+        return 0; // with wizards don't return
     }
     if (!fs::exists(remakenRulesPath)) {
         fs::create_directories(remakenRulesPath);
