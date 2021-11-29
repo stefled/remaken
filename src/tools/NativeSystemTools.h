@@ -139,7 +139,7 @@ public:
     void install(const Dependency & dependency) override;
     bool installed(const Dependency & dependency) override;
     void search (const std::string & pkgName, [[maybe_unused]] const std::string & version) override;
-    void listRemotes() override { BOOST_LOG_TRIVIAL(warning)<<"listRemotes() not implemented yet for tool "<<m_systemInstallerPath; }
+    void listRemotes() override;
 
 private:
     std::string retrieveInstallCommand(const Dependency & dependency) override;

@@ -282,6 +282,15 @@ void ScoopSystemTool::update()
     }
 }
 
+void ScoopSystemTool::listRemotes()
+{
+    std::vector<std::string> remoteList = split( run ("bucket","list") );
+    std::cout<<"Scoop remotes:"<<std::endl;
+    for (const auto & remote: remoteList) {
+         std::cout<<"=> "<<remote<<std::endl;
+    }
+}
+
 void ScoopSystemTool::install(const Dependency & dependency)
 {
     std::string source = computeToolRef(dependency);
