@@ -40,6 +40,8 @@ public:
     std::vector<fs::path> binPaths([[maybe_unused]] const Dependency & dependency) override;
     std::vector<fs::path> libPaths([[maybe_unused]] const Dependency & dependency) override;
     void listRemotes() override;
+    void addRemote(const std::string & remoteReference) override;
+
 
 private:
     std::string retrieveInstallCommand(const Dependency & dependency) override;

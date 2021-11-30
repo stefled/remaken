@@ -56,7 +56,7 @@ void ConanSystemTool::bundle(const Dependency & dependency)
     }
 }
 
-void ConanSystemTool::addRemote(const std::string & repositoryUrl)
+void ConanSystemTool::addRemoteImpl(const std::string & repositoryUrl)
 {
     if (repositoryUrl.empty()) {
         return;
@@ -65,6 +65,9 @@ void ConanSystemTool::addRemote(const std::string & repositoryUrl)
     auto repoParts = split(repositoryUrl,'#');
     std::string repoId = repositoryUrl;
     std::vector<std::string> options;
+    if (repoParts.size() < 2) {
+        throw std::runtime_error("Error adding conan remote. Remote format must follow remoteAlias#remoteURL[#position]. Missing one of remoteAlias or remoteURL: " + repositoryUrl);
+    }
     if (repoParts.size() >= 2) {
         repoId = repoParts.at(0);
         options.push_back(repoId);
@@ -81,6 +84,12 @@ void ConanSystemTool::addRemote(const std::string & repositoryUrl)
         std::string result = run ("remote","add",options);
     }
 }
+
+void ConanSystemTool::addRemote(const std::string & remoteReference)
+{
+    addRemoteImpl(remoteReference);
+}
+
 
 void ConanSystemTool::listRemotes()
 {

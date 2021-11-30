@@ -53,6 +53,11 @@ void AptSystemTool::addPpaSource(const std::string & repositoryUrl)
     }
 }
 
+void AptSystemTool::addRemote(const std::string & remoteReference)
+{
+    addPpaSource(remoteReference);
+}
+
 void AptSystemTool::install(const Dependency & dependency)
 {
     std::string source = computeToolRef(dependency);
@@ -288,6 +293,29 @@ void ScoopSystemTool::listRemotes()
     std::cout<<"Scoop remotes:"<<std::endl;
     for (const auto & remote: remoteList) {
          std::cout<<"=> "<<remote<<std::endl;
+    }
+}
+
+void ScoopSystemTool::addRemote(const std::string & remoteReference)
+{
+    if (remoteReference.empty()) {
+        return;
+    }
+    std::string bucketList = run ("bucket","list");
+    auto repoParts = split(remoteReference,'#');
+    std::string repoId = remoteReference;
+    std::vector<std::string> options;
+    if (repoParts.size() < 2) {
+        throw std::runtime_error("Error adding scoop remote. Remote format must follow bucketAlias#bucketURL. Missing bucketURL: " + remoteReference);
+    }
+    if (repoParts.size() == 2) {
+        repoId = repoParts.at(0);
+        options.push_back(repoId);
+        options.push_back(repoParts.at(1));
+    }
+    if (bucketList.find(repoId) == std::string::npos) {
+        std::cout<<"Adding scoop bucket: "<<remoteReference<<std::endl;
+        std::string result = run ("bucket","add",options);
     }
 }
 

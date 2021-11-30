@@ -52,6 +52,7 @@ public:
     bool installed(const Dependency & dependency) override;
     void search (const std::string & pkgName, [[maybe_unused]] const std::string & version) override;
     void listRemotes() override;
+    void addRemote(const std::string & remoteReference) override;
 
 private:
     void addPpaSource(const std::string & repositoryUrl);
@@ -67,7 +68,9 @@ public:
     void install(const Dependency & dependency) override;
     bool installed(const Dependency & dependency) override;
     void listRemotes() override { BOOST_LOG_TRIVIAL(warning)<<"listRemotes() not implemented yet for tool "<<m_systemInstallerPath; }
-
+    void addRemote(const std::string & remoteReference) override {
+        BOOST_LOG_TRIVIAL(warning)<<"addRemote() not implemented yet for tool "<<m_systemInstallerPath;
+    }
 
 private:
     std::string retrieveInstallCommand(const Dependency & dependency) override;
@@ -82,6 +85,9 @@ public:
     void install(const Dependency & dependency) override;
     bool installed(const Dependency & dependency) override;
     void listRemotes() override { BOOST_LOG_TRIVIAL(warning)<<"listRemotes() not implemented yet for tool "<<m_systemInstallerPath; }
+    void addRemote(const std::string & remoteReference) override {
+        BOOST_LOG_TRIVIAL(warning)<<"addRemote() not implemented yet for tool "<<m_systemInstallerPath;
+    }
 
 private:
     std::string retrieveInstallCommand(const Dependency & dependency) override;
@@ -96,6 +102,9 @@ public:
     void install(const Dependency & dependency) override;
     bool installed(const Dependency & dependency) override;
     void listRemotes() override { BOOST_LOG_TRIVIAL(warning)<<"listRemotes() not implemented yet for tool "<<m_systemInstallerPath; }
+    void addRemote(const std::string & remoteReference) override {
+        BOOST_LOG_TRIVIAL(warning)<<"addRemote() not implemented yet for tool "<<m_systemInstallerPath;
+    }
 
 private:
     std::string retrieveInstallCommand(const Dependency & dependency) override;
@@ -110,6 +119,9 @@ public:
     void install(const Dependency & dependency) override;
     bool installed(const Dependency & dependency) override;
     void listRemotes() override { BOOST_LOG_TRIVIAL(warning)<<"listRemotes() not implemented yet for tool "<<m_systemInstallerPath; }
+    void addRemote(const std::string & remoteReference) override {
+        BOOST_LOG_TRIVIAL(warning)<<"addRemote() not implemented yet for tool "<<m_systemInstallerPath;
+    }
 
 private:
     std::string retrieveInstallCommand(const Dependency & dependency) override;
@@ -125,6 +137,9 @@ public:
     bool installed(const Dependency & dependency) override;
     void search (const std::string & pkgName, [[maybe_unused]] const std::string & version) override;
     void listRemotes() override { BOOST_LOG_TRIVIAL(warning)<<"listRemotes() not implemented yet for tool "<<m_systemInstallerPath; }
+    void addRemote(const std::string & remoteReference) override {
+        BOOST_LOG_TRIVIAL(warning)<<"addRemote() not implemented yet for tool "<<m_systemInstallerPath;
+    }
 
 private:
     std::string retrieveInstallCommand(const Dependency & dependency) override;
@@ -140,6 +155,7 @@ public:
     bool installed(const Dependency & dependency) override;
     void search (const std::string & pkgName, [[maybe_unused]] const std::string & version) override;
     void listRemotes() override;
+    void addRemote(const std::string & remoteReference) override;
 
 private:
     std::string retrieveInstallCommand(const Dependency & dependency) override;
@@ -154,6 +170,9 @@ public:
     void install(const Dependency & dependency) override;
     bool installed(const Dependency & dependency) override;
     void listRemotes() override { BOOST_LOG_TRIVIAL(warning)<<"listRemotes() not implemented yet for tool "<<m_systemInstallerPath; }
+    void addRemote(const std::string & remoteReference) override {
+        BOOST_LOG_TRIVIAL(warning)<<"addRemote() not implemented yet for tool "<<m_systemInstallerPath;
+    }
 
 private:
     std::string retrieveInstallCommand(const Dependency & dependency) override;

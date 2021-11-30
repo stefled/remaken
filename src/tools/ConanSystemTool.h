@@ -59,9 +59,10 @@ public:
     std::vector<fs::path> retrievePaths(const Dependency & dependency, BaseSystemTool::PathType conanNode, const fs::path & destination);
     std::vector<std::string> buildOptions(const Dependency & dep);
     void listRemotes() override;
+    void addRemote(const std::string & remoteReference) override;
 
 private:
-    void addRemote(const std::string & repositoryUrl);
+    void addRemoteImpl(const std::string & repositoryUrl);
     std::string retrieveInstallCommand(const Dependency & dependency) override;
     fs::path createConanFile(const std::vector<Dependency> & deps);
     std::string computeToolRef( const Dependency &  dependency) override;

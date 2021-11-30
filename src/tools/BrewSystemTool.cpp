@@ -48,6 +48,11 @@ void BrewSystemTool::tap(const std::string & repositoryUrl)
     }
 }
 
+void BrewSystemTool::addRemote(const std::string & remoteReference)
+{
+    tap(remoteReference);
+}
+
 void BrewSystemTool::listRemotes()
 {
     std::vector<std::string> tapList = split( run ("tap") );
