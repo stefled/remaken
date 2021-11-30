@@ -104,45 +104,52 @@ int InitCommand::execute()
     if (subCommand == "vcpkg") {
         return setupVCPKG(m_options.getRemakenRoot(), m_options.getVcpkgTag());
     }
+
 #if defined(BOOST_OS_MACOS_AVAILABLE) || defined(BOOST_OS_LINUX_AVAILABLE)
     if (subCommand == "brew") {
         return setupBrew();
     }
 #endif
-    // no subcommand, process init command
+
+    // process init command
     fs::path remakenRootPath = PathBuilder::getHomePath() / Constants::REMAKEN_FOLDER;
     fs::path remakenRulesPath = remakenRootPath / "rules";
     fs::path remakenProfilesPath = remakenRootPath / Constants::REMAKEN_PROFILES_FOLDER;
     fs::path qmakeRootPath = remakenRulesPath / "qmake";
 
-    auto linkStatus = boost::filesystem::symlink_status(qmakeRootPath);
+
     if (!fs::exists(remakenProfilesPath)) {
         fs::create_directories(remakenProfilesPath);
     }
+
     if (m_options.force()) {
         fs::remove(qmakeRootPath);
     }
-    else if (linkStatus.type() != fs::file_not_found || fs::exists(qmakeRootPath)) {
-        BOOST_LOG_TRIVIAL(info)<<"qmake rules already installed ! skipping...";
-        return 0; // with wizards don't return
-    }
-    if (!fs::exists(remakenRulesPath)) {
-        fs::create_directories(remakenRulesPath);
-    }
-    std::string source="https://github.com/b-com-software-basis/builddefs-qmake/releases/download/";
-    std::string release = m_options.getQmakeRulesTag();
-    if (release == "latest") {
-        release = "builddefs-qmake-latest";
-    }
-    source += release;
-    source += "/builddefs-qmake-package.zip";
-    BOOST_LOG_TRIVIAL(info)<<"Installing qmake rules version ["<<release<<"]";
-    fs::path artefactFolder = installArtefact(m_options,source,remakenRulesPath);
 
-    if (fs::exists(artefactFolder)) {
-        fs::create_symlink(artefactFolder.filename(),qmakeRootPath);
+    auto linkStatus = boost::filesystem::symlink_status(qmakeRootPath);
+    if (linkStatus.type() != fs::file_not_found || fs::exists(qmakeRootPath)) {
+        BOOST_LOG_TRIVIAL(info)<<"qmake rules already installed ! skipping...";
     }
-    if (m_options.installWizards()) {
+    else {
+        if (!fs::exists(remakenRulesPath)) {
+            fs::create_directories(remakenRulesPath);
+        }
+        std::string source="https://github.com/b-com-software-basis/builddefs-qmake/releases/download/";
+        std::string release = m_options.getQmakeRulesTag();
+        if (release == "latest") {
+            release = "builddefs-qmake-latest";
+        }
+        source += release;
+        source += "/builddefs-qmake-package.zip";
+        BOOST_LOG_TRIVIAL(info)<<"Installing qmake rules version ["<<release<<"]";
+        fs::path artefactFolder = installArtefact(m_options,source,remakenRulesPath);
+
+        if (fs::exists(artefactFolder)) {
+            fs::create_symlink(artefactFolder.filename(),qmakeRootPath);
+        }
+    }
+
+    if (m_options.installWizards() || subCommand == "wizards") {
         setupWizards(qmakeRootPath);
     }
     return 0;

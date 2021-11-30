@@ -134,7 +134,7 @@ CmdOptions::CmdOptions()
     m_cliApp.add_option("--operating-system,-o", m_os, "Operating system: " + getOptionString("--operating-system"), true);
     m_architecture = "x86_64";
     m_cliApp.add_option("--architecture,-a",m_architecture, "Architecture: " + getOptionString("--architecture"),true);
-    m_cliApp.add_flag("--force,-f", m_force, "force command execution : ignore cache entries, already installed files ...");
+    m_cliApp.add_flag("--force,-f", m_force, "force command execution : ignore cache entries, already installed files ...\n 'force' flag also enable 'override' flag");
     m_verbose = false;
     m_cliApp.add_flag("--verbose,-v", m_verbose, "verbose mode");
     m_override = false;
@@ -306,6 +306,9 @@ void CmdOptions::initBuildConfig()
 
 void CmdOptions::validateOptions()
 {
+    if (m_force) {
+        m_override = true;
+    }
     for (auto opt : m_cliApp.get_options()) {
         auto name = opt->get_name();
         auto value = opt->as<std::string>();
@@ -403,8 +406,10 @@ CmdOptions::OptionResult CmdOptions::parseArguments(int argc, char** argv)
             if (sub->get_subcommands().size() > 0) {
                 m_subcommand = sub->get_subcommands().at(0)->get_name();
                 if (!m_subcommand.empty()) {
-                    if (m_subcommand != "vcpkg") {
-                        cout << "Error : init subcommand must be 'vcpkg'. "<<m_subcommand<<" is an invalid subcommand !"<<endl;
+                    if ((m_subcommand != "vcpkg")
+                        && (m_subcommand != "brew")
+                        && (m_subcommand != "wizards")) {
+                        cout << "Error : init subcommand must be one among [ vcpkg | brew | wizards ]. "<<m_subcommand<<" is an invalid subcommand !"<<endl;
                         return OptionResult::RESULT_ERROR;
                     }
                 }

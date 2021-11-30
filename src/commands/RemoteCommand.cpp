@@ -3,6 +3,7 @@
 #include "utils/DepUtils.h"
 
 
+
 RemoteCommand::RemoteCommand(const CmdOptions & options):AbstractCommand(RemoteCommand::NAME),m_options(options)
 {
 }
@@ -17,6 +18,16 @@ int RemoteCommand::execute()
         }
         else {
             deps = DepUtils::parse(m_options.getDependenciesFile(), m_options.getMode());
+        }
+        for (const auto & dep :deps) {
+            std::cout<<"Adding declared remotes/taps/sources/repositories declared in dependencies:"<<std::endl;
+            if (dep.getType() != Dependency::Type::REMAKEN) {
+                if (!dep.getBaseRepository().empty()) {
+                    std::cout<<"=> "<<dep.getBaseRepository()<<std::endl;
+                    auto tool = SystemTools::createTool(m_options,dep.getType());
+                    tool->addRemote(dep.getBaseRepository());
+                }
+            }
         }
     }
     if (subCommand == "list") {
@@ -35,7 +46,7 @@ int RemoteCommand::execute()
         }
         for (const auto & dep :deps) {
             std::cout<<"Additional repositories declared in dependencies:"<<std::endl;
-            if (dep.getType() != Dependency::Type::SCOOP) {
+            if (dep.getType() != Dependency::Type::REMAKEN) {
                 if (!dep.getBaseRepository().empty()) {
                     std::cout<<"=> "<<dep.getBaseRepository()<<std::endl;
                 }
