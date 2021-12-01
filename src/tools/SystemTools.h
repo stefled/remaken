@@ -55,10 +55,14 @@ public:
     virtual void addRemote(const std::string & remoteReference) = 0;
 
 protected:
-    std::string run(const std::string & command, const std::vector<std::string> & options = {}, const std::string & cmdValue = "");
-    std::string run(const std::string & command, const std::string & subcommand, const std::vector<std::string> & options = {}, const std::string & cmdValue = "");
+    std::string run(const std::string & command, const std::vector<std::string> & options = {});
+    std::string run(const std::string & command, const std::vector<std::string> & options, const std::string & cmdValue);
+    std::string run(const std::string & command, const std::string & subCommand, const std::vector<std::string> & options = {});
+    std::string run(const std::string & command, const std::string & subCommand, const std::vector<std::string> & options, const std::string & cmdValue);
     std::string runAsRoot(const std::string & command, const std::vector<std::string> & options = {});
-    std::string runAsRoot(const std::string & command, const std::string & cmdValue, const std::vector<std::string> & options = {});
+    std::string runAsRoot(const std::string & command, const std::vector<std::string> & options, const std::string & cmdValue);
+    std::string runAsRoot(const std::string & command, const std::string & subCommand, const std::vector<std::string> & options = {});
+    std::string runAsRoot(const std::string & command, const std::string & subCommand, const std::vector<std::string> & options, const std::string & cmdValue );
     std::vector<std::string> split(const std::string & str, char splitChar = '\n');
     virtual std::string retrieveInstallCommand(const Dependency & dependency) = 0;
     virtual std::string computeToolRef ( const Dependency &  dependency);
@@ -79,10 +83,12 @@ public:
     static fs::path getToolPath(const CmdOptions & options, const std::string & installer);
     static std::string run(const fs::path & tool, const std::string & command, const std::vector<std::string> & options = {});
     static std::string run(const fs::path & tool, const std::string & command, const std::vector<std::string> & options, const std::string & cmdValue);
-    static std::string run(const fs::path & tool, const std::string & command, const std::string & subcommand, const std::vector<std::string> & options = {});
-    static std::string run(const fs::path & tool, const std::string & command, const std::string & subcommand, const std::vector<std::string> & options, const std::string & cmdValue);
-    static std::string runAsRoot(const fs::path & sudoTool, const fs::path & tool, const std::string & command, const std::vector<std::string> & options = {});
-    static std::string runAsRoot(const fs::path & sudoTool, const fs::path & tool, const std::string & command, const std::string & cmdValue, const std::vector<std::string> & options = {});
+    static std::string run(const fs::path & tool, const std::string & command, const std::string & subCommand, const std::vector<std::string> & options = {});
+    static std::string run(const fs::path & tool, const std::string & command, const std::string & subCommand, const std::vector<std::string> & options, const std::string & cmdValue);
+    static std::string runAsRoot(const fs::path & sudoTool,const fs::path & tool, const std::string & command, const std::vector<std::string> & options = {});
+    static std::string runAsRoot(const fs::path & sudoTool,const fs::path & tool, const std::string & command, const std::vector<std::string> & options, const std::string & cmdValue);
+    static std::string runAsRoot(const fs::path & sudoTool,const fs::path & tool, const std::string & command, const std::string & subCommand, const std::vector<std::string> & options = {});
+    static std::string runAsRoot(const fs::path & sudoTool,const fs::path & tool, const std::string & command, const std::string & subCommand, const std::vector<std::string> & options, const std::string & cmdValue);
 
 };
 

@@ -82,7 +82,7 @@ void ConanSystemTool::addRemote(const std::string & remoteReference)
 
 void ConanSystemTool::listRemotes()
 {
-    std::vector<std::string> remoteList = split( run ("remote","list") );
+    std::vector<std::string> remoteList = split( run ("remote", "list") );
     std::cout<<"Conan remotes:"<<std::endl;
     for (const auto & remote: remoteList) {
          std::cout<<"=> "<<remote<<std::endl;
@@ -139,7 +139,7 @@ void ConanSystemTool::search(const std::string & pkgName, const std::string & ve
        if (!version.empty()) {
            package += "/" + version;
        }
-       std::vector<std::string> foundDeps = split( run ("search", package, {"-r","all"}) );
+       std::vector<std::string> foundDeps = split( run ("search", {"-r","all"}, package) );
        std::cout<<"Conan::search results:"<<std::endl;
        std::string currentRemote;
        for (auto & dep : foundDeps) {

@@ -33,7 +33,7 @@ void AptSystemTool::update()
 
 void AptSystemTool::listRemotes()
 {
-    std::vector<std::string> remoteList = split( run ("grep","/etc/apt/sources.list*",{"-Erh","'^deb'"}) );
+    std::vector<std::string> remoteList = split( run ("grep", {"-Erh","'^deb'"}, "/etc/apt/sources.list*"));
     std::cout<<"Apt sources:"<<std::endl;
     for (const auto & remote: remoteList) {
          std::cout<<"=> "<<remote<<std::endl;
@@ -46,10 +46,10 @@ void AptSystemTool::addPpaSource(const std::string & repositoryUrl)
     if (repositoryUrl.empty()) {
         return;
     }
-    std::string ppaList = run ("grep","/etc/apt/sources.list*",{"-Erh","'^deb'"});
+    std::string ppaList = run ("grep", {"-Erh","'^deb'"}, "/etc/apt/sources.list*");
     if (ppaList.find(repositoryUrl) == std::string::npos) {
         std::cout<<"Adding ppa repository: "<<repositoryUrl<<std::endl;
-        std::string result = runAsRoot("add-apt-repository",repositoryUrl, {"-y"});
+        std::string result = runAsRoot("add-apt-repository", {"-y"}, repositoryUrl);
     }
 }
 
@@ -93,7 +93,7 @@ void AptSystemTool::search(const std::string & pkgName, const std::string & vers
 {
     std::string package = pkgName;
     fs::path aptCache = SystemTools::getToolPath(m_options, "apt-cache");
-    std::vector<std::string> foundDeps = split( SystemTools::run (aptCache, "search", package) );
+    std::vector<std::string> foundDeps = split( SystemTools::run (aptCache, "search", {}, package) );
     std::cout<<"Apt::search results:"<<std::endl;
     for (auto & dep : foundDeps) {
         std::vector<std::string> depDetails = split(dep,' ');
@@ -268,7 +268,7 @@ std::string ChocoSystemTool::retrieveInstallCommand(const Dependency & dependenc
 void ChocoSystemTool::search(const std::string & pkgName, const std::string & version)
 {
     std::string package = pkgName;
-    std::vector<std::string> foundDeps = split( run ("search", package, {"--by-id-only"}) );
+    std::vector<std::string> foundDeps = split( run ("search", {"--by-id-only"}, package) );
     std::cout<<"Choco::search results:"<<std::endl;
     for (auto & dep : foundDeps) {
         if (dep.find("hocolatey") == std::string::npos && dep.find("packages found.") == std::string::npos &&
@@ -345,7 +345,7 @@ std::string ScoopSystemTool::retrieveInstallCommand(const Dependency & dependenc
 void ScoopSystemTool::search(const std::string & pkgName, const std::string & version)
 {
     std::string package = pkgName;
-    std::vector<std::string> foundDeps = split( run ("search", package) );
+    std::vector<std::string> foundDeps = split( run ("search", {}, package) );
     std::cout<<"Scoop::search results:"<<std::endl;
     for (auto & dep : foundDeps) {
         if (dep.find("bucket:") == std::string::npos) {

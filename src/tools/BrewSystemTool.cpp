@@ -44,7 +44,7 @@ void BrewSystemTool::tap(const std::string & repositoryUrl)
     }
     if (tapList.find(repoId) == std::string::npos) {
         std::cout<<"Adding brew tap: "<<repositoryUrl<<std::endl;
-        std::string result = run ("tap",repoId,options);
+        std::string result = run ("tap", options, repoId);
     }
 }
 
@@ -68,7 +68,7 @@ void BrewSystemTool::search(const std::string & pkgName, const std::string & ver
     if (!version.empty()) {
         package += "@" + version;
     }
-    std::vector<std::string> foundDeps = split( run ("search", package) );
+    std::vector<std::string> foundDeps = split( run ("search", {}, package) );
     std::cout<<"Brew::search results:"<<std::endl;
     for (auto & dep : foundDeps) {
         if (dep.find("==>") == std::string::npos) {
@@ -85,7 +85,7 @@ void BrewSystemTool::search(const std::string & pkgName, const std::string & ver
 
 void BrewSystemTool::bundleLib(const std::string & libPath)
 {
-    std::vector<std::string> libsPath = split( run ("list",libPath) );
+    std::vector<std::string> libsPath = split( run ("list", {}, libPath) );
     for (auto & lib : libsPath) {
         fs::detail::utf8_codecvt_facet utf8;
         fs::path libPath (lib, utf8);
@@ -99,7 +99,7 @@ void BrewSystemTool::bundle (const Dependency & dependency)
 {
     std::string source = computeToolRef (dependency);
     bundleLib(source);
-    std::vector<std::string> deps = split( run ("deps", source) );
+    std::vector<std::string> deps = split( run ("deps", {}, source) );
     for (auto & dep : deps) {
         std::cout<<dep<<std::endl;
         bundleLib(dep);
@@ -150,13 +150,13 @@ fs::path BrewSystemTool::invokeGenerator(const std::vector<Dependency> & deps, G
     for ( auto & dep : deps) {
         std::cout<<"==> Adding '"<<dep.getName()<<":"<<dep.getVersion()<<"' dependency"<<std::endl;
         // retrieve brew sub-dependencies for 'dep'
-        std::vector<std::string> depsList = split( run ("deps", dep.getPackageName()) );
+        std::vector<std::string> depsList = split( run ("deps", {}, dep.getPackageName()) );
         // add base dependency to check for keg-only
         depsList.push_back(dep.getPackageName());
         // search for keg-only formulae
         for (auto & subDep : depsList) {
             m_options.verboseMessage("===> Analysing sub dependency: " + subDep);
-            std::string jsonInfos = run ("info", subDep, {"--json=v1"});
+            std::string jsonInfos = run ("info", {"--json=v1"}, subDep);
             nj::json brewJsonInfos = nj::json::parse(jsonInfos);
             //todo : ignore keg-only on linux and search keg-only
             if (!brewJsonInfos.is_array()) {
@@ -169,7 +169,7 @@ fs::path BrewSystemTool::invokeGenerator(const std::vector<Dependency> & deps, G
                 if (brewJsonInfos[0]["keg_only"].get<bool>() == true) {
                     // found keg-only formulae
                     m_options.verboseMessage("   |==> " + subDep + " is 'keg-only': parsing files ...");
-                    std::vector<std::string> filesList = split( run ("list", subDep) );
+                    std::vector<std::string> filesList = split( run ("list", {}, subDep) );
                     fs::path localPkgConfigPath;
                     for (auto & file : filesList) {
                         if (file.find("pkgconfig") != std::string::npos) { // found pkgconfig path for keg-only
