@@ -19,8 +19,8 @@ int RemoteCommand::execute()
         else {
             deps = DepUtils::parse(m_options.getDependenciesFile(), m_options.getMode());
         }
+        std::cout<<"Adding declared remotes/taps/sources/repositories declared in dependencies:"<<std::endl;
         for (const auto & dep :deps) {
-            std::cout<<"Adding declared remotes/taps/sources/repositories declared in dependencies:"<<std::endl;
             if (dep.getType() != Dependency::Type::REMAKEN) {
                 if (!dep.getBaseRepository().empty()) {
                     std::cout<<"=> "<<dep.getBaseRepository()<<std::endl;
@@ -44,8 +44,8 @@ int RemoteCommand::execute()
         else {
             deps = DepUtils::parse(m_options.getDependenciesFile(), m_options.getMode());
         }
+        std::cout<<"Additional repositories declared in dependencies:"<<std::endl;
         for (const auto & dep :deps) {
-            std::cout<<"Additional repositories declared in dependencies:"<<std::endl;
             if (dep.getType() != Dependency::Type::REMAKEN) {
                 if (!dep.getBaseRepository().empty()) {
                     std::cout<<"=> "<<dep.getBaseRepository()<<std::endl;

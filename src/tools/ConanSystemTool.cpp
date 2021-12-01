@@ -22,21 +22,9 @@ static const std::map<std::string,std::string> conanArchTranslationMap ={{"x86_6
                                                                         };
 
 
-static const std::map<BaseSystemTool::PathType,std::string> conanNodeMap ={{BaseSystemTool::PathType::BIN_PATHS, "bin_paths"},
-                                                                             #ifdef BOOST_OS_WINDOWS_AVAILABLE
-                                                                             {BaseSystemTool::PathType::LIB_PATHS, "bin_paths"}
-                                                                             #else
-                                                                             {BaseSystemTool::PathType::LIB_PATHS, "lib_paths"}
-                                                                             #endif
+static const std::map<BaseSystemTool::PathType,std::string> conanNodeMap ={{BaseSystemTool::PathType::BIN_PATHS, "bin_paths"},                                                                            
+                                                                            {BaseSystemTool::PathType::LIB_PATHS, "lib_paths"}
                                                                             };
-
-
-
-#ifdef BOOST_OS_WINDOWS_AVAILABLE
-#define OSSHAREDLIBNODEPATH "bin_paths"
-#else
-#define OSSHAREDLIBNODEPATH "lib_paths"
-#endif
 
 void ConanSystemTool::update()
 {
@@ -66,7 +54,8 @@ void ConanSystemTool::addRemoteImpl(const std::string & repositoryUrl)
     std::string repoId = repositoryUrl;
     std::vector<std::string> options;
     if (repoParts.size() < 2) {
-        throw std::runtime_error("Error adding conan remote. Remote format must follow remoteAlias#remoteURL[#position]. Missing one of remoteAlias or remoteURL: " + repositoryUrl);
+        BOOST_LOG_TRIVIAL(warning)<<"Unable to add conan remote. Remote format must follow remoteAlias#remoteURL[#position]. Missing one of remoteAlias or remoteURL: " + repositoryUrl;
+        return;
     }
     if (repoParts.size() >= 2) {
         repoId = repoParts.at(0);
@@ -413,7 +402,18 @@ std::vector<fs::path> ConanSystemTool::binPaths(const Dependency & dependency)
 std::vector<fs::path> ConanSystemTool::libPaths(const Dependency & dependency)
 {
     fs::path workingDirectory = OsUtils::acquireTempFolderPath();
-    std::vector<fs::path> libPaths = retrievePaths(dependency, BaseSystemTool::PathType::LIB_PATHS, workingDirectory);
+    BaseSystemTool::PathType libPathNode = BaseSystemTool::PathType::LIB_PATHS;
+#ifdef BOOST_OS_WINDOWS_AVAILABLE
+    if (m_options.crossCompiling() && m_options.getOS() != "win") {
+        libPathNode = BaseSystemTool::PathType::LIB_PATHS;
+
+    }
+    else {
+        libPathNode = BaseSystemTool::PathType::BIN_PATHS;
+
+    }
+#endif
+    std::vector<fs::path> libPaths = retrievePaths(dependency, libPathNode, workingDirectory);
     OsUtils::releaseTempFolderPath(workingDirectory);
     return libPaths;
 }

@@ -89,14 +89,14 @@ std::vector<std::string> BaseSystemTool::split(const std::string & str, char spl
     return outVect;
 }
 
-std::string BaseSystemTool::run(const std::string & command, const std::string & cmdValue, const std::vector<std::string> & options)
+std::string BaseSystemTool::run(const std::string & command, const std::vector<std::string> & options, const std::string & cmdValue)
 {
-    return SystemTools::run(m_systemInstallerPath, command, cmdValue, options);
+    return SystemTools::run(m_systemInstallerPath, command, options, cmdValue);
 }
 
-std::string BaseSystemTool::run(const std::string & command, const std::vector<std::string> & options)
+std::string BaseSystemTool::run(const std::string & command, const std::string & subCommand, const std::vector<std::string> & options, const std::string & cmdValue)
 {
-    return run(command,"",options);
+    return SystemTools::run(m_systemInstallerPath, command, subCommand, options, cmdValue);
 }
 
 std::string BaseSystemTool::runAsRoot(const std::string & command, const std::string & cmdValue, const std::vector<std::string> & options)
@@ -133,17 +133,31 @@ fs::path SystemTools::getToolPath(const CmdOptions & options, const std::string 
     return systemInstallerPath;
 }
 
-std::string SystemTools::run(const fs::path & tool, const std::string & command, const std::string & cmdValue, const std::vector<std::string> & options)
+static std::string run(const fs::path & tool, const std::string & command, const std::vector<std::string> & options = {});
+static std::string run(const fs::path & tool, const std::string & command, const std::vector<std::string> & options, const std::string & cmdValue);
+static std::string run(const fs::path & tool, const std::string & command, const std::string & subcommand, const std::vector<std::string> & options = {});
+static std::string run(const fs::path & tool, const std::string & command, const std::string & subcommand, const std::vector<std::string> & options, const std::string & cmdValue);
+
+
+std::string SystemTools::run(const fs::path & tool, const std::string & command, const std::string & subCommand, const std::vector<std::string> & options, const std::string & cmdValue)
 {
     fs::detail::utf8_codecvt_facet utf8;
     boost::asio::io_context ios;
     std::future<std::string> listOutputFut;
     int result = -1;
-    if (cmdValue.empty()) {
-        result = bp::system(tool, command, bp::args(options), bp::std_out > listOutputFut, ios);
+    if (subCommand.empty()) {
+        if (cmdValue.empty()) {
+            result = bp::system(tool, command, bp::args(options), bp::std_out > listOutputFut, ios);
+        }
+        else {
+            result = bp::system(tool, command, bp::args(options), cmdValue, bp::std_out > listOutputFut, ios);
+        }
     }
-    else {
-        result = bp::system(tool, command, bp::args(options),  cmdValue, bp::std_out > listOutputFut, ios);
+    else if (cmdValue.empty()) {
+        result = bp::system(tool, command, subCommand, bp::args(options), bp::std_out > listOutputFut, ios);
+    }
+    else{
+        result = bp::system(tool, command, subCommand, bp::args(options), cmdValue, bp::std_out > listOutputFut, ios);
     }
     if (result != 0) {
         throw std::runtime_error("Error running " + tool.generic_string(utf8) +" command '" + command + "' for '" + cmdValue + "'");
@@ -152,10 +166,19 @@ std::string SystemTools::run(const fs::path & tool, const std::string & command,
     return resultStringList;
 }
 
+std::string SystemTools::run(const fs::path & tool, const std::string & command, const std::string & subCommand, const std::vector<std::string> & options)
+{
+    return run(tool, command, subCommand,options,"");
+}
+
+std::string SystemTools::run(const fs::path & tool, const std::string & command, const std::vector<std::string> & options, const std::string & cmdValue)
+{
+    return run(tool, command, "", options, cmdValue);
+}
 
 std::string SystemTools::run(const fs::path & tool, const std::string & command, const std::vector<std::string> & options)
 {
-    return run(tool, command, "", options);
+    return run(tool, command, "", options, "");
 }
 
 std::string SystemTools::runAsRoot(const fs::path & sudoTool, const fs::path & tool, const std::string & command, const std::string & cmdValue, const std::vector<std::string> & options)

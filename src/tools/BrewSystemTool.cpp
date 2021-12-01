@@ -31,7 +31,7 @@ void BrewSystemTool::update ()
 
 void BrewSystemTool::tap(const std::string & repositoryUrl)
 {
-    if (repositoryUrl.empty()) {
+    if (repositoryUrl.empty() || repositoryUrl=="system") {
         return;
     }
     std::string tapList = run ("tap");
