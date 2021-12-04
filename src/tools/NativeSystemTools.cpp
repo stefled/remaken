@@ -33,11 +33,28 @@ void AptSystemTool::update()
 
 void AptSystemTool::listRemotes()
 {
-    std::vector<std::string> remoteList = split( run ("grep", {"-Erh","'^deb'"}, "/etc/apt/sources.list*"));
+    boost::asio::io_context ios;
+    std::future<std::string> listOutputFut;
+    fs::detail::utf8_codecvt_facet utf8;
+    std::vector<std::string> remoteList;
     std::cout<<"Apt sources:"<<std::endl;
+    remoteList = split( SystemTools::runShellCommand("grep", {"-Erh","^deb"},"/etc/apt/sources.list", {0,1}));
     for (const auto & remote: remoteList) {
          std::cout<<"=> "<<remote<<std::endl;
     }
+    for ( const fs::directory_entry& x : fs::recursive_directory_iterator{"/etc/apt/sources.list.d"} ) {
+        if (fs::is_regular_file(x)) {
+            remoteList = split( SystemTools::runShellCommand("grep", {"-Erh","^deb"}, x.path().generic_string(utf8), {0,1}));
+            for (const auto & remote: remoteList) {
+                 std::cout<<"=> "<<remote<<std::endl;
+            }
+        }
+    }
+  //  bp::system("/bin/grep", "-Erh","^deb", "/etc/apt/sources.list.d/*", bp::std_out > listOutputFut, ios);
+    /*std::vector<std::string> remoteList = split( SystemTools::runShellCommand("grep", {"-Erh","^deb"}, "/etc/apt/sources.list*", {0,1}));
+    for (const auto & remote: remoteList) {
+         std::cout<<"=> "<<remote<<std::endl;
+    }*/
 }
 
 
@@ -46,7 +63,13 @@ void AptSystemTool::addPpaSource(const std::string & repositoryUrl)
     if (repositoryUrl.empty()) {
         return;
     }
-    std::string ppaList = run ("grep", {"-Erh","'^deb'"}, "/etc/apt/sources.list*");
+    fs::detail::utf8_codecvt_facet utf8;
+    std::string ppaList = SystemTools::runShellCommand ("grep", {"-Erh","^deb"}, "/etc/apt/sources.list", {0,1});
+    for ( const fs::directory_entry& x : fs::recursive_directory_iterator{"/etc/apt/sources.list.d"} ) {
+        if (fs::is_regular_file(x)) {
+            ppaList += SystemTools::runShellCommand("grep", {"-Erh","^deb"}, x.path().generic_string(utf8), {0,1});
+        }
+    }
     if (ppaList.find(repositoryUrl) == std::string::npos) {
         std::cout<<"Adding ppa repository: "<<repositoryUrl<<std::endl;
         std::string result = runAsRoot("add-apt-repository", {"-y"}, repositoryUrl);
@@ -92,8 +115,7 @@ std::string AptSystemTool::retrieveInstallCommand(const Dependency & dependency)
 void AptSystemTool::search(const std::string & pkgName, const std::string & version)
 {
     std::string package = pkgName;
-    fs::path aptCache = SystemTools::getToolPath(m_options, "apt-cache");
-    std::vector<std::string> foundDeps = split( SystemTools::run (aptCache, "search", {}, package) );
+    std::vector<std::string> foundDeps = split( SystemTools::runShellCommand ("apt-cache", "search", {}, package) );
     std::cout<<"Apt::search results:"<<std::endl;
     for (auto & dep : foundDeps) {
         std::vector<std::string> depDetails = split(dep,' ');

@@ -250,6 +250,46 @@ std::string SystemTools::runAsRoot(const fs::path & sudoTool, const fs::path & t
     return runAsRoot(sudoTool, tool, command, "", options);
 }
 
+std::string SystemTools::runShellCommand(const std::string & builtinCommand, const std::vector<std::string> & options, const std::string & cmdValue, const std::vector<int> & validResults)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    boost::asio::io_context ios;
+    std::future<std::string> listOutputFut;
+    fs::path builtinPath = bp::search_path(builtinCommand);
+    int result = -1;
+    if (cmdValue.empty()) {
+        result = bp::system(builtinPath, bp::args(options), bp::std_out > listOutputFut, ios);
+    }
+    else{
+        result = bp::system(builtinPath, bp::args(options), cmdValue, bp::std_out > listOutputFut, ios);
+    }
+    if (std::find(std::begin(validResults), std::end(validResults), result) == std::end(validResults)) {
+        throw std::runtime_error("Error running " + builtinPath.generic_string(utf8) + "' with value '" + cmdValue + "'");
+    }
+    auto resultStringList = listOutputFut.get();
+    return resultStringList;
+}
+
+std::string SystemTools::runShellCommand(const std::string & builtinCommand, const std::string & command, const std::vector<std::string> & options, const std::string & cmdValue, const std::vector<int> & validResults)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    boost::asio::io_context ios;
+    std::future<std::string> listOutputFut;
+    fs::path builtinPath = bp::search_path(builtinCommand);
+    int result = -1;
+    if (cmdValue.empty()) {
+        result = bp::system(builtinPath, command, bp::args(options), bp::std_out > listOutputFut, ios);
+    }
+    else{
+        result = bp::system(builtinPath, command, bp::args(options), cmdValue, bp::std_out > listOutputFut, ios);
+    }
+    if (std::find(std::begin(validResults), std::end(validResults), result) == std::end(validResults)) {
+        throw std::runtime_error("Error running " + builtinPath.generic_string(utf8) +" command '" + command + "' with value '" + cmdValue + "'");
+    }
+    auto resultStringList = listOutputFut.get();
+    return resultStringList;
+}
+
 std::string SystemTools::getToolIdentifier(Dependency::Type type)
 {
     if (type != Dependency::Type::SYSTEM) {

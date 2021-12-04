@@ -89,7 +89,8 @@ public:
     static std::string runAsRoot(const fs::path & sudoTool,const fs::path & tool, const std::string & command, const std::vector<std::string> & options, const std::string & cmdValue);
     static std::string runAsRoot(const fs::path & sudoTool,const fs::path & tool, const std::string & command, const std::string & subCommand, const std::vector<std::string> & options = {});
     static std::string runAsRoot(const fs::path & sudoTool,const fs::path & tool, const std::string & command, const std::string & subCommand, const std::vector<std::string> & options, const std::string & cmdValue);
-
+    static std::string runShellCommand(const std::string & builtinCommand, const std::vector<std::string> & options, const std::string & cmdValue, const std::vector<int> & validResults = {0});
+    static std::string runShellCommand(const std::string & builtinCommand, const std::string & command, const std::vector<std::string> & options, const std::string & cmdValue, const std::vector<int> & validResults = {0});
 };
 
 
