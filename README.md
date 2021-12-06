@@ -107,7 +107,10 @@ The ```remaken init``` command also supports the ```--force``` (alias ```-f```) 
 
 ### Install IDE wizards
 For now, only QtCreator wizards are provided.
-To install the remaken and xpcf projects and classes wizards, use: ```remaken init -w```
+To install the remaken and xpcf projects and classes wizards, use: 
+- ```remaken init -w```
+- ```remaken init wizards```
+
 
 ### Set remaken packages root folder
 The remaken packages folder is the location where packages are installed, searched from ...
@@ -129,6 +132,20 @@ It can be changed in various ways:
 On mac OS X and linux, its value is one of ```[brew, conan, system or vcpkg]```.
 
 On windows, its value is one of ```[choco, conan, scoop, system or vcpkg]```.
+
+### Managing remotes/repositories/ppa/taps/buckets ...
+
+To get the list of installed remotes for every packaging system installed on the environment run:
+```remaken remote list```
+
+To get the list of remotes declared in a packagedependencies.txt, run (using ```--recurse``` will list recursively every remote declared in every packagedependencies file in the dependency tree):
+```remaken remote listfile [--recurse] [path_to_remaken_dependencies_description_file.txt]```
+
+To add the remotes declared in a packagedependencies.txt, run (using ```--recurse``` will add recursively every remote declared in every packagedependencies file in the dependency tree):
+```remaken remote add [--recurse] [path_to_remaken_dependencies_description_file.txt]```
+
+To get a sample how to declare an additional remote/bucket/ppa ... see the repository_url section in chapter [Dependency file syntax](#dependency-file-syntax)
+
 
 ### Installing dependencies
 add conditions configuration description
@@ -218,11 +235,16 @@ when identifier is not specified :
 
 - @repository_type is mandatory
 
-repository url is the repository url. 
-For brew repositories, the repository will be tapped before the installation. The repository url for brew can be either user/repo or user/repo#repository_url.
-For conan repositories, the repository will be added before the installation. The repository url for conan can be either  repositoryid#repository_url or epositoryid#repository_url#position.
-For apt repositories, the repository will be added before the installation. The repository url for apt is the ppa url repository_url.
+repository url can be:
+- the repository url for github, artifactory or nexus repositories
 
+For brew, scoop, apt and conan, the repository will be added before the dependency installation.
+For those systems, the url format is:
+
+- for brew taps it will be either user/repo or user/repo#repository_url
+- for scoop buckets it will be either repo_identifier or repo_identifier#repository_url
+- for conan it will be repo_identifier#repository_url[#position]
+- for apt it will be the ppa url
 
 when channel is not specified, it defaults to stable for conan dependencies.
 
