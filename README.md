@@ -2,9 +2,9 @@
 
 Remaken is a meta dependencies management tool.
 
-It supports various several C++ packaging systems using common dependency(ies) file(s).
+It supports various C++ packaging systems using a standardized dependency file format (named **packagedependencies**).
 
-The dependency file follows a modular syntax.
+The **packagedependencies** file follows a modular syntax.
 
 Remaken also provide its own C++ packaging structure, based on pkg-config description files.
 
@@ -12,40 +12,39 @@ Remaken can be seen as the "one tool to rule them all" for C++ packagers.
 
 ## Overview
 
-The need to use a tool such as remaken come from the diversity of package managers for C++ and to speed up development delays.
+The need to use a tool such as remaken comes from the diversity of package managers for C++ and to speed up development bootstrap and shorten delays.
 
-Indeed, whatever the dependency your project need, there is a chance the dependency already exists in binary format on one of the C++ package manager.
+Indeed, whatever the dependency your project needs, there is a chance the dependency already exists in binary format on one of the C++ package manager.
 
-And if it doesn't exist, you can still build your own binary version and share it as a remaken dependency with your team, ensuring the build options are the same, and avoiding other developers to build locally the same dependency.
+If it doesn't already exist in a package manager, you can still build your own binary version and share it as a **remaken dependency** across your team or organization, ensuring build options are the same. 
+It also avoids other developers to build locally the same dependency.
 
 ### Issues in native development without remaken and common development rules:
 
-To setup a native C/C++ project that uses thirparty dependencies, a developer must for each dependency (whichever the build system is in either make, cmake, conan, vcpkg, VS …)  :
+To setup a native C/C++ project that uses thirparty dependencies, a developer must for each dependency (whichever the build system is in either make, cmake, conan, vcpkg, MSVC …)  :
 
 1. build each dependency with homogeneous build rules and flags (for instance c++ std version, for each target [debug,release | os | cpu | shared, static])
 2. install each dependency in an accessible path in the system (and eventually, pollute the development environment system for instance using make install, or set a different 'sysroot')
 3. add include paths, libraries paths and libraries link flags for each dependency and sub dependency in its development project
 4. For each new development, even based on same dependencies : reproduce every dependency build step 1.1 to 1.3 (also true for conan when the binary hosted version doesn’t fit with your options)
-5. To package a final application with its dependencies needs to bundle manually every shared dependency with the application before creating the final bundle/setup for the application
-
-NOTE: for cmake, make, VS builds, the target can be overwritten across versions except by adding custom target path to install step
-
-Last but not least, to run a final application : each dependency must either be copied in the same folder than the application or paths must be set to each shared dependency folder.
+5. Running a final application : each dependency must either be copied in the same folder than the application or paths must be set to each shared dependency folder.
+6. Last but not least, to package a final application with its dependencies means to bundle manually every shared dependency with the application before creating the final bundle/setup for the application<br>
+NOTE: for most build systems (cmake, make, Visual Studio builds ...) the target can be overwritten across versions. The solution would be to manually add custom target path to installation post-build steps - for each project.
 
 Shared library or application project heterogeneity across a team can lead to integration issues as the build rules can slightly differ on each developer station.
 
-### Development workflow using remaken
+### Development workflow using remaken / builddefs rules
 Remaken :
 
 - provide the same set of build rules across packaging systems (certified for packaging systems that perform a local build such as conan, vcpkg, brew)
 - install dependencies from any packaging system (including remaken own packaging and flag finding system) 
-- there is no need to call manually each packaging system, to write a script … all is done at once from the packagedependencies description
-- build flags are populated either from remaken configure step or from builddefs-qmake rules (other rules format will come in the future, cmake, bazel ...)
-- run any application with appropriate environment deduced from described dependencies and/or from xpcf configuration file
+- there is no need to call manually each packaging system, to write a script … all is done at once from the **packagedependencies** description 
+- build flags are populated either from remaken configure step or from [builddefs-qmake](https://github.com/b-com-software-basis/builddefs-qmake/releases/tag/builddefs-qmake-latest) rules (other rules format will come in the future, cmake, bazel ...)
+- run any application with appropriate environment deduced from described dependencies and/or from [xpcf](https://github.com/b-com-software-basis/xpcf) configuration file
 - automate dependencies bundling within an application from dependencies description (either copying external dependencies in bundle destination folder or creating a shell script for native package managers such as apt, yum ...)
-- bundle xpcf applications from xpcf configuration file
-- integrate conan dependencies easily without writing a conanfile.py
-- provide a normalized package installation structure for remaken dependencies [sample structure]
+- bundle **xpcf** applications from **xpcf** configuration file
+- integrate **conan** dependencies easily without writing a conanfile.py
+- provide a normalized package installation structure for remaken dependencies [Package tree](#package-tree)
 - provide vcpkg installation and bootstrap
 - provide builddefs-qmake rules installation and update
  
@@ -71,7 +70,7 @@ brew install remaken
 ``` 
 
 ### Windows
-Use the setup file from 
+Use the [setup file](https://github.com/b-com-software-basis/remaken/releases/download/1.9.0/Setup_Remaken_1.9.0.exe)
 
 ## Package formats supported
 ### Cross platforms packaging systems :
@@ -123,6 +122,27 @@ It can be changed in various ways:
 
 ### Managing remaken profiles
 
+Remaken has profile support to set several options once for all for every projects (for instance, the os, the architecture, the C++ standard ...).
+
+It also supports the creation of named profiles - it can be used for cross-platform builds (to target android systems for instance).
+
+To initialize the default profile, use:
+```remaken profile init```
+
+You can also specify any value you want to set in the profile:
+```remaken profile init --cpp-std 17```
+
+To create a named profile, use:
+```remaken profile init [profile name]```
+
+To load a named profile, use:
+```remaken --profile [profile_filepath] ...```
+
+To display default profile configuration:
+```remaken profile display```
+
+To display a named profile configuration:
+```remaken --profile [profile_filepath] profile display```
 
 ### Searching dependencies
 ```remaken search [--restrict packaging_system_name] package_name [package_version] ```
@@ -207,94 +227,64 @@ For dependencies specific to a particular os, a packagedependencies-[os].txt can
 
 The project build rules (builddefs-qmake for instance) will generate a packagedependencies.txt containing the build informations and will gather the dependencies in the original packagedependencies.txt and packagedependencies-[os].txt for the target os the build is run for.
 
+### Line syntax
 Each line follows the pattern :
 
 ```framework#channel | version | [condition]%library name | identifier@repository_type | repository_url | link_mode | options```
 
 
-| ```framework#channel``` | ```version``` | ```[condition]%library name``` | ```repository_type``` | ```repository_url``` | ```link_mode``` | ```options```|
+| ```framework[#channel]``` | ```version``` | ```[condition]%library name``` | ```repository_type``` | ```repository_url``` | ```link_mode``` | ```options```|
 |---|---|---|---|---|---|---|
-|---|---|---| a value in: [ artifactory, nexus, github or http (http or https public repositories), vcpkg, conan, system, path : local or network filesystem root path hosting the dependencies ]|---|optional value in : [ static, shared, default (inherits the project's link mode), na (not applicable) ]|---|
-
-When link_mode is not provided :
-
-- For remaken package format (artifactory, nexus and github), conan, system and vcpkg dependencies link_mode is set to current config link_mode
-
-(Conan note : link_mode is mandatory if the targeted dependency needs the option. When link_mode is set to "na", it is not forwarded to conan, has some packages (typically header only libraries) don't define this option and setting the option leads to an error).
-
-when repository_type is not specified :
-
-- it defaults to artifactory when identifier is either bcomBuild or thirdParties (and in this case, the identifier is also the destination subfolder where the dependencies are installed)
-
-- it defaults to system when identifier is one of yum, apt, pkgtool, pkgutil, brew, macports, pacman, choco, zypper
-
-For other repository types (github, vcpkg, conan, system) when the identifier matches the repository type,
-the repository type reflects the identifier value - i.e. identifier = conan means repository_type is set to conan.
-
-when identifier is not specified :
-
-- @repository_type is mandatory
-
-repository url can be:
-- the repository url for github, artifactory or nexus repositories
-
-For brew, scoop, apt and conan, the repository will be added before the dependency installation.
-For those systems, the url format is:
-
-- for brew taps it will be either user/repo or user/repo#repository_url
-- for scoop buckets it will be either repo_identifier or repo_identifier#repository_url
-- for conan it will be repo_identifier#repository_url[#position]
-- for apt it will be the ppa url
-
-when channel is not specified, it defaults to stable for conan dependencies.
+|the framework name. Optionnally the channel to get the package from |the version number|the library name| a value in: [ artifactory, nexus, github or http (http or https public repositories), vcpkg, conan, system, path : local or network filesystem root path hosting the dependencies ]|---|optional value in : [ static, shared, default (inherits the project's link mode), na (not applicable) ] |---|
 
 **Note:**
 To comment a line (and thus ignore a dependency) start the line with ```//``` (spaces and tabs before the ```//``` are ignored).
 
 NOT IMPLEMENTED :
 For artifactory, nexus and github repositories, channel is a named scope describing a common combination of compile options from the remaken packaging manifests. The combination of values become a named scope. (TODO : manage named scopes)
-
 It is not used for other kind of repos.
 
-options are directly forwarded to the underlying repository tool.
-Note : to provide specific options to dedicated system packaging tools, use one line for each specific tool describing the dependency. (once installed, system dependencies should not need specific options declarations during dependencies' parsing at project build stage. Hence the need for the below sample should be close to 0, except for packaging tools that build package upon install such as brew and macports and where build options can be provided).
+### Fields specifications
+| ```framework#channel``` |
+|---|
+|when channel is not specified, it defaults to stable for conan dependencies| 
 
-For instance :
+| ```repository_type``` |
+|---| 
+|When repository\_type is not specified :<br>- it defaults to artifactory when identifier is either bcomBuild or thirdParties (and in this case, the identifier is also the destination subfolder where the dependencies are installed)<br>- it defaults to system when identifier is one of yum, apt, pkgtool, pkgutil, brew, macports, pacman, choco, zypperFor other repository types (github, vcpkg, conan, system) <br>When the identifier matches the repository type,the repository type reflects the identifier value - i.e. identifier = conan means repository\_type is set to conan.<br>When identifier is not specified :- @repository\_type is mandatory| 
 
-eigen | 3.3.5 | eigen | system | https://github.com/SolarFramework/binaries/releases/download
+| ```repository_url ``` |
+|---| 
+|repository url can be:<br>- the repository url for github, artifactory or nexus repositories<br><br>For brew, scoop, apt and conan, the repository will be added before the dependency installation.<br>For those systems, the url format is:<br>- for brew taps it will be either user/repo or user/repo#repository\_url<br>- for scoop buckets it will be either repo\_identifier or repo\_identifier#repository\_url<br>- for conan it will be repo\_identifier#repository\_url[#position]<br>- for apt it will be the ppa url<br>|
 
-eigen | 3.3.5 | eigen | brew@system | https://github.com/SolarFramework/binaries/releases/download | default | -y
+| ```options ``` |
+|---| 
+|options are directly forwarded to the underlying repository tool.<br>Note : to provide specific options to dedicated system packaging tools, use one line for each specific tool describing the dependency.<br>(once installed, system dependencies should not need specific options declarations during dependencies' parsing at project build stage. Hence the need for the below sample should be close to 0, except for packaging tools that build package upon install such as brew and macports and where build options can be provided).|
 
-eigen | 3.3.5 | eigen | pkgtool@system | https://github.com/SolarFramework/binaries/releases/download | default | --S --noconfirm
 
+### Dependencies samples
+| ```samples ``` |
+|----------------|
+|eigen \| 3.3.5 \|  eigen \|  system \|  https://github.com/SolarFramework/binaries/releases/download|
+|eigen \| 3.3.5 \| eigen | brew@system | https://github.com/SolarFramework/binaries/releases/download | default | -y|
+|eigen \| 3.3.5 \| eigen \| pkgtool@system \| https://github.com/SolarFramework/binaries/releases/download \| default \| --S#--noconfirm
+|opencv \| 3.4.3 \| opencv \| thirdParties@github \| https://github.com/SolarFramework/binaries/releases/download|
+|xpcf \| 2.1.0 \| xpcf \| bcomBuild@github \| https://github.com/SolarFramework/binaries/releases/download \| static|
+|spdlog \| 0.14.0 \| spdlog \| thirdParties@github \| https://github.com/SolarFramework/binaries/releases/download|
+|eigen \| 3.3.5 \| eigen \| system \||
+|fbow \| 0.0.1 \| fbow \| vcpkg \||
+|boost#stable \| 1.70.0 \| boost \| conan \| conan-center
+|spdlog \| 0.14.0 \| spdlog \| bincrafters@conan \| conan-center \| na
+|freeglut#testing \| 3.0.0 \| freeglut \| user@conan \| https://github.com/SolarFramework/binaries/releases/download|
 
-Sample repositories declarations :
+### Packaging systems specificities
+**github, artifactory, nexus and path** dependencies are installed using remaken packaging format through an url or filesystem repository.
 
-opencv | 3.4.3 | opencv | thirdParties@github | https://github.com/SolarFramework/binaries/releases/download
+**system** dependencies are installed using operating system dependent package manager (apt for linux debian and derivatives, brew for Mac OS X, chocolatey for windows...)
 
-xpcf | 2.1.0 | xpcf | bcomBuild@github | https://github.com/SolarFramework/binaries/releases/download | static
+**conan** dependencies are installed using packaging format with conan package manager. conan url must match a declared remote in conan (remotes added with ```conan remote add```).
 
-spdlog | 0.14.0 | spdlog | thirdParties@github | https://github.com/SolarFramework/binaries/releases/download
-
-eigen | 3.3.5 | eigen | system |
-
-fbow | 0.0.1 | fbow | vcpkg |
-
-boost#stable | 1.70.0 | boost | conan | conan-center
-
-spdlog | 0.14.0 | spdlog | bincrafters@conan | conan-center | na
-
-freeglut#testing | 3.0.0 | freeglut | user@conan | https://github.com/SolarFramework/binaries/releases/download
-
-github, artifactory, nexus and path dependencies are installed using remaken packaging format through an url or filesystem repository.
-
-system dependencies are installed using operating system dependent package manager (apt for linux
-
-debian and derivatives, brew for Mac OS X, chocolatey for windows...)
-
-conan dependencies are installed using packaging format with conan package manager. conan url must match a declared remote in conan (remotes added with ```conan remote add```).
-
-vcpkg dependencies are installed using vcpkg packaging format with vcpkg package manager
+**vcpkg** dependencies are installed using vcpkg packaging format with vcpkg package manager
 
 WARNING : using system without any OS option implies the current system the tool is run on.
 Moreover, some OSes don't have a package manager, hence don't rely on system for android cross-compilation for instance.

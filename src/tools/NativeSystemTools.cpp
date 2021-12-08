@@ -328,7 +328,7 @@ void ScoopSystemTool::addRemote(const std::string & remoteReference)
     std::string repoId = remoteReference;
     std::vector<std::string> options;
     if (repoParts.size() < 2) {
-        throw std::runtime_error("Error adding scoop remote. Remote format must follow bucketAlias#bucketURL. Missing bucketURL: " + remoteReference);
+        options.push_back(repoId);
     }
     if (repoParts.size() == 2) {
         repoId = repoParts.at(0);
