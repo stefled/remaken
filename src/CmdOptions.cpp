@@ -116,24 +116,26 @@ CmdOptions::CmdOptions()
         remakenRootPath = pkgPath;
     }
 
-    fs::path profilePath = PathBuilder::getHomePath() / Constants::REMAKEN_FOLDER / Constants::REMAKEN_PROFILES_FOLDER/ "default";
+    fs::path remakenProfileFolder = PathBuilder::getHomePath() / Constants::REMAKEN_FOLDER / Constants::REMAKEN_PROFILES_FOLDER ;
+    std::string profileName =  "default";
     m_cliApp.require_subcommand(1);
     m_cliApp.fallthrough(true);
-    m_cliApp.set_config("--profile",profilePath.generic_string(utf8),"remaken profile file to read");
+    m_cliApp.option_defaults()->always_capture_default();
+    m_cliApp.set_config("--profile",profileName,"remaken profile file to read",remakenProfileFolder.generic_string(utf8));
 
     m_config = "release";
-    m_cliApp.add_option("--config,-c", m_config, "Config: " + getOptionString("--config"), true);
+    m_cliApp.add_option("--config,-c", m_config, "Config: " + getOptionString("--config")); // ,true);
     m_cppVersion = "11";
-    m_cliApp.add_option("--cpp-std",m_cppVersion, "c++ standard version: " + getOptionString("--cpp-std"), true);
+    m_cliApp.add_option("--cpp-std",m_cppVersion, "c++ standard version: " + getOptionString("--cpp-std")); // ,true);
     m_remakenRoot = remakenRootPath.generic_string(utf8);
-    m_cliApp.add_option("--remaken-root,-r", m_remakenRoot, "Remaken packages root directory", true);
+    m_cliApp.add_option("--remaken-root,-r", m_remakenRoot, "Remaken packages root directory"); // ,true);
     m_toolchain = computeToolChain();
     m_cliApp.add_option("--build-toolchain,-b", m_toolchain, "Build toolchain: clang, clang-version, "
-                                                             "gcc-version, cl-version .. ex: cl-14.1", true);
+                                                             "gcc-version, cl-version .. ex: cl-14.1"); // ,true);
     m_os = computeOS();
-    m_cliApp.add_option("--operating-system,-o", m_os, "Operating system: " + getOptionString("--operating-system"), true);
+    m_cliApp.add_option("--operating-system,-o", m_os, "Operating system: " + getOptionString("--operating-system")); // ,true);
     m_architecture = "x86_64";
-    m_cliApp.add_option("--architecture,-a",m_architecture, "Architecture: " + getOptionString("--architecture"),true);
+    m_cliApp.add_option("--architecture,-a",m_architecture, "Architecture: " + getOptionString("--architecture")); // ,true);
     m_cliApp.add_flag("--force,-f", m_force, "force command execution : ignore cache entries, already installed files ...\n 'force' flag also enable 'override' flag");
     m_verbose = false;
     m_cliApp.add_flag("--verbose,-v", m_verbose, "verbose mode");
@@ -146,14 +148,14 @@ CmdOptions::CmdOptions()
     bundleCommand->add_option("--destination,-d", m_destinationRoot, "Destination directory")->required();
     m_recurse = false;
     bundleCommand->add_flag("--recurse", m_recurse, "recursive mode : bundle dependencies recursively");
-    bundleCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files", true);
+    bundleCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files"); // ,true);
 
     // BUNDLEXPCF COMMAND
     CLI::App * bundleXpcfCommand = m_cliApp.add_subcommand("bundleXpcf","copy xpcf modules and their dependencies from their declaration in a xpcf xml file");
     m_moduleSubfolder = "modules";
     bundleXpcfCommand->add_option("--destination,-d", m_destinationRoot, "Destination directory")->required();
     bundleXpcfCommand->add_option("--modules-subfolder,-s", m_moduleSubfolder, "relative folder where XPCF modules will be "
-                                                                               "copied with their dependencies", true);
+                                                                               "copied with their dependencies"); // ,true);
     bundleXpcfCommand->add_option("file", m_dependenciesFile, "XPCF xml module declaration file")->required();
 
     CLI::App * cleanCommand = m_cliApp.add_subcommand("clean", "WARNING : remove every remaken installed packages");
@@ -162,26 +164,26 @@ CmdOptions::CmdOptions()
     CLI::App * configureCommand = m_cliApp.add_subcommand("configure", "configure project dependencies");
     m_recurse = false;
     configureCommand->add_flag("--recurse", m_recurse, "recursive mode : configure dependencies recursively");
-    configureCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files - must be located in project root", true);
+    configureCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files - must be located in project root"); // ,true);
 
     // INFO COMMAND
     CLI::App * infoCommand = m_cliApp.add_subcommand("info", "Read package dependencies informations");
-    infoCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files", true);
+    infoCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files"); // ,true);
 
     // PROFILE COMMAND
     CLI::App * profileCommand = m_cliApp.add_subcommand("profile", "manage remaken profiles configuration");
     CLI::App * initProfileCommand = profileCommand->add_subcommand("init", "create remaken profile from current options");
     initProfileCommand ->add_flag("--with-default,-w", m_defaultProfileOptions, "create remaken profile with all profile options : current profile and provided");
-    initProfileCommand->add_option("profile_name", m_profileName, "profile name to create (default profile name is \"default\")", true);
+    initProfileCommand->add_option("profile_name", m_profileName, "profile name to create (default profile name is \"default\")"); // ,true);
     CLI::App * displayProfileCommand = profileCommand->add_subcommand("display", "display remaken current profile (display current options and profile options)");
     m_defaultProfileOptions = false;
     displayProfileCommand->add_flag("--with-default,-w", m_defaultProfileOptions, "display all profile options : current profile and provided");
-    displayProfileCommand->add_option("profile_name", m_profileName, "profile name to create (default profile name is \"default\")", true);
+    displayProfileCommand->add_option("profile_name", m_profileName, "profile name to create (default profile name is \"default\")"); // ,true);
 
     // INIT COMMAND
     CLI::App * initCommand = m_cliApp.add_subcommand("init", "initialize remaken root folder and retrieve qmake rules");
     m_qmakeRulesTag = Constants::QMAKE_RULES_DEFAULT_TAG;
-    initCommand->add_option("--tag", m_qmakeRulesTag, "the qmake rules tag version to install - either provide a tag or the keyword 'latest' to install latest qmake rules",true);
+    initCommand->add_option("--tag", m_qmakeRulesTag, "the qmake rules tag version to install - either provide a tag or the keyword 'latest' to install latest qmake rules"); // ,true);
     initCommand->add_flag("--installwizards,-w", m_installWizards, "installs qtcreator wizards for remaken/Xpcf projects");
     CLI::App * initVcpkgCommand = initCommand->add_subcommand("vcpkg", "setup vcpkg repository");
     initVcpkgCommand->add_option("--tag", m_vcpkgTag, "the vcpkg tag version to install");
@@ -200,18 +202,18 @@ CmdOptions::CmdOptions()
     installCommand->add_option("--alternate-remote-url,-u", m_altRepoUrl, "alternate remote url to use when the declared remote fails to provide a dependency");
     installCommand->add_flag("--invert-remote-order", m_invertRepositoryOrder, "invert alternate and base remote search order : alternate remote is searched before packagedependencies declared remote");
     installCommand->add_option("--apiKey,-k", m_apiKey, "Artifactory api key");
-    installCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files : can be a local file or an url to the file", true);
-    installCommand->add_option("--conan_profile", m_conanProfile, "force conan profile name to use (overrides detected profile)",true);
+    installCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files : can be a local file or an url to the file"); // ,true);
+    installCommand->add_option("--conan_profile", m_conanProfile, "force conan profile name to use (overrides detected profile)"); // ,true);
     installCommand->add_flag("--project_mode,-p", m_projectMode, "enable project mode to generate project build files from packaging tools (conanbuildinfo ...).");//\nProject mode is enabled automatically when the folder containing the packagedependencies file also contains a QT project file");
 
     m_ignoreCache = false;
     installCommand->add_flag("--ignore-cache,-i", m_ignoreCache, "ignore cache entries : dependencies update is forced");
     m_mode = "shared";
-    installCommand->add_option("--mode,-m", m_mode, "Mode: " + getOptionString("--mode"), true);
+    installCommand->add_option("--mode,-m", m_mode, "Mode: " + getOptionString("--mode")); // ,true);
     m_repositoryType = "github";
-    installCommand->add_option("--type,-t", m_repositoryType, "Repository type: " + getOptionString("--type"), true);
+    installCommand->add_option("--type,-t", m_repositoryType, "Repository type: " + getOptionString("--type")); // ,true);
     m_zipTool = ZipTool::getZipToolIdentifier();
-    installCommand->add_option("--ziptool,-z", m_zipTool, "unzipper tool name : unzip, compact ...", true);
+    installCommand->add_option("--ziptool,-z", m_zipTool, "unzipper tool name : unzip, compact ..."); // ,true);
     installCommand->add_flag("--remote-only", m_projectMode, "Only add remote/source/tap from package dependencies, dependencies are not installed");//\nProject mode is enabled automatically when the folder containing the packagedependencies file also contains a QT project file");
 
 
@@ -236,24 +238,24 @@ CmdOptions::CmdOptions()
     CLI::App * remoteListFileCommand = remoteCommand->add_subcommand("listfile", "list remotes/sources/tap declared from packagedependencies file");
     m_recurse = false;
     remoteListFileCommand->add_flag("--recurse", m_recurse, "recursive mode : list remote recursively from dependencies files");
-    remoteListFileCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files", true);
+    remoteListFileCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files"); // ,true);
     CLI::App * remoteAddCommand = remoteCommand->add_subcommand("add", "add remotes/sources/tap declared from packagedependencies file");
     m_recurse = false;
     remoteAddCommand->add_flag("--recurse", m_recurse, "recursive mode : add remote recursively from dependencies files");
-    remoteAddCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files", true);
+    remoteAddCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files"); // ,true);
 
 
     // RUN COMMAND
     CLI::App * runCommand = m_cliApp.add_subcommand("run", "run binary (and set dependencies path depending on the run environment)");
     runCommand->add_option("--xpcf", m_xpcfConfigurationFile, "XPCF xml module declaration file path");
     runCommand->add_flag("--env", m_environment, "don't run executable, only retrieve run environment informations from files (dependencies and/or XPCF xml module declaration file)");
-    runCommand->add_option("--deps", m_dependenciesFile, "Remaken dependencies files", true);
+    runCommand->add_option("--deps", m_dependenciesFile, "Remaken dependencies files"); // ,true);
     runCommand->add_option("application", m_applicationFile, "executable file path");
     runCommand->add_option("arguments", m_applicationArguments, "executable arguments");
 
     // PACKAGE COMMAND
     CLI::App * packageCommand = m_cliApp.add_subcommand("package","package a build result in remaken format");
-    packageCommand->add_option("--sourcedir,-s", m_packageOptions["sourcedir"], "product root directory (where libs and includes are located)", true);//->required();
+    packageCommand->add_option("--sourcedir,-s", m_packageOptions["sourcedir"], "product root directory (where libs and includes are located)"); // ,true);//->required();
     packageCommand->add_option("--includedir,-i", m_packageOptions["includedir"], " relative path to include folder to export (defaults to the sourcedir provided with -s)\n");
     packageCommand->add_option("--libdir,-l", m_packageOptions["libdir"], " relative path to the library folder to export (defaults to the sourcedir provided with -s)\n");
     packageCommand->add_option("--redistfile,-f", m_packageOptions["redistfile"], " relative path and filename of a redistribution file to use (such as redist.txt intel ipp's file). Only listed libraries in this file will be packaged\n");
@@ -262,7 +264,7 @@ CmdOptions::CmdOptions()
     packageCommand->add_option("--packageversion,-k", m_packageOptions["packageversion"], " package version\n");
     packageCommand->add_option("--ignore-mode,-n", m_packageOptions["ignoreMode"], " forces the pkg-config generated file to ignore the mode when providing -L flags\n");
     m_mode = "shared";
-    packageCommand->add_option("--mode,-m", m_mode, "Mode: " + getOptionString("--mode"), true);
+    packageCommand->add_option("--mode,-m", m_mode, "Mode: " + getOptionString("--mode")); // ,true);
     packageCommand->add_option("--withsuffix", m_packageOptions["withsuffix"], " specify the suffix used by the thirdparty when building with mode mode\n");
     packageCommand->add_option("--useOriginalPCfiles,-u", m_packageOptions["useOriginalPCfiles"], " specify to search and use original pkgconfig files from the thirdparty, instead of generating them\n");
     packageCommand->fallthrough(false);
@@ -285,13 +287,13 @@ CmdOptions::CmdOptions()
     CLI::App * compressCommand = packageCommand->add_subcommand("compress","compress packages within a folder");
     compressCommand->fallthrough(false);
     m_packageCompressOptions["rootdir"] = boost::filesystem::initial_path().generic_string(utf8);
-    compressCommand->add_option("--rootdir,-s", m_packageCompressOptions["rootdir"], "folder path to root build toolchain folder or to parent package root folder (where the packages are located located)", true);
+    compressCommand->add_option("--rootdir,-s", m_packageCompressOptions["rootdir"], "folder path to root build toolchain folder or to parent package root folder (where the packages are located located)"); // ,true);
     compressCommand->add_option("--packagename,-p", m_packageCompressOptions["packagename"], " package name\n");
     compressCommand->add_option("--packageversion,-k", m_packageCompressOptions["packageversion"], " package version\n");
 
     // PARSE COMMAND
     CLI::App * parseCommand = m_cliApp.add_subcommand("parse","check dependency file validity");
-    parseCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files", true);
+    parseCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files"); // ,true);
 }
 
 void CmdOptions::initBuildConfig()

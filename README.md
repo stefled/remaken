@@ -133,16 +133,20 @@ You can also specify any value you want to set in the profile:
 ```remaken profile init --cpp-std 17```
 
 To create a named profile, use:
-```remaken profile init [profile name]```
+```remaken profile init [profile_name or path]```
 
-To load a named profile, use:
-```remaken --profile [profile_filepath] ...```
+To use a named profile for any command, run:
+```remaken --profile [profile_name or path] ...```
 
-To display default profile configuration:
+To display the default profile configuration:
 ```remaken profile display```
 
 To display a named profile configuration:
-```remaken --profile [profile_filepath] profile display```
+```remaken --profile [profile_name or path] profile display```
+
+To display options from the profile file and from default remaken values:
+```remaken profile display -w```
+
 
 ### Searching dependencies
 ```remaken search [--restrict packaging_system_name] package_name [package_version] ```
