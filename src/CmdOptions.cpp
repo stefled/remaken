@@ -8,6 +8,7 @@
 #include <boost/process.hpp>
 #include <boost/predef.h>
 #include <boost/dll.hpp>
+#include <boost/algorithm/string/replace.hpp>
 #include "utils/DepUtils.h"
 #include "utils/PathBuilder.h"
 namespace bp = boost::process;
@@ -226,6 +227,7 @@ CmdOptions::CmdOptions()
 
     // SEARCH COMMAND
     CLI::App * searchCommand = m_cliApp.add_subcommand("search", "search for a package [/version] in remotes");
+
     // m_packagingSystem = ...
     m_searchOptions["packagingSystem"] = "";
     searchCommand->add_option("--restrict", m_searchOptions["packagingSystem"], "restrict search to the packaging system provided [" + getOptionString("--restrict") + "]");
@@ -472,7 +474,11 @@ void CmdOptions::writeConfigurationFile(const std::string & profileName) const
     fs::path remakenProfilePath = remakenProfilesPath/m_profileName;
     ofstream fos;
     fos.open(remakenProfilePath.generic_string(utf8),ios::out|ios::trunc);
-    fos<<m_cliApp.config_to_str(m_defaultProfileOptions,true);
+    // workaround for CLI11 issue #648 and also waiting for issue #685
+    std::string conf = m_cliApp.config_to_str(m_defaultProfileOptions,true);
+    // comment all run arguments, as run command doesn't need to maintain options in configuration
+    boost::replace_all(conf,"run.","#run.");
+    fos<<conf;
     fos.close();
 }
 
