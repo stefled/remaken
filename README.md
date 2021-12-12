@@ -1,62 +1,65 @@
-# remaken
+# Remaken
 
-Remaken is a meta dependencies management tool.
+**Remaken** is a meta dependencies management tool.
 
-It supports various C++ packaging systems using a standardized dependency file format (named **packagedependencies**).
+**Remaken** supports various C++ packaging systems using a standardized dependency file format (named **packagedependencies**), that follows a modular syntax.
 
-The **packagedependencies** file follows a modular syntax.
+**Remaken** also provide its own C++ packaging structure, based on [pkg-config](https://www.freedesktop.org/wiki/Software/pkg-config/) description files.
 
-Remaken also provide its own C++ packaging structure, based on pkg-config description files.
-
-Remaken can be seen as the "one tool to rule them all" for C++ packagers.
+**Remaken** can be seen as the **"one tool to rule them all"** for C++ packagers.
 
 ## Overview
 
-The need to use a tool such as remaken comes from the diversity of package managers for C++ and to speed up development bootstrap and shorten delays.
+The need to use a tool such as **Remaken** comes from  :
 
-Indeed, whatever the dependency your project needs, there is a chance the dependency already exists in binary format on one of the C++ package manager.
+- diversity of C++ package managers
+- need to speed up development bootstrap
+- need to shorten delays
 
-If it doesn't already exist in a package manager, you can still build your own binary version and share it as a **remaken dependency** across your team or organization, ensuring build options are the same. 
+Indeed, whatever the dependency your project needs, there is a chance the dependency already exists in binary format on one of the existing C++ packaging systems.
+
+If it doesn't already exist in an existing C++ packaging systems, you can build your own binary version and share it as a **remaken dependency** across your team or organization, ensuring build options are the same.
+
 It also avoids other developers to build locally the same dependency.
 
-### Issues in native development without remaken and common development rules:
+### Issues in native development without **remaken** and common development rules:
 
-To setup a native C/C++ project that uses thirparty dependencies, a developer must for each dependency (whichever the build system is in either make, cmake, conan, vcpkg, MSVC …)  :
+To setup a native C/C++ project that uses thirdparty dependencies, a developer must for each dependency (whatever the build system is in either [make](https://www.gnu.org/software/make/manual/make.html), [cmake](https://cmake.org/), [conan](https://conan.io/), [vcpkg](https://github.com/microsoft/vcpkg), [MSVC](https://visualstudio.microsoft.com/) …)  :
 
-1. build each dependency with homogeneous build rules and flags (for instance c++ std version, for each target [debug,release | os | cpu | shared, static])
-2. install each dependency in an accessible path in the system (and eventually, pollute the development environment system for instance using make install, or set a different 'sysroot')
+1. build each dependency with homogeneous build rules and flags (for instance c++ std version, for each target [*debug*, *release* | *os* | *cpu* | *shared*, *static*])
+2. install each dependency in an accessible path in the system (and eventually, pollute the development environment system for instance using `make install`, or set a different *sysroot*)
 3. add include paths, libraries paths and libraries link flags for each dependency and sub dependency in its development project
-4. For each new development, even based on same dependencies : reproduce every dependency build step 1.1 to 1.3 (also true for conan when the binary hosted version doesn’t fit with your options)
+4. For each new development, even based on same dependencies : reproduce every dependency build step 1 to 3 (also true for [conan](https://conan.io/) when the binary hosted version doesn’t fit with your options)
 5. Running a final application : each dependency must either be copied in the same folder than the application or paths must be set to each shared dependency folder.
 6. Last but not least, to package a final application with its dependencies means to bundle manually every shared dependency with the application before creating the final bundle/setup for the application<br>
-NOTE: for most build systems (cmake, make, Visual Studio builds ...) the target can be overwritten across versions. The solution would be to manually add custom target path to installation post-build steps - for each project.
+NOTE: for most build systems ([make](https://www.gnu.org/software/make/manual/make.html), [cmake](https://cmake.org/), [Microsoft Visual Studio](https://visualstudio.microsoft.com/) builds ...) the target can be overwritten across versions. The solution would be to manually add custom target path to installation post-build steps - for each project.
 
 Shared library or application project heterogeneity across a team can lead to integration issues as the build rules can slightly differ on each developer station.
 
-### Development workflow using remaken / builddefs rules
-Remaken :
+### Development workflow using **remaken** / **builddefs-qmake** rules
+**Remaken** :
 
-- provide the same set of build rules across packaging systems (certified for packaging systems that perform a local build such as conan, vcpkg, brew)
-- install dependencies from any packaging system (including remaken own packaging and flag finding system) 
+- provide the same set of build rules across packaging systems (certified for packaging systems that perform a local build such as [conan](https://conan.io/), [vcpkg](https://github.com/microsoft/vcpkg), [brew](https://brew.sh/index_fr))
+- install dependencies from any packaging system (including **remaken** own packaging and flag finding system) 
 - there is no need to call manually each packaging system, to write a script … all is done at once from the **packagedependencies** description 
-- build flags are populated either from remaken configure step or from [builddefs-qmake](https://github.com/b-com-software-basis/builddefs-qmake/releases/tag/builddefs-qmake-latest) rules (other rules format will come in the future, cmake, bazel ...)
+- build flags are populated either from remaken configure step or from [builddefs-qmake](https://github.com/b-com-software-basis/builddefs-qmake/releases/tag/builddefs-qmake-latest) rules (or other rules format will come in the future such as [cmake](https://cmake.org/), [bazel](https://bazel.build/) ...)
 - run any application with appropriate environment deduced from described dependencies and/or from [xpcf](https://github.com/b-com-software-basis/xpcf) configuration file
 - automate dependencies bundling within an application from dependencies description (either copying external dependencies in bundle destination folder or creating a shell script for native package managers such as apt, yum ...)
-- bundle **xpcf** applications from **xpcf** configuration file
-- integrate **conan** dependencies easily without writing a conanfile.py
-- provide a normalized package installation structure for remaken dependencies [Package tree](#package-tree)
+- bundle [xpcf](https://github.com/b-com-software-basis/xpcf) applications from [xpcf](https://github.com/b-com-software-basis/xpcf) configuration file
+- integrate [conan](https://conan.io/) dependencies easily without writing a [conanfile.py](https://docs.conan.io/en/latest/reference/conanfile.html)
+- provide a normalized package installation structure for **remaken** dependencies. cf [Package tree](#package-tree)
 - provide vcpkg installation and bootstrap
-- provide builddefs-qmake rules installation and update
+- provide [builddefs-qmake](https://github.com/b-com-software-basis/builddefs-qmake/releases/tag/builddefs-qmake-latest) rules installation and update
  
 3/ with standardized build rules (currently qmake supported, future other system rules support can be implemented)
 homogeneous builds ..
  
 4/ Detailed design
 
-## Installing remaken
-### Linux or mac OS X
+## Installing **remaken**
+### Linux Ubuntu 18.04 or mac OS X
 
-First install brew on your system:
+First install [brew](https://brew.sh/index_fr) on your system:
 
 ```
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -70,24 +73,25 @@ brew install remaken
 ``` 
 
 ### Windows
-Use the [setup file](https://github.com/b-com-software-basis/remaken/releases/download/1.9.0/Setup_Remaken_1.9.0.exe)
+
+Download and install the latest [setup file](https://github.com/b-com-software-basis/remaken/releases/) version.
 
 ## Package formats supported
 ### Cross platforms packaging systems :
-- Conan
-- vcpkg
-- brew (mac OS X and linux)
-- Remaken (pkg-config based)
+- [conan](https://conan.io/)
+- [vcpkg](https://github.com/microsoft/vcpkg)
+- [brew](https://brew.sh/index_fr) (mac OS X and linux)
+- **Remaken** packaging structure ([pkg-config](https://www.freedesktop.org/wiki/Software/pkg-config/) based)
 
 ### Dedicated system tools :
 - apt-get (debian and derivatives)
-- pacman (archlinux)
+- [pacman](https://wiki.archlinux.org/title/pacman) (archlinux)
 - yum (redhat, fedora, centos)
 - zypper (openSUSE)
 - pkg (freebsd)
 - pkgutil (solaris)
-- chocolatey (windows)
-- scoop
+- [chocolatey](https://chocolatey.org/) (Windows)
+- [scoop](https://scoop-docs.vercel.app/) (Windows)
 - [others to come]
 
 ## Command line usage samples
