@@ -79,6 +79,20 @@ std::ostream& operator<< (std::ostream& stream, const Dependency& dep)
     return stream;
 }
 
+bool Dependency::operator==(const Dependency & dep)const
+{
+    return ((m_packageName == dep.m_packageName) &&
+            (m_packageChannel == dep.m_packageChannel) &&
+            (m_name == dep.m_name) &&
+            (m_version == dep.m_version) &&
+            (m_repositoryType == dep.m_repositoryType) &&
+            (m_mode == dep.m_mode) &&
+            (m_identifier == dep.m_identifier) &&
+            (m_toolOptions == dep.m_toolOptions) &&
+            (m_type == dep.m_type) &&
+            (m_buildConditions == dep.m_buildConditions));
+}
+
 std::string Dependency::toString() const
 {
     std::string str = getPackageName() + "|" + getVersion() + "|" + getName() + "|" + getIdentifier() + "@" + getRepositoryType() + "|" + getBaseRepository() + "|" + getMode() + "|" + getToolOptions();

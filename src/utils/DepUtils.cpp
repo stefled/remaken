@@ -115,14 +115,14 @@ std::map<std::string,bool>  DepUtils::parseConditionsFile(const fs::path &  root
         //std::regex formatRegexr(formatRegexStr, std::regex_constants::extended);
         std::smatch sm;
         //check string format is ^[\t\s]*DEFINES[\t\s]*+=[\t\s]*[a-zA-Z0-9_-]*
-       // if (std::regex_search(curStr, sm, formatRegexr, std::regex_constants::match_any)) {
-            boost::split(results, curStr, [](char c){return c == '=';});
-            if (results.size() == 2) {
-                std::string conditionValue = results[1];
-                boost::trim(conditionValue);
-                conditionsMap.insert({conditionValue,true});
-            }
-       // }
+        // if (std::regex_search(curStr, sm, formatRegexr, std::regex_constants::match_any)) {
+        boost::split(results, curStr, [](char c){return c == '=';});
+        if (results.size() == 2) {
+            std::string conditionValue = results[1];
+            boost::trim(conditionValue);
+            conditionsMap.insert({conditionValue,true});
+        }
+        // }
     }
     configureFile.close();
     return conditionsMap;
@@ -172,10 +172,21 @@ std::vector<Dependency> DepUtils::parse(const fs::path &  dependenciesPath, cons
                     Dependency dep(curStr, linkMode);
 
                     if (dep.isGenericSystemDependency()
-                        ||dep.isSpecificSystemToolDependency()
-                        ||!dep.isSystemDependency()) {
+                            ||dep.isSpecificSystemToolDependency()
+                            ||!dep.isSystemDependency()) {
                         // only add "generic" system or tool@system or other deps
-                        libraries.insert(std::make_pair(dep.getName(), std::move(dep)));
+                        bool bFoundSame = false;
+                        if (libraries.find(dep.getName()) != libraries.end()) {
+                            auto range =  libraries.equal_range(dep.getName());
+                            for (auto i = range.first; i != range.second; ++i) {
+                                if (i->second == dep) {
+                                    bFoundSame = true;
+                                }
+                            }
+                        }
+                        if (!bFoundSame) {
+                            libraries.insert(std::make_pair(dep.getName(), std::move(dep)));
+                        }
                     }
                 }
                 else {

@@ -102,7 +102,6 @@ public:
         return m_bHasIdentifier;
     }
 
-
     inline const std::string & getToolOptions() const {
         return m_toolOptions;
     }
@@ -119,6 +118,8 @@ public:
 
     friend std::ostream& operator<< (std::ostream& stream, const Dependency& dep);
     std::string toString() const;
+
+    bool operator==(const Dependency& dep) const;
 
 private:
     std::string parseConditions(const std::string & token);
