@@ -78,7 +78,9 @@ void AptSystemTool::addPpaSource(const std::string & repositoryUrl)
 
 void AptSystemTool::addRemote(const std::string & remoteReference)
 {
-    addPpaSource(remoteReference);
+    if (remoteReference != "system") {
+        addPpaSource(remoteReference);
+    }
 }
 
 void AptSystemTool::install(const Dependency & dependency)
