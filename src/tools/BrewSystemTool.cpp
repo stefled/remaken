@@ -31,9 +31,6 @@ void BrewSystemTool::update ()
 
 void BrewSystemTool::tap(const std::string & repositoryUrl)
 {
-    if (repositoryUrl.empty() || repositoryUrl=="system") {
-        return;
-    }
     std::string tapList = run ("tap");
     auto repoParts = split(repositoryUrl,'#');
     std::string repoId = repositoryUrl;
@@ -50,6 +47,9 @@ void BrewSystemTool::tap(const std::string & repositoryUrl)
 
 void BrewSystemTool::addRemote(const std::string & remoteReference)
 {
+    if (remoteReference.empty() || remoteReference=="system") {
+        return;
+    }
     tap(remoteReference);
 }
 
@@ -111,7 +111,7 @@ void BrewSystemTool::install (const Dependency & dependency)
     if (installed (dependency)) {//TODO : version comparison and checking with range approach
         return;
     }
-    tap(dependency.getBaseRepository());
+    addRemote(dependency.getBaseRepository());
     std::string source = computeToolRef (dependency);
     int result = bp::system(m_systemInstallerPath, "install", source.c_str());
     if (result != 0) {

@@ -35,7 +35,20 @@ void ConanSystemTool::bundle(const Dependency & dependency)
     fs::path destination = m_options.getDestinationRoot();
     destination /= ".conan";
 
-    std::vector<fs::path> libPaths = retrievePaths(dependency, BaseSystemTool::PathType::LIB_PATHS, destination);
+    BaseSystemTool::PathType libPathNode = BaseSystemTool::PathType::LIB_PATHS;
+
+#ifdef BOOST_OS_WINDOWS_AVAILABLE
+    if (m_options.crossCompiling() && m_options.getOS() != "win") {
+        libPathNode = BaseSystemTool::PathType::LIB_PATHS;
+
+    }
+    else {
+        libPathNode = BaseSystemTool::PathType::BIN_PATHS;
+
+    }
+#endif
+
+    std::vector<fs::path> libPaths = retrievePaths(dependency, libPathNode, destination);
 
     for (auto & libPath : libPaths) {
         if (boost::filesystem::exists(libPath)) {
@@ -46,9 +59,6 @@ void ConanSystemTool::bundle(const Dependency & dependency)
 
 void ConanSystemTool::addRemoteImpl(const std::string & repositoryUrl)
 {
-    if (repositoryUrl.empty()) {
-        return;
-    }
     std::string remoteList = run ("remote","list");
     auto repoParts = split(repositoryUrl,'#');
     std::string repoId = repositoryUrl;
@@ -76,6 +86,9 @@ void ConanSystemTool::addRemoteImpl(const std::string & repositoryUrl)
 
 void ConanSystemTool::addRemote(const std::string & remoteReference)
 {
+    if (remoteReference.empty()) {
+        return;
+    }
     addRemoteImpl(remoteReference);
 }
 

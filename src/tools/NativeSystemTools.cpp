@@ -87,7 +87,7 @@ void AptSystemTool::install(const Dependency & dependency)
 {
     std::string source = computeToolRef(dependency);
 
-    addPpaSource(dependency.getBaseRepository());
+    addRemote(dependency.getBaseRepository());
 
     int result = bp::system(sudo(), m_systemInstallerPath, "install","-y", source.c_str());
 
@@ -322,7 +322,7 @@ void ScoopSystemTool::listRemotes()
 
 void ScoopSystemTool::addRemote(const std::string & remoteReference)
 {
-    if (remoteReference.empty()) {
+    if (remoteReference.empty() || (remoteReference == "system")) {
         return;
     }
     std::string bucketList = run ("bucket","list");
@@ -346,6 +346,7 @@ void ScoopSystemTool::addRemote(const std::string & remoteReference)
 void ScoopSystemTool::install(const Dependency & dependency)
 {
     std::string source = computeToolRef(dependency);
+    addRemote(dependency.getBaseRepository());
     int result = bp::system(m_systemInstallerPath, "install","--yes", source.c_str());
     if (result != 0) {
         throw std::runtime_error("Error installing scoop dependency : " + source);
