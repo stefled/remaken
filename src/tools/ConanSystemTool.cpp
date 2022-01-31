@@ -329,8 +329,12 @@ std::vector<fs::path> ConanSystemTool::retrievePaths(const Dependency & dependen
             optionsArgs.push_back("-o " + option);
         }
     }
+    std::string profileName = m_options.getConanProfile();
+    if (m_options.crossCompiling() && m_options.getConanProfile() == "default") {
+        profileName = m_options.getOS() + "-" + m_options.getBuildToolchain() + "-" + m_options.getArchitecture();
+    }
     if (dependency.getMode() == "na") {
-        result = bp::system(m_systemInstallerPath, "install", bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if", destination, bp::args(optionsArgs), "-g", "json", source.c_str());
+        result = bp::system(m_systemInstallerPath, "install", bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-pr", profileName.c_str(), "-if", destination, bp::args(optionsArgs), "-g", "json", source.c_str());
     }
     else {
         std::string buildMode = dependency.getName() + ":";
@@ -340,7 +344,7 @@ std::vector<fs::path> ConanSystemTool::retrievePaths(const Dependency & dependen
         else {
             buildMode += "shared=True";
         }
-        result = bp::system(m_systemInstallerPath, "install", "-o", buildMode.c_str(), bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if", destination, bp::args(optionsArgs), "-g", "json", source.c_str());
+        result = bp::system(m_systemInstallerPath, "install", "-o", buildMode.c_str(), bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-pr", profileName.c_str(), "-if", destination, bp::args(optionsArgs), "-g", "json", source.c_str());
     }
     if (result != 0) {
         throw std::runtime_error("Error bundling conan dependency : " + source);
