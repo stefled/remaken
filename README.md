@@ -227,11 +227,27 @@ remaken can be used to ease application run by gathering all shared libraries pa
 
 **Note** : options in **[executable arguments list]** starting with a dash (-) must be surrounded with quotes and prefixed with \ for instance **"\\-f"** to forward **-f** option to the application (this is due to CLI11 interpretation of options).
 
-## Dependency file syntax
+## Dependency file types
+### packagedependencies dependency file
 
 For each project, a packagedependencies.txt file can be created in the root project folder.
 
 For dependencies specific to a particular os, a packagedependencies-[os].txt can also be created in the root project folder (os is a value in {android, linux, mac, win } ).
+
+### extra-packages dependency file
+An extra-packages.txt file can also be created along the packagedependencies.txt file.
+
+The extra-packages.txt file can be used to add dependencies to install and bundle steps. Dependencies listed in the extra-packages file will not be used
+by configure steps, or by the project build rules. 
+
+The extra-packages purpose is to:
+
+- install and bundle sub-dependencies needed by a project direct dependency when the direct dependency doesn't install its sub-dependency. (for instance, the conan opencv recipe doesn't install gtk+ on linux, but gtk+ is needed when a project uses opencv::imgui, hence the opencv conan recipe is "incomplete" as the imgui functionality is disabled when the gtk+ package is missing)
+- install non-dependency packages : for instance install data needed by an application, configuration files ...
+
+For packages specific to a particular os, an extra-packages-[os].txt can also be created in the root project folder (os is a value in {android, linux, mac, win } ).
+
+## packagedependencies/extra-packages file syntax
 
 The project build rules (builddefs-qmake for instance) will generate a packagedependencies.txt containing the build informations and will gather the dependencies in the original packagedependencies.txt and packagedependencies-[os].txt for the target os the build is run for.
 
