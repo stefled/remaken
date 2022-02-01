@@ -39,6 +39,7 @@ public:
     static constexpr const char * QMAKE_RULES_DEFAULT_TAG = "4.9.0";
     static constexpr const char * PKGINFO_FOLDER = ".pkginfo";
     static constexpr const char * VCPKG_REPOURL = "https://github.com/microsoft/vcpkg";
+    static constexpr const char * EXTRA_DEPS = "extra-packages.txt";
 };
 
 typedef enum {

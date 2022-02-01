@@ -63,7 +63,16 @@ int BundleManager::bundle()
         if (!fs::exists(m_options.getDestinationRoot())) {
             fs::create_directory(m_options.getDestinationRoot());
         }
-        bundleDependencies(buildDependencyPath());
+        fs::path rootPath = buildDependencyPath();
+        fs::path extradeps;
+        if (fs::is_directory(rootPath)) {
+            extradeps = rootPath / Constants::EXTRA_DEPS;
+        }
+        else {
+            extradeps = rootPath.parent_path() / Constants::EXTRA_DEPS;
+        }
+        bundleDependencies(extradeps);
+        bundleDependencies(rootPath);
     }
     catch (const std::runtime_error & e) {
         BOOST_LOG_TRIVIAL(error)<<e.what();

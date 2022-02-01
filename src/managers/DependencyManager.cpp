@@ -42,6 +42,14 @@ int DependencyManager::retrieve()
         if (m_options.projectModeEnabled()) {
             m_options.setProjectRootPath(rootPath.parent_path());
         }
+        fs::path extradeps;
+        if (fs::is_directory(rootPath)) {
+            extradeps = rootPath / Constants::EXTRA_DEPS;
+        }
+        else {
+            extradeps = rootPath.parent_path() / Constants::EXTRA_DEPS;
+        }
+        retrieveDependencies(extradeps);
         retrieveDependencies(rootPath);
         std::cout<<std::endl;
         std::cout<<"--------- Installation status ---------"<<std::endl;
