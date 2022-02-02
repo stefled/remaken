@@ -28,7 +28,7 @@
 class NativeSystemTool : public BaseSystemTool
 {
 public:
-    NativeSystemTool(const CmdOptions & options, const std::string & installer):BaseSystemTool(options, installer) {}
+    NativeSystemTool(const CmdOptions & options, const std::string & installer):BaseSystemTool(options, installer) { m_bundleScripted = true;}
     virtual ~NativeSystemTool() = default;
     virtual void bundle ([[maybe_unused]] const Dependency & dependency) override {
         BOOST_LOG_TRIVIAL(info)<<"bundle() for tool "<<m_systemInstallerPath<<" generates a shell install script";

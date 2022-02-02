@@ -50,6 +50,7 @@ public:
     virtual std::vector<fs::path> libPaths ([[maybe_unused]] const Dependency & dependency);
     virtual std::string computeSourcePath (const Dependency &  dependency);
     virtual fs::path sudo () { return m_sudoCmd; }
+    bool bundleScripted() { return m_bundleScripted; }
     virtual fs::path invokeGenerator([[maybe_unused]] const std::vector<Dependency> & deps, [[maybe_unused]] GeneratorType generator);
     virtual void listRemotes() = 0;
     virtual void addRemote(const std::string & remoteReference) = 0;
@@ -69,6 +70,7 @@ protected:
     fs::path m_systemInstallerPath;
     fs::path m_sudoCmd;
     const CmdOptions & m_options;
+    bool m_bundleScripted = false;
 };
 
 class SystemTools
