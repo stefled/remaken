@@ -27,7 +27,7 @@ It also avoids other developers to build locally the same dependency.
 To setup a native C/C++ project that uses thirdparty dependencies, a developer must for each dependency (whatever the build system is in either [make](https://www.gnu.org/software/make/manual/make.html), [cmake](https://cmake.org/), [conan](https://conan.io/), [vcpkg](https://github.com/microsoft/vcpkg), [MSVC](https://visualstudio.microsoft.com/) …)  :
 
 1. build each dependency with homogeneous build rules and flags (for instance c++ std version, for each target [*debug*, *release* | *os* | *cpu* | *shared*, *static*])
-2. install each dependency in an accessible path in the system (and eventually, pollute the development environment system for instance using `make install`, or set a different *sysroot*)
+2. install each dependency in an accessible path in the system (and eventually, pollute the development environment system for instance using `make install`, or set a different *sysroot* - make install by default will need sudo access for unix(e)s.)
 3. add include paths, libraries paths and libraries link flags for each dependency and sub dependency in its development project
 4. For each new development, even based on same dependencies : reproduce every dependency build step 1 to 3 (also true for [conan](https://conan.io/) when the binary hosted version doesn’t fit with your options)
 5. Running a final application : each dependency must either be copied in the same folder than the application or paths must be set to each shared dependency folder.
@@ -48,6 +48,8 @@ Shared library or application project heterogeneity across a team can lead to in
 - bundle [xpcf](https://github.com/b-com-software-basis/xpcf) applications from [xpcf](https://github.com/b-com-software-basis/xpcf) configuration file
 - integrate [conan](https://conan.io/) dependencies easily without writing a [conanfile.py](https://docs.conan.io/en/latest/reference/conanfile.html)
 - provide a normalized package installation structure for **remaken** dependencies. cf [Package tree](#package-tree)
+- allow to manage several dependencies version at the same time (each installation is based and searched with the package version number)
+- binaries installation don't occur in system path. It avoids the pollution of the environment. It also avoids the need for sudo access.
 - provide vcpkg installation and bootstrap
 - provide [builddefs-qmake](https://github.com/b-com-software-basis/builddefs-qmake/releases/tag/builddefs-qmake-latest) rules installation and update
  

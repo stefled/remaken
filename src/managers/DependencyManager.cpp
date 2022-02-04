@@ -260,7 +260,7 @@ void DependencyManager::retrieveDependency(Dependency &  dependency)
 void DependencyManager::generateConfigureFile(const fs::path &  rootFolderPath, const std::vector<Dependency> & deps)
 {
     fs::detail::utf8_codecvt_facet utf8;
-    fs::path buildFolderPath = rootFolderPath/"build";
+    fs::path buildFolderPath = rootFolderPath/DepUtils::getBuildPlatformFolder(m_options);
     fs::path configureFilePath = buildFolderPath/"configure_conditions.pri";
     if (deps.empty()) {
         return;

@@ -40,7 +40,7 @@ int ConfigureCommand::execute()
         fs::path depPath = DepUtils::buildDependencyPath(m_options.getDependenciesFile());
         fs::path depFolder = depPath.parent_path();
         // TODO: generated configure file subfolder structure must be declared and shared with Install step function DepMgr::generateConfigureFile
-        std::map<std::string,bool> conditionsMap = DepUtils::parseConditionsFile(depFolder/"build");
+        std::map<std::string,bool> conditionsMap = DepUtils::parseConditionsFile(depFolder/DepUtils::getBuildPlatformFolder(m_options));
         if (m_options.projectModeEnabled()) {
             m_options.setProjectRootPath(depFolder);
         }

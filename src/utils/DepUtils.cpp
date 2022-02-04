@@ -57,10 +57,18 @@ fs::path DepUtils::buildDependencyPath(const std::string & filePath)
     return dependenciesFile;
 }
 
-fs::path DepUtils::getBuildSubFolder(const CmdOptions & options)
+fs::path DepUtils::getBuildPlatformFolder(const CmdOptions & options)
 {
     fs::detail::utf8_codecvt_facet utf8;
     fs::path targetPath ("build", utf8);
+    std::string targetPlatform = options.getOS() + "-" + options.getBuildToolchain() + "-" + options.getArchitecture();
+    targetPath /= targetPlatform;
+    return targetPath;
+}
+
+fs::path DepUtils::getBuildSubFolder(const CmdOptions & options)
+{
+    fs::path targetPath = getBuildPlatformFolder(options);
     targetPath /= options.getMode();
     targetPath /= options.getConfig();
     return targetPath;
