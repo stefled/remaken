@@ -68,7 +68,7 @@ fs::path AbstractFileRetriever::installArtefact(const Dependency & dependency)
 }
 
 
-fs::path AbstractFileRetriever::invokeGenerator(const std::vector<Dependency> & deps, GeneratorType generator)
+fs::path AbstractFileRetriever::invokeGenerator(const std::vector<Dependency> & deps)
 {
     fs::detail::utf8_codecvt_facet utf8;
     PkgConfigTool pkgConfig(m_options);
@@ -89,7 +89,7 @@ fs::path AbstractFileRetriever::invokeGenerator(const std::vector<Dependency> & 
     }
 
     // format CFLAGS and LIBS results
-    return pkgConfig.generate(generator,cflags,libs,Dependency::Type::REMAKEN);
+    return pkgConfig.generate(cflags,libs,Dependency::Type::REMAKEN);
 }
 
 fs::path AbstractFileRetriever::installArtefactImpl(const Dependency & dependency)

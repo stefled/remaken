@@ -286,7 +286,8 @@ void DependencyManager::retrieveDependencies(const fs::path &  dependenciesFile)
 {
     fs::detail::utf8_codecvt_facet utf8;
     std::vector<fs::path> dependenciesFileList = DepUtils::getChildrenDependencies(dependenciesFile.parent_path(), m_options.getOS(), dependenciesFile.stem().generic_string(utf8));
-    std::map<std::string,bool> conditionsMap = DepUtils::parseConditionsFile(dependenciesFile.parent_path());
+    std::map<std::string,bool> conditionsMap;
+    DepUtils::parseConditionsFile(m_options, dependenciesFile.parent_path(), conditionsMap);
     std::vector<Dependency> conditionsDependencies;
     for (fs::path depsFile : dependenciesFileList) {
         if (fs::exists(depsFile)) {
@@ -317,7 +318,7 @@ void DependencyManager::retrieveDependencies(const fs::path &  dependenciesFile)
             }
         }
     }
-    generateConfigureFile(dependenciesFile.parent_path(), conditionsDependencies);
+    DepUtils::generateConfigureConditionsFile(m_options, dependenciesFile.parent_path(), conditionsDependencies);
 }
 
 

@@ -32,7 +32,7 @@ public:
     ~ConanFileRetriever() override = default;
     fs::path bundleArtefact(const Dependency & dependency) override;
     fs::path createConanFile(const fs::path & projectFolderPath);
-    fs::path invokeGenerator(const std::vector<Dependency> & deps, GeneratorType generator) override;
+    fs::path invokeGenerator(const std::vector<Dependency> & deps) override;
 
 protected:
     std::vector<std::string> buildOptions(const Dependency & dep);

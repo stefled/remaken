@@ -39,8 +39,13 @@ int ConfigureCommand::execute()
         bool projectFolder = false;
         fs::path depPath = DepUtils::buildDependencyPath(m_options.getDependenciesFile());
         fs::path depFolder = depPath.parent_path();
-        // TODO: generated configure file subfolder structure must be declared and shared with Install step function DepMgr::generateConfigureFile
-        std::map<std::string,bool> conditionsMap = DepUtils::parseConditionsFile(depFolder/DepUtils::getBuildPlatformFolder(m_options));
+        std::map<std::string, bool> conditionsMap;
+        if (!m_options.override()) {
+            // try to parse archived conditions file in project folder
+            DepUtils::parseConditionsFile(m_options, depFolder, conditionsMap);
+            // try to parse generated conditions file in build platform folder
+            DepUtils::parseConditionsFile(m_options, depFolder/DepUtils::getBuildPlatformFolder(m_options), conditionsMap);
+        }
         if (m_options.projectModeEnabled()) {
             m_options.setProjectRootPath(depFolder);
         }
@@ -59,7 +64,7 @@ int ConfigureCommand::execute()
         fs::path timestampPath = buildProjectSubFolderPath/ ".timestamp";
         std::chrono::duration nsDuration = std::chrono::duration_cast<std::chrono::nanoseconds> (std::chrono::system_clock::now().time_since_epoch());
         // check timestamp exists
-        if (fs::exists(timestampPath) && !m_options.force()) {
+        if (fs::exists(timestampPath) && !m_options.force() && !m_options.override()) {
             std::time_t timestampFileTime = fs::last_write_time(timestampPath);
             std::time_t pkgDepFileTime = fs::last_write_time(depPath);
 
@@ -69,7 +74,7 @@ int ConfigureCommand::execute()
             }
         }
         // timestamp obsolete or absent
-        if (!m_options.force()) {
+        if (!m_options.force() && !m_options.override()) {
             std::cout<<"=> File " << depPath.generic_string(utf8) << " has recent changes: cleaning up and starting a fresh build configuration"<<std::endl;
         }
         else {
@@ -119,7 +124,7 @@ int ConfigureCommand::execute()
         }
         std::cout<<std::endl<<"=> Generating main dependenciesBuildInfo file"<<std::endl;
 
-        fs::path depsInfoFilePath = buildProjectSubFolderPath / "dependenciesBuildInfo.pri"; // extension should later depend on generator type
+        fs::path depsInfoFilePath = buildProjectSubFolderPath / m_options.getGeneratorFilePath("dependenciesBuildInfo"); // extension should later depend on generator type
         ofstream depsOstream(depsInfoFilePath.generic_string(utf8),ios::out);
         for (auto & config : setups) {
             depsOstream<<"CONFIG += "<<config<<std::endl;
@@ -133,6 +138,7 @@ int ConfigureCommand::execute()
         int64_t nanoSeconds = nsDuration.count();
         fos<<std::to_string(nanoSeconds)<<std::endl;
         fos.close();
+        DepUtils::generateConfigureConditionsFile(m_options, depFolder, dependencies);
         std::cout<<"====> Configure done successfully !"<<std::endl;
         return 0;
     }

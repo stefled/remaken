@@ -104,14 +104,14 @@ std::vector<Dependency> removeRedundantDependencies(const std::multimap<std::str
     return depVector;
 }
 
-std::map<std::string,bool>  DepUtils::parseConditionsFile(const fs::path &  rootFolderPath)
+void DepUtils::parseConditionsFile(const CmdOptions & options, const fs::path &  rootFolderPath, std::map<std::string,bool> & conditionsMap)
 {
     fs::detail::utf8_codecvt_facet utf8;
-    fs::path configureFilePath = rootFolderPath/"configure_conditions.pri";
-    std::map<std::string,bool> conditionsMap;
+    fs::path configureFilePath = rootFolderPath / options.getGeneratorFilePath("configure_conditions");
+    //std::map<std::string,bool> conditionsMap;
 
     if (!fs::exists(configureFilePath)) {
-        return conditionsMap;
+        return;
     }
 
     std::ifstream configureFile(configureFilePath.generic_string(utf8).c_str(), std::ios::in);
@@ -128,12 +128,37 @@ std::map<std::string,bool>  DepUtils::parseConditionsFile(const fs::path &  root
         if (results.size() == 2) {
             std::string conditionValue = results[1];
             boost::trim(conditionValue);
-            conditionsMap.insert({conditionValue,true});
+            conditionsMap.insert_or_assign(conditionValue, true);
         }
         // }
     }
     configureFile.close();
-    return conditionsMap;
+}
+
+void DepUtils::generateConfigureConditionsFile(const CmdOptions & options, const fs::path &  rootFolderPath, const std::vector<Dependency> & deps)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    fs::path buildFolderPath = rootFolderPath/DepUtils::getBuildPlatformFolder(options);
+    fs::path configureFilePath = buildFolderPath / options.getGeneratorFilePath("configure_conditions");
+    if (fs::exists(configureFilePath) ) {
+        fs::remove(configureFilePath);
+    }
+
+    if (deps.empty()) {
+        return;
+    }
+
+    if (!fs::exists(buildFolderPath)) {
+        fs::create_directories(buildFolderPath);
+    }
+    std::ofstream configureFile(configureFilePath.generic_string(utf8).c_str(), std::ios::out);
+    for (auto & dep : deps) {
+        for (auto & condition : dep.getConditions()) {
+            configureFile << "DEFINES += " << condition;
+            configureFile << "\n";
+        }
+    }
+    configureFile.close();
 }
 
 std::vector<Dependency> DepUtils::filterConditionDependencies(const std::map<std::string,bool> & conditions, const std::vector<Dependency> & depCollection)

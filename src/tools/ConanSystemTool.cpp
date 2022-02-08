@@ -26,6 +26,9 @@ static const std::map<BaseSystemTool::PathType,std::string> conanNodeMap ={{Base
                                                                             {BaseSystemTool::PathType::LIB_PATHS, "lib_paths"}
                                                                             };
 
+static const std::map<GeneratorType, std::string> generatorConanTranslationMap = {{GeneratorType::qmake,"qmake"},{GeneratorType::cmake,"cmake"},{GeneratorType::pkg_config,"pkg_config"}};
+
+
 void ConanSystemTool::update()
 {
 }
@@ -257,7 +260,8 @@ fs::path ConanSystemTool::createConanFile(const std::vector<Dependency> & deps)
     }
     fos<<'\n';
     fos<<"[generators]"<<'\n';
-    fos<<"qmake"<<'\n';
+    std::string generator = generatorConanTranslationMap.at(m_options.getGenerator());
+    fos<<generator<<'\n';
     fos<<"\n";
     fos<<"[options]"<<'\n';
     for (auto & dependency : deps) {
@@ -269,7 +273,7 @@ fs::path ConanSystemTool::createConanFile(const std::vector<Dependency> & deps)
     return conanFilePath;
 }
 
-fs::path ConanSystemTool::invokeGenerator(const std::vector<Dependency> & deps, GeneratorType generator)
+fs::path ConanSystemTool::invokeGenerator(const std::vector<Dependency> & deps)
 {
     fs::detail::utf8_codecvt_facet utf8;
     fs::path destination = DepUtils::getProjectBuildSubFolder(m_options);
@@ -293,13 +297,15 @@ fs::path ConanSystemTool::invokeGenerator(const std::vector<Dependency> & deps, 
     std::string cppStd="compiler.cppstd=";
     cppStd += m_options.getCppVersion();
     int result = -1;
-    result = bp::system(m_systemInstallerPath, "install", bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-pr", profileName.c_str(),  "-if", destination, "-g", "qmake", conanFilePath);
+    std::string generator = generatorConanTranslationMap.at(m_options.getGenerator());
+    result = bp::system(m_systemInstallerPath, "install", bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-pr", profileName.c_str(),  "-if", destination, "-g", generator, conanFilePath);
         //result = bp::system(m_systemInstallerPath, "install", conanFilePath.generic_string(utf8).c_str(), bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-if",  targetPath.generic_string(utf8).c_str());
 
    if (result != 0) {
         throw std::runtime_error("Error installing conan dependencies");
     }
-    return destination/"conanbuildinfo.pri";
+
+    return destination/m_options.getGeneratorFilePath("conanbuildinfo");
 }
 
 

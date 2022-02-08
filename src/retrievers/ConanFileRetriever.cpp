@@ -111,8 +111,8 @@ void ConanFileRetriever::invokeGenerator(const fs::path & conanFilePath, ConanSy
 //conan install $$_PRO_FILE_PWD_/build/$$OUTPUTDIR/conanfile.txt -s $${conanArch} -s compiler.cppstd=$${conanCppStd} -s build_type=$${CONANBUILDTYPE} --build=missing -if $$_PRO_FILE_PWD_/build/$$OUTPUTDIR
 }*/
 
-fs::path ConanFileRetriever::invokeGenerator(const std::vector<Dependency> & deps, GeneratorType generator)
+fs::path ConanFileRetriever::invokeGenerator(const std::vector<Dependency> & deps)
 {
-    return m_tool->invokeGenerator(deps, generator);
+    return m_tool->invokeGenerator(deps);
 }
 

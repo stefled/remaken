@@ -39,7 +39,7 @@ public:
 
     void libs(const std::string & name, std::vector<std::string> & libFlagList, const std::vector<std::string> & options = {});
     void cflags(const std::string & name,  std::vector<std::string> & cFlagList, const std::vector<std::string> & options = {});
-    fs::path generate(GeneratorType genType, const std::vector<std::string>&  cflags, const std::vector<std::string>&  libs,
+    fs::path generate(const std::vector<std::string>&  cflags, const std::vector<std::string>&  libs,
                            Dependency::Type depType);
 
 

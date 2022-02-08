@@ -66,6 +66,7 @@ static const map<std::string,std::vector<std::string>> validationMap ={{"action"
                                                                        {"--alternate-remote-type",{"github","artifactory","nexus","path","http"}},
                                                                        {"--operating-system",{"mac","win","unix","android","ios","linux"}},
                                                                        {"--cpp-std",{"11","14","17","20"}},
+                                                                       {"--generator",{"qmake","cmake","pkgconfig"}},
                                                                        #ifdef BOOST_OS_LINUX_AVAILABLE
                                                                        {"--restrict",{"brew","conan","system","vcpkg"}}
                                                                        #endif
@@ -76,6 +77,21 @@ static const map<std::string,std::vector<std::string>> validationMap ={{"action"
                                                                        {"--restrict",{"choco","conan","scoop","system","vcpkg"}}
                                                                        #endif
                                                                       };
+
+static const map<std::string,GeneratorType> generatorTypeMap = {{"qmake",GeneratorType::qmake},{"cmake",GeneratorType::cmake},{"pkgconfig",GeneratorType::pkg_config}};
+
+static const std::map<GeneratorType, std::string> generatorExtensionMap = {{GeneratorType::qmake,".pri"},{GeneratorType::cmake,".cmake"},{GeneratorType::pkg_config,".pc"}};
+
+std::string CmdOptions::getGeneratorFileExtension() const
+{
+    return generatorExtensionMap.at(getGenerator());
+}
+
+std::string CmdOptions::getGeneratorFilePath(const std::string & file) const
+{
+    std::string fileName = file + getGeneratorFileExtension();
+    return fileName;
+}
 
 std::string CmdOptions::getOptionString(const std::string & optionName)
 {
@@ -143,6 +159,7 @@ CmdOptions::CmdOptions()
     m_override = false;
     m_cliApp.add_flag("--override,-e", m_override, "override existing files while (re)-installing packages/rules...");
     m_cliApp.add_option("--conan_profile", m_conanProfile, "force conan profile name to use (overrides detected profile)"); // ,true);
+    m_cliApp.add_option("--generator,-g", m_generator, "generator to use in [" + getOptionString("--generator") + "] (default: qmake) "); // ,true);
     m_dependenciesFile = "packagedependencies.txt";
 
     // BUNDLE COMMAND
@@ -306,6 +323,11 @@ void CmdOptions::initBuildConfig()
     m_buildConfig += "|" + getCppVersion();
     m_buildConfig += "|" + getMode();
     m_buildConfig += "|" + getConfig();
+}
+
+GeneratorType CmdOptions::getGenerator() const
+{
+   return generatorTypeMap.at(m_generator);
 }
 
 void CmdOptions::validateOptions()

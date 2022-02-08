@@ -86,7 +86,7 @@ fs::path PkgConfigTool::generateQmake(const std::vector<std::string>&  cflags, c
         throw std::runtime_error("Error dependency type " + std::to_string(static_cast<uint32_t>(type)) + " no supported");
     }
     std::string prefix = type2prefixMap.at(type);
-    std::string filename = boost::to_lower_copy(prefix) + "buildinfo.pri";
+    std::string filename = boost::to_lower_copy(prefix) + m_options.getGeneratorFilePath("buildinfo");
     fs::path filePath = DepUtils::getProjectBuildSubFolder(m_options)/filename;
     std::ofstream fos(filePath.generic_string(utf8),std::ios::out);
     std::string libdirs, libsStr, defines;
@@ -158,10 +158,10 @@ fs::path PkgConfigTool::generateQmake(const std::vector<std::string>&  cflags, c
     return filePath;
 }
 
-fs::path PkgConfigTool::generate(GeneratorType genType, const std::vector<std::string>&  cflags, const std::vector<std::string>&  libs,
+fs::path PkgConfigTool::generate( const std::vector<std::string>&  cflags, const std::vector<std::string>&  libs,
                        Dependency::Type depType)
 {
-    if (genType == GeneratorType::qmake) {
+    if (m_options.getGenerator() == GeneratorType::qmake) {
         return generateQmake(cflags, libs, depType);
     }
     else {

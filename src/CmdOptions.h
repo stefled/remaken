@@ -27,6 +27,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 #include <libs/CLI11/include/CLI/CLI.hpp>
+#include "Constants.h"
 
 //remaken install -r  path_to_remaken_root -i -o linux -t github -l nexus -u http://url_to_root_nexus_repo --cpp-std 17 -c debug -- packagedependencies-github.txt
 
@@ -225,6 +226,12 @@ public:
         }
     }
 
+    GeneratorType getGenerator() const;
+
+    std::string getGeneratorFileExtension() const;
+
+    std::string getGeneratorFilePath(const std::string & file) const;
+
     void writeConfigurationFile(const std::string & profileName = "default") const;
     void displayConfigurationSettings() const;
 
@@ -265,6 +272,7 @@ private:
     std::string m_conanProfile = "default";
     std::string m_profileName = "default";
     fs::path m_moduleSubfolderPath;
+    std::string m_generator = "qmake";
     bool m_ignoreCache;
     bool m_invertRepositoryOrder = false;
     bool m_verbose;

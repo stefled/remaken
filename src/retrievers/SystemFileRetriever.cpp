@@ -67,7 +67,7 @@ std::vector<fs::path> SystemFileRetriever::libPaths(const Dependency & dependenc
     return m_tool->libPaths(dependency);
 }
 
-fs::path SystemFileRetriever::invokeGenerator(const std::vector<Dependency> & deps, GeneratorType generator)
+fs::path SystemFileRetriever::invokeGenerator(const std::vector<Dependency> & deps)
 {
-    return m_tool->invokeGenerator(deps,generator);
+    return m_tool->invokeGenerator(deps);
 }
