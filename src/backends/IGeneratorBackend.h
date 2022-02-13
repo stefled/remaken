@@ -20,23 +20,34 @@
  * @date 2019-11-15
  */
 
-#ifndef CONANFILERETRIEVER_H
-#define CONANFILERETRIEVER_H
+#ifndef IGENERATORBACKEND_H
+#define IGENERATORBACKEND_H
+#include <boost/filesystem.hpp>
+#include <exception>
+#include "Dependency.h"
+#include "Constants.h"
+#include "CmdOptions.h"
+#include <boost/algorithm/string_regex.hpp>
+#include "utils/DepUtils.h"
 
-#include "SystemFileRetriever.h"
+namespace fs = boost::filesystem;
 
-class ConanFileRetriever : public SystemFileRetriever
+class IGeneratorBackend
 {
 public:
-    ConanFileRetriever(const CmdOptions & options);
-    ~ConanFileRetriever() override = default;
-    fs::path bundleArtefact(const Dependency & dependency) override;
-    fs::path createConanFile(const fs::path & projectFolderPath);
-    fs::path invokeGenerator(std::vector<Dependency> & deps) override;
-
-protected:
-    std::vector<std::string> buildOptions(const Dependency & dep);
-
+    virtual ~IGeneratorBackend() = default;
+    virtual fs::path generate(const std::vector<Dependency> & deps, Dependency::Type depType) = 0;
 };
 
-#endif // CONANFILERETRIEVER_H
+
+class AbstractGeneratorBackend : virtual public IGeneratorBackend {
+public:
+    AbstractGeneratorBackend(const CmdOptions & options): m_options(options) {}
+    virtual ~AbstractGeneratorBackend() override = default;
+
+protected:
+    const CmdOptions & m_options;
+};
+
+
+#endif // IGENERATORBACKEND_H

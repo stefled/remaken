@@ -20,23 +20,16 @@
  * @date 2019-11-15
  */
 
-#ifndef CONANFILERETRIEVER_H
-#define CONANFILERETRIEVER_H
+#ifndef CMAKEGENERATORBACKEND_H
+#define CMAKEGENERATORBACKEND_H
+#include "backends/IGeneratorBackend.h"
 
-#include "SystemFileRetriever.h"
-
-class ConanFileRetriever : public SystemFileRetriever
+class CMakeGeneratorBackend : virtual public AbstractGeneratorBackend
 {
 public:
-    ConanFileRetriever(const CmdOptions & options);
-    ~ConanFileRetriever() override = default;
-    fs::path bundleArtefact(const Dependency & dependency) override;
-    fs::path createConanFile(const fs::path & projectFolderPath);
-    fs::path invokeGenerator(std::vector<Dependency> & deps) override;
-
-protected:
-    std::vector<std::string> buildOptions(const Dependency & dep);
-
+    CMakeGeneratorBackend(const CmdOptions & options):AbstractGeneratorBackend(options) {}
+    ~CMakeGeneratorBackend() override = default;
+    fs::path generate(const std::vector<Dependency> & deps, Dependency::Type depType) override;
 };
 
-#endif // CONANFILERETRIEVER_H
+#endif // CMAKEGENERATORBACKEND_H

@@ -131,7 +131,9 @@ int ConfigureCommand::execute()
         }
         fs::path  buildSubFolderPath = DepUtils::getBuildSubFolder(m_options);
         for (auto & file : generatedFiles) {
-            depsOstream<<"include($$_PRO_FILE_PWD_/"<<buildSubFolderPath.generic_string(utf8)<<"/"<<file.filename().generic_string(utf8)<<")\n";
+            if (!file.empty()) {
+                depsOstream<<"include($$_PRO_FILE_PWD_/"<<buildSubFolderPath.generic_string(utf8)<<"/"<<file.filename().generic_string(utf8)<<")\n";
+            }
         }
         depsOstream.close();
         std::ofstream fos(timestampPath.generic_string(utf8),std::ios::out);

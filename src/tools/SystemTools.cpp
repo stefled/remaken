@@ -50,7 +50,7 @@ std::vector<fs::path> BaseSystemTool::libPaths([[maybe_unused]] const Dependency
     return std::vector<fs::path>();
 }
 
-fs::path BaseSystemTool::invokeGenerator([[maybe_unused]] const std::vector<Dependency> & deps)
+fs::path BaseSystemTool::invokeGenerator([[maybe_unused]] std::vector<Dependency> & deps)
 {
     PkgConfigTool pkgConfig(m_options);
     // call pkg-config on dep and populate libs and cflags variables
@@ -63,12 +63,12 @@ fs::path BaseSystemTool::invokeGenerator([[maybe_unused]] const std::vector<Depe
 #endif
     std::vector<std::string> cflags, libs;
     for ( auto & dep : deps) {
-        pkgConfig.cflags(dep.getName(),cflags);
-        pkgConfig.libs(dep.getName(),libs);
+        pkgConfig.cflags(dep,cflags);
+        pkgConfig.libs(dep,libs);
     }
 
     // format CFLAGS and LIBS results
-    return pkgConfig.generate(cflags,libs,Dependency::Type::SYSTEM);
+    return pkgConfig.generate(deps,Dependency::Type::SYSTEM);
 }
 
 std::vector<std::string> BaseSystemTool::split(const std::string & str, char splitChar)

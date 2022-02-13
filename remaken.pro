@@ -31,6 +31,12 @@ CONFIG += app_setup
 include (builddefs/qmake/templateappconfig.pri)
 
 HEADERS += \
+    src/backends/BackendGeneratorFactory.h \
+    src/backends/BazelGeneratorBackend.h \
+    src/backends/CMakeGeneratorBackend.h \
+    src/backends/IGeneratorBackend.h \
+    src/backends/JSONGeneratorBackend.h \
+    src/backends/QMakeGeneratorBackend.h \
     src/commands/RemoteCommand.h \
     src/commands/SearchCommand.h \
     src/managers/BundleManager.h \
@@ -80,6 +86,11 @@ HEADERS += \
     src/tinyxmlhelper.h
 
 SOURCES += \
+    src/backends/BackendGeneratorFactory.cpp \
+    src/backends/BazelGeneratorBackend.cpp \
+    src/backends/CMakeGeneratorBackend.cpp \
+    src/backends/JSONGeneratorBackend.cpp \
+    src/backends/QMakeGeneratorBackend.cpp \
     src/commands/RemoteCommand.cpp \
     src/commands/SearchCommand.cpp \
     src/managers/BundleManager.cpp \

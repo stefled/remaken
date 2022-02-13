@@ -45,7 +45,7 @@ public:
     virtual fs::path computeRootLibDir( const Dependency & dependency) = 0;
     virtual fs::path computeLocalDependencyRootDir( const Dependency & dependency) = 0;
     virtual const std::vector<Dependency> & installedDependencies() const = 0;
-    virtual fs::path invokeGenerator(const std::vector<Dependency> & deps) = 0;
+    virtual fs::path invokeGenerator(std::vector<Dependency> & deps) = 0;
 };
 
 #endif // IFILERETRIEVER_H

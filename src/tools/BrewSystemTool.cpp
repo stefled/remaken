@@ -128,7 +128,7 @@ std::string BrewSystemTool::retrieveInstallCommand(const Dependency & dependency
     return installCmd;
 }
 
-fs::path BrewSystemTool::invokeGenerator(const std::vector<Dependency> & deps)
+fs::path BrewSystemTool::invokeGenerator(std::vector<Dependency> & deps)
 {
     static const std::map<std::string,std::string> brewRootPathMap = {
         {"mac","/usr/local"},
@@ -188,11 +188,11 @@ fs::path BrewSystemTool::invokeGenerator(const std::vector<Dependency> & deps)
     // call pkg-config on dep and populate libs and cflags variables
     std::vector<std::string> cflags, libs;
     for ( auto & dep : deps) {
-        pkgConfig.cflags(dep.getName(),cflags);
-        pkgConfig.libs(dep.getName(),libs);
+        pkgConfig.cflags(dep);
+        pkgConfig.libs(dep);
     }
 
-    return pkgConfig.generate(cflags,libs,Dependency::Type::BREW);
+    return pkgConfig.generate(deps, Dependency::Type::BREW);
 }
 
 bool BrewSystemTool::installed (const Dependency & dependency)

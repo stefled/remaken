@@ -11,8 +11,7 @@ ConanFileRetriever::ConanFileRetriever(const CmdOptions & options):SystemFileRet
 fs::path ConanFileRetriever::bundleArtefact(const Dependency & dependency)
 {
     m_tool->bundle(dependency);
-    fs::path outputDirectory = computeLocalDependencyRootDir(dependency);
-    return outputDirectory;
+    return fs::path();
 }
 /*
  *             equals(pkg.repoType,"conan") {# conan system package handling
@@ -111,7 +110,7 @@ void ConanFileRetriever::invokeGenerator(const fs::path & conanFilePath, ConanSy
 //conan install $$_PRO_FILE_PWD_/build/$$OUTPUTDIR/conanfile.txt -s $${conanArch} -s compiler.cppstd=$${conanCppStd} -s build_type=$${CONANBUILDTYPE} --build=missing -if $$_PRO_FILE_PWD_/build/$$OUTPUTDIR
 }*/
 
-fs::path ConanFileRetriever::invokeGenerator(const std::vector<Dependency> & deps)
+fs::path ConanFileRetriever::invokeGenerator(std::vector<Dependency> & deps)
 {
     return m_tool->invokeGenerator(deps);
 }

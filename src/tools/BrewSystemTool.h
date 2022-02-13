@@ -36,7 +36,7 @@ public:
     void install(const Dependency & dependency) override;
     bool installed(const Dependency & dependency) override;
     void search (const std::string & pkgName, const std::string & version) override;
-    fs::path invokeGenerator(const std::vector<Dependency> & deps) override;
+    fs::path invokeGenerator(std::vector<Dependency> & deps) override;
     std::vector<fs::path> binPaths([[maybe_unused]] const Dependency & dependency) override;
     std::vector<fs::path> libPaths([[maybe_unused]] const Dependency & dependency) override;
     void listRemotes() override;

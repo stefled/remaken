@@ -20,23 +20,10 @@
  * @date 2019-11-15
  */
 
-#ifndef CONANFILERETRIEVER_H
-#define CONANFILERETRIEVER_H
+#include "backends/JSONGeneratorBackend.h"
 
-#include "SystemFileRetriever.h"
-
-class ConanFileRetriever : public SystemFileRetriever
+fs::path JSONGeneratorBackend::generate(const std::vector<Dependency> & deps, Dependency::Type depType)
 {
-public:
-    ConanFileRetriever(const CmdOptions & options);
-    ~ConanFileRetriever() override = default;
-    fs::path bundleArtefact(const Dependency & dependency) override;
-    fs::path createConanFile(const fs::path & projectFolderPath);
-    fs::path invokeGenerator(std::vector<Dependency> & deps) override;
+    return fs::path();
+}
 
-protected:
-    std::vector<std::string> buildOptions(const Dependency & dep);
-
-};
-
-#endif // CONANFILERETRIEVER_H

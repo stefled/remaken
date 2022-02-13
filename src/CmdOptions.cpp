@@ -66,7 +66,7 @@ static const map<std::string,std::vector<std::string>> validationMap ={{"action"
                                                                        {"--alternate-remote-type",{"github","artifactory","nexus","path","http"}},
                                                                        {"--operating-system",{"mac","win","unix","android","ios","linux"}},
                                                                        {"--cpp-std",{"11","14","17","20"}},
-                                                                       {"--generator",{"qmake","cmake","pkgconfig"}},
+                                                                       {"--generator",{"qmake","cmake","pkgconfig","make","json","bazel"}},
                                                                        #ifdef BOOST_OS_LINUX_AVAILABLE
                                                                        {"--restrict",{"brew","conan","system","vcpkg"}}
                                                                        #endif
@@ -78,9 +78,20 @@ static const map<std::string,std::vector<std::string>> validationMap ={{"action"
                                                                        #endif
                                                                       };
 
-static const map<std::string,GeneratorType> generatorTypeMap = {{"qmake",GeneratorType::qmake},{"cmake",GeneratorType::cmake},{"pkgconfig",GeneratorType::pkg_config}};
+static const map<std::string,GeneratorType> generatorTypeMap = {{"qmake",GeneratorType::qmake},
+                                                                {"cmake",GeneratorType::cmake},
+                                                                {"pkgconfig",GeneratorType::pkg_config},
+                                                                {"make",GeneratorType::make},
+                                                                {"json",GeneratorType::json},
+                                                                {"bazel",GeneratorType::bazel}};
 
-static const std::map<GeneratorType, std::string> generatorExtensionMap = {{GeneratorType::qmake,".pri"},{GeneratorType::cmake,".cmake"},{GeneratorType::pkg_config,".pc"}};
+static const std::map<GeneratorType, std::string> generatorExtensionMap = {{GeneratorType::qmake,".pri"},
+                                                                           {GeneratorType::cmake,".cmake"},
+                                                                           {GeneratorType::pkg_config,".pc"},
+                                                                           {GeneratorType::make,".mk"},
+                                                                           {GeneratorType::json,".json"},
+                                                                           {GeneratorType::bazel,".bzl"}
+                                                                          };
 
 std::string CmdOptions::getGeneratorFileExtension() const
 {

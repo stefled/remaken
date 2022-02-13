@@ -68,7 +68,7 @@ fs::path AbstractFileRetriever::installArtefact(const Dependency & dependency)
 }
 
 
-fs::path AbstractFileRetriever::invokeGenerator(const std::vector<Dependency> & deps)
+fs::path AbstractFileRetriever::invokeGenerator(std::vector<Dependency> & deps)
 {
     fs::detail::utf8_codecvt_facet utf8;
     PkgConfigTool pkgConfig(m_options);
@@ -79,17 +79,20 @@ fs::path AbstractFileRetriever::invokeGenerator(const std::vector<Dependency> & 
         std::cout<<"==> Adding '"<<dep.getName()<<":"<<dep.getVersion()<<"' dependency"<<std::endl;
         fs::path prefix = computeLocalDependencyRootDir(dep);
         fs::path libdir = computeRootLibDir(dep);
+        dep.prefix() = prefix.generic_string(utf8);
+        dep.libdirs().push_back(libdir.generic_string(utf8));
         pkgConfig.addPath(prefix);
-        std::string prefixOpt = "--define-variable=prefix=" + prefix.generic_string(utf8);
+        std::string prefixOpt = "--define-variable=prefix=" + dep.prefix();
         std::string libdirOpt = "--define-variable=libdir=" + libdir.generic_string(utf8);
         m_options.verboseMessage("===> using prefix: " + prefixOpt);
         m_options.verboseMessage("===> using libdir: " + libdirOpt);
-        pkgConfig.cflags("bcom-" + dep.getName(), cflags, {prefixOpt, libdirOpt});
-        pkgConfig.libs("bcom-" + dep.getName(), libs, {prefixOpt, libdirOpt});
+
+        pkgConfig.cflags(dep, {prefixOpt, libdirOpt});
+        pkgConfig.libs(dep, {prefixOpt, libdirOpt});
     }
 
     // format CFLAGS and LIBS results
-    return pkgConfig.generate(cflags,libs,Dependency::Type::REMAKEN);
+    return pkgConfig.generate(deps,Dependency::Type::REMAKEN);
 }
 
 fs::path AbstractFileRetriever::installArtefactImpl(const Dependency & dependency)

@@ -44,8 +44,11 @@ public:
 
 typedef enum {
     cmake = 0x01,
-    qmake = 0x20,
-    pkg_config = 0x40,
+    qmake = 0x02,
+    pkg_config = 0x04,
+    json = 0x08,
+    make = 0x10,
+    bazel = 0x20
 } GeneratorType;
 
 #include <boost/filesystem.hpp>
