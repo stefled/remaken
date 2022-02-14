@@ -71,7 +71,7 @@ int BundleManager::bundle()
         else {
             extradeps = rootPath.parent_path() / Constants::EXTRA_DEPS;
         }
-        bundleDependencies(extradeps);
+        bundleDependencies(extradeps, DependencyFileType::EXTRA_DEPS);
         bundleDependencies(rootPath);
     }
     catch (const std::runtime_error & e) {
@@ -128,18 +128,22 @@ int BundleManager::bundleXpcf()
     return 0;
 }
 
+static const std::map<DependencyFileType, std::string> typeToNameMap = {
+    {DependencyFileType::PACKAGE, "packagedependencies.txt"},
+    {DependencyFileType::EXTRA_DEPS, Constants::EXTRA_DEPS}
+};
 
-void BundleManager::bundleDependency(const Dependency & dependency)
+void BundleManager::bundleDependency(const Dependency & dependency, DependencyFileType type)
 {
     fs::detail::utf8_codecvt_facet utf8;
     shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(dependency, m_options);
     fs::path outputDirectory = fileRetriever->bundleArtefact(dependency);
     if (!outputDirectory.empty() && dependency.getType() == Dependency::Type::REMAKEN && m_options.recurse()) {
-        this->bundleDependencies(outputDirectory/"packagedependencies.txt");
+        this->bundleDependencies(outputDirectory / typeToNameMap.at(type), type);
     }
 }
 
-void BundleManager::bundleDependencies(const fs::path &  dependenciesFile)
+void BundleManager::bundleDependencies(const fs::path &  dependenciesFile, DependencyFileType type)
 {
     fs::detail::utf8_codecvt_facet utf8;
     std::vector<fs::path> dependenciesFileList = DepUtils::getChildrenDependencies(dependenciesFile.parent_path(), m_options.getOS(),dependenciesFile.stem().generic_string(utf8));
@@ -156,7 +160,7 @@ void BundleManager::bundleDependencies(const fs::path &  dependenciesFile)
                         || dependency.getType() == Dependency::Type::VCPKG
                         || dependency.getType() == Dependency::Type::SYSTEM) {
                     if (!mapContains(m_ignoredPackages, dependency.getPackageName())) {
-                        bundleDependency(dependency);
+                        bundleDependency(dependency, type);
                     }
                 }
             }

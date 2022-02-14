@@ -46,8 +46,8 @@ private:
     XpcfXmlManager m_xpcfManager;
     void parseIgnoreInstall(const fs::path &  dependenciesPath);
 
-    void bundleDependencies(const fs::path & dependenciesFiles);
-    void bundleDependency(const Dependency & dep);
+    void bundleDependencies(const fs::path & dependenciesFiles, DependencyFileType type = DependencyFileType::PACKAGE);
+    void bundleDependency(const Dependency & dep, DependencyFileType type);
     std::map<std::string,bool> m_ignoredPackages;
     const CmdOptions & m_options;
 

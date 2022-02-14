@@ -51,6 +51,11 @@ typedef enum {
     bazel = 0x20
 } GeneratorType;
 
+typedef enum DependencyFileType {
+    PACKAGE = 0,
+    EXTRA_DEPS = 1
+};
+
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 

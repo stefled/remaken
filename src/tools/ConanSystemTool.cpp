@@ -28,7 +28,7 @@ static const std::map<BaseSystemTool::PathType,std::string> conanNodeMap ={{Base
 
 static const std::map<GeneratorType, std::string> generatorConanTranslationMap = {{GeneratorType::qmake,"qmake"},
                                                                                   {GeneratorType::cmake,"cmake"},
-                                                                                  {GeneratorType::pkg_config,"pkgconfig"},
+                                                                                  {GeneratorType::pkg_config,"pkg_config"},
                                                                                   {GeneratorType::make,"make"},
                                                                                   {GeneratorType::json,"json"},
                                                                                   {GeneratorType::bazel,"json"} // generate json then interpret to bazel
