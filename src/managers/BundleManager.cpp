@@ -139,7 +139,10 @@ void BundleManager::bundleDependency(const Dependency & dependency, DependencyFi
     shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(dependency, m_options);
     fs::path outputDirectory = fileRetriever->bundleArtefact(dependency);
     if (!outputDirectory.empty() && dependency.getType() == Dependency::Type::REMAKEN && m_options.recurse()) {
-        this->bundleDependencies(outputDirectory / typeToNameMap.at(type), type);
+        this->bundleDependencies(outputDirectory / Constants::EXTRA_DEPS,  DependencyFileType::EXTRA_DEPS);
+        if (type != DependencyFileType::EXTRA_DEPS) {
+            this->bundleDependencies(outputDirectory / typeToNameMap.at(type), type);
+        }
     }
 }
 

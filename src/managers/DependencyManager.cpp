@@ -259,7 +259,13 @@ void DependencyManager::retrieveDependency(Dependency &  dependency, DependencyF
             std::cout<<"===> "<<dependency.getRepositoryType()<<"::"<<dependency.getName()<<"-"<<dependency.getVersion()<<" already installed in folder : "<<outputDirectory<<std::endl;
         }
     }
-    this->retrieveDependencies(outputDirectory / typeToNameMap.at(type), type);
+    if (dependency.getType() == Dependency::Type::REMAKEN) {
+        // recurse on extra-packages or pkgdeps makes sense only for remaken deps
+        this->retrieveDependencies(outputDirectory / Constants::EXTRA_DEPS,  DependencyFileType::EXTRA_DEPS);
+        if (type != DependencyFileType::EXTRA_DEPS) {
+            this->retrieveDependencies(outputDirectory / typeToNameMap.at(type), type);
+        }
+    }
 }
 
 void DependencyManager::generateConfigureFile(const fs::path &  rootFolderPath, const std::vector<Dependency> & deps)

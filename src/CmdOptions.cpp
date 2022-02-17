@@ -169,6 +169,8 @@ CmdOptions::CmdOptions()
     m_cliApp.add_flag("--verbose,-v", m_verbose, "verbose mode");
     m_override = false;
     m_cliApp.add_flag("--override,-e", m_override, "override existing files while (re)-installing packages/rules...");
+    m_recurse = false;
+    m_cliApp.add_flag("--recurse", m_recurse, "recursive mode : parse dependencies recursively");
     m_cliApp.add_option("--conan_profile", m_conanProfile, "force conan profile name to use (overrides detected profile)"); // ,true);
     m_cliApp.add_option("--generator,-g", m_generator, "generator to use in [" + getOptionString("--generator") + "] (default: qmake) "); // ,true);
     m_dependenciesFile = "packagedependencies.txt";
@@ -176,8 +178,6 @@ CmdOptions::CmdOptions()
     // BUNDLE COMMAND
     CLI::App * bundleCommand = m_cliApp.add_subcommand("bundle","copy shared libraries dependencies to a destination folder");
     bundleCommand->add_option("--destination,-d", m_destinationRoot, "Destination directory")->required();
-    m_recurse = false;
-    bundleCommand->add_flag("--recurse", m_recurse, "recursive mode : bundle dependencies recursively");
     bundleCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files"); // ,true);
 
     // BUNDLEXPCF COMMAND
@@ -192,8 +192,6 @@ CmdOptions::CmdOptions()
 
     // CONFIGURE COMMAND
     CLI::App * configureCommand = m_cliApp.add_subcommand("configure", "configure project dependencies");
-    m_recurse = false;
-    configureCommand->add_flag("--recurse", m_recurse, "recursive mode : configure dependencies recursively");
     configureCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files - must be located in project root"); // ,true);
 
     // INFO COMMAND
@@ -266,12 +264,8 @@ CmdOptions::CmdOptions()
     CLI::App * remoteCommand = m_cliApp.add_subcommand("remote", "Remote/sources/repositories/tap management");
     CLI::App * remoteListCommand = remoteCommand->add_subcommand("list", "list all remotes/sources/tap from installed packaging systems");
     CLI::App * remoteListFileCommand = remoteCommand->add_subcommand("listfile", "list remotes/sources/tap declared from packagedependencies file");
-    m_recurse = false;
-    remoteListFileCommand->add_flag("--recurse", m_recurse, "recursive mode : list remote recursively from dependencies files");
     remoteListFileCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files"); // ,true);
     CLI::App * remoteAddCommand = remoteCommand->add_subcommand("add", "add remotes/sources/tap declared from packagedependencies file");
-    m_recurse = false;
-    remoteAddCommand->add_flag("--recurse", m_recurse, "recursive mode : add remote recursively from dependencies files");
     remoteAddCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files"); // ,true);
 
 
