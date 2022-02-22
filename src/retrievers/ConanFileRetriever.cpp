@@ -10,6 +10,8 @@ ConanFileRetriever::ConanFileRetriever(const CmdOptions & options):SystemFileRet
 
 fs::path ConanFileRetriever::bundleArtefact(const Dependency & dependency)
 {
+    m_options.verboseMessage("--------------- Conan bundle ---------------");
+    m_options.verboseMessage("===> bundling: " + dependency.getName() + "/"+ dependency.getVersion());
     m_tool->bundle(dependency);
     return fs::path();
 }

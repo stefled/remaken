@@ -94,6 +94,14 @@ public:
         return m_destinationRootPath;
     }
 
+    fs::path getBundleDestinationRoot() const {
+        fs::path destinationFolderPath = m_destinationRootPath;
+        if (m_isXpcfBundle) {
+            destinationFolderPath /= m_moduleSubfolderPath;
+        }
+        return destinationFolderPath;
+    }
+
     const fs::path & getRemakenRoot() const {
         return m_remakenRootPath;
     }

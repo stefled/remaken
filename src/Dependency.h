@@ -26,6 +26,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include "CmdOptions.h"
 
 class Dependency
 {
@@ -42,6 +43,8 @@ public:
     };
 
     explicit Dependency(const std::string & rawFormat, const std::string & mainMode);
+    Dependency(const CmdOptions & options, const std::string & pkgName, const std::string & name, const std::string & version = "1.0.0", Type type = Type::SYSTEM);
+    Dependency(const CmdOptions & options, const std::string & pkgName, const std::string & version = "1.0.0", Type type = Type::SYSTEM);
     // Dependency(Dependency && dependency) = default;
 
     inline const std::string & getPackageName() const  {

@@ -88,10 +88,13 @@ int BundleManager::bundle()
 int BundleManager::bundleXpcf()
 {
     try {
+        m_options.verboseMessage("=> bundling direct dependencies");
+        bundle();
         if (!fs::exists(m_options.getDestinationRoot()/m_options.getModulesSubfolder())) {
             fs::create_directories(m_options.getDestinationRoot()/m_options.getModulesSubfolder());
         }
-        fs::path xpcfConfigFilePath = buildDependencyPath();
+        m_options.verboseMessage("=> bundling XPCF modules dependencies");
+        fs::path xpcfConfigFilePath = DepUtils::buildDependencyPath(m_options.getXpcfXmlFile());
         if ( xpcfConfigFilePath.extension() != ".xml") {
             BOOST_LOG_TRIVIAL(error)<<" the xpcf configuration file must be an xml file with the correct .xml extension, file provided is "<<xpcfConfigFilePath;
             return -1;
@@ -115,7 +118,6 @@ int BundleManager::bundleXpcf()
             else {
                 BOOST_LOG_TRIVIAL(warning)<<"Unable to find packagedependencies.txt file in package path"<<packageRootPath<<" for module "<<name;
             }
-
         }
     }
     catch (const std::runtime_error & e) {

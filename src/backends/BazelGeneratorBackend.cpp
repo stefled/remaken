@@ -50,6 +50,8 @@ fs::path BazelGeneratorBackend::generate(const std::vector<Dependency> & deps, D
         fos<<"    ctx.file(\"BUILD\", \"\"\""<<std::endl;
         fos<<"cc_library("<<std::endl;
         fos<<"    name = \""<<dep.getName()<<"\","<<std::endl;
+        fos<<"    hdrs = glob([\""<<dep.getName()<<"/include/**/*.h\"]),"<<std::endl;
+        fos<<"    strip_include_prefix = \""<<dep.getName()<<"/include\","<<std::endl;
         for (auto & cflagInfos : dep.cflags()) {
             std::vector<std::string> cflagsVect;
             boost::split_regex(cflagsVect, cflagInfos, boost::regex( " -" ));
@@ -99,7 +101,7 @@ fs::path BazelGeneratorBackend::generate(const std::vector<Dependency> & deps, D
         }
         fos<<"        \"-Wl,--end-group\"],"<<std::endl;
         fos<<")"<<std::endl;
-        fos<<"\"\"\".format("<<dep.getName()<<"_root = "<<dep.getName()<<"_root))"<<std::endl;
+        fos<<"\"\"\")"<<std::endl;
         fos<<std::endl;
         fos<<"_setup_"<<dep.getName()<<" = repository_rule("<<std::endl;
         fos<<"    implementation = _setup_"<<dep.getName()<<"_impl"<<std::endl;
@@ -107,6 +109,7 @@ fs::path BazelGeneratorBackend::generate(const std::vector<Dependency> & deps, D
         fos<<std::endl;
         fos<<"def setup_"<<dep.getName()<<"():"<<std::endl;
         fos<<"    _setup_"<<dep.getName()<<"(name = \""<<dep.getName()<<"\")"<<std::endl;
+        fos<<std::endl;
     }
     fos.close();
     return filePath;

@@ -100,31 +100,35 @@ const std::string_view & OsUtils::staticSuffix(const std::string_view & osStr)
     return os2staticSuffix.at(osStr);
 }
 
+void OsUtils::copyLibrary(const fs::path & sourceFile, const fs::path & destinationFolderPath, const std::string_view & suffix, bool overwrite)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    fs::path currentPath = sourceFile;
+    fs::path fileSuffix;
+    while (currentPath.has_extension() && fileSuffix.string(utf8) != suffix) {
+        fileSuffix = currentPath.extension();
+        currentPath = currentPath.stem();
+    }
+    auto linkStatus = fs::symlink_status(sourceFile);
+    if (linkStatus.type() == fs::symlink_file) {
+        if (fs::is_symlink(destinationFolderPath/sourceFile.filename())) {
+            fs::remove(destinationFolderPath/sourceFile.filename());
+        }
+        fs::copy_symlink(sourceFile, destinationFolderPath/sourceFile.filename());
+    }
+    else if (is_regular_file(sourceFile)) {
+        if (fs::exists(destinationFolderPath/sourceFile.filename()) && overwrite) {
+            fs::copy_file(sourceFile , destinationFolderPath/sourceFile.filename(), fs::copy_option::overwrite_if_exists);
+        }
+    }
+}
 
 void OsUtils::copyLibraries(const fs::path & sourceRootFolder, const fs::path & destinationFolderPath, const std::string_view & suffix)
 {
     fs::detail::utf8_codecvt_facet utf8;
 
     for (fs::directory_entry& x : fs::directory_iterator(sourceRootFolder)) {
-        fs::path filepath = x.path();
-        fs::path currentPath = filepath;
-        fs::path fileSuffix;
-        while (currentPath.has_extension() && fileSuffix.string(utf8) != suffix) {
-            fileSuffix = currentPath.extension();
-            currentPath = currentPath.stem();
-        }
-        if (fileSuffix.string(utf8) == suffix) {
-            auto linkStatus = fs::symlink_status(x.path());
-            if (linkStatus.type() == fs::symlink_file) {
-                if (fs::is_symlink(destinationFolderPath/filepath.filename())) {
-                    fs::remove(destinationFolderPath/filepath.filename());
-                }
-                fs::copy_symlink(x.path(), destinationFolderPath/filepath.filename());
-            }
-            else if (is_regular_file(filepath)) {
-                fs::copy_file(filepath , destinationFolderPath/filepath.filename(), fs::copy_option::overwrite_if_exists);
-            }
-        }
+        copyLibrary(x.path(), destinationFolderPath, suffix);
     }
 }
 

@@ -58,7 +58,6 @@ void ConanSystemTool::bundle(const Dependency & dependency)
 #endif
 
     std::vector<fs::path> libPaths = retrievePaths(dependency, libPathNode, destination);
-
     for (auto & libPath : libPaths) {
         if (boost::filesystem::exists(libPath)) {
             OsUtils::copySharedLibraries(libPath, m_options);

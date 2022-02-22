@@ -85,12 +85,16 @@ void BrewSystemTool::search(const std::string & pkgName, const std::string & ver
 
 void BrewSystemTool::bundleLib(const std::string & libPath)
 {
-    std::vector<std::string> libsPath = split( run ("list", {}, libPath) );
-    for (auto & lib : libsPath) {
+    std::vector<std::string> libPaths = split( run ("list", {}, libPath) );
+    for (auto & libPathStr : libPaths) {
         fs::detail::utf8_codecvt_facet utf8;
-        fs::path libPath (lib, utf8);
-        if ( libPath.extension().generic_string((utf8)) == OsUtils::sharedSuffix(m_options.getOS())) {
-            std::cout<<lib<<std::endl;
+        fs::path libPath (libPathStr, utf8);
+        if (boost::filesystem::exists(libPath) &&
+            libPath.extension().generic_string((utf8)) == OsUtils::sharedSuffix(m_options.getOS())) {
+            if (!fs::exists(m_options.getBundleDestinationRoot()/libPath.filename())) {
+                m_options.verboseMessage("=====> adding: " + libPathStr);
+                OsUtils::copyLibrary(libPath, m_options.getBundleDestinationRoot(), OsUtils::sharedSuffix(m_options.getOS()));
+            }
         }
     }
 }
@@ -98,6 +102,8 @@ void BrewSystemTool::bundleLib(const std::string & libPath)
 void BrewSystemTool::bundle (const Dependency & dependency)
 {
     std::string source = computeToolRef (dependency);
+    m_options.verboseMessage("--------------- Brew bundle ---------------");
+    m_options.verboseMessage("===> bundling: " + dependency.getName() + "/"+ dependency.getVersion());
     bundleLib(source);
     std::vector<std::string> deps = split( run ("deps", {}, source) );
     for (auto & dep : deps) {
@@ -140,7 +146,8 @@ fs::path BrewSystemTool::invokeGenerator(std::vector<Dependency> & deps)
     }
 
     fs::detail::utf8_codecvt_facet utf8;
-    fs::path globalBrewPkgConfigPath(brewRootPathMap.at(m_options.getOS()), utf8);
+    fs::path brewPrefix(brewRootPathMap.at(m_options.getOS()), utf8);
+    fs::path globalBrewPkgConfigPath = brewPrefix;
     globalBrewPkgConfigPath /= "lib";
     globalBrewPkgConfigPath /= "pkgconfig";
 
@@ -148,6 +155,7 @@ fs::path BrewSystemTool::invokeGenerator(std::vector<Dependency> & deps)
     PkgConfigTool pkgConfig(m_options);
     pkgConfig.addPath(globalBrewPkgConfigPath);
     for ( auto & dep : deps) {
+        dep.prefix() = brewPrefix.generic_string(utf8);
         std::cout<<"==> Adding '"<<dep.getName()<<":"<<dep.getVersion()<<"' dependency"<<std::endl;
         // retrieve brew sub-dependencies for 'dep'
         std::vector<std::string> depsList = split( run ("deps", {}, dep.getPackageName()) );
@@ -179,6 +187,16 @@ fs::path BrewSystemTool::invokeGenerator(std::vector<Dependency> & deps)
                     if (!localPkgConfigPath.empty()) { // add found pkgconfig to pkgConfigPath variable
                         m_options.verboseMessage("   |==> Adding keg-only pkgconfig path: " + localPkgConfigPath.parent_path().generic_string(utf8));
                         pkgConfig.addPath(localPkgConfigPath.parent_path());
+                        std::vector<std::string> depInfo = split(subDep, '@');
+                        std::string depPkgName = depInfo[0];
+                        std::string pkgVersion = "1.0.0";
+                        if (depInfo.size() == 2) {
+                            pkgVersion = depInfo[1];
+                        }
+                        Dependency d(m_options, depPkgName, pkgVersion, Dependency::Type::BREW);
+                        d.prefix() = localPkgConfigPath.parent_path().parent_path().generic_string(utf8);
+                        d.libdirs().push_back(localPkgConfigPath.parent_path().generic_string(utf8));
+                        deps.push_back(d);
                     }
                 }
             }

@@ -134,6 +134,8 @@ fs::path AbstractFileRetriever::bundleArtefact(const Dependency & dependency)
         BOOST_LOG_TRIVIAL(warning)<<"Ignoring "<<dependency.getName()<<" dependency: no shared library found from "<<rootLibDir;
         return "";
     }
+    m_options.verboseMessage("--------------- Remaken bundle ---------------");
+    m_options.verboseMessage("===> bundling: " + dependency.getName() + "/"+ dependency.getVersion() + " from " + rootLibDir.generic_string(utf8));
     copySharedLibraries(rootLibDir);
     fs::path outputDirectory = computeLocalDependencyRootDir(dependency);
     return outputDirectory;
