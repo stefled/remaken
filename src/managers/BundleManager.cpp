@@ -88,11 +88,12 @@ int BundleManager::bundle()
 int BundleManager::bundleXpcf()
 {
     try {
-        m_options.verboseMessage("=> bundling direct dependencies");
-        bundle();
+        // create bundle modules directory
         if (!fs::exists(m_options.getDestinationRoot()/m_options.getModulesSubfolder())) {
             fs::create_directories(m_options.getDestinationRoot()/m_options.getModulesSubfolder());
         }
+        m_options.verboseMessage("=> bundling direct dependencies");
+        bundle();
         m_options.verboseMessage("=> bundling XPCF modules dependencies");
         fs::path xpcfConfigFilePath = DepUtils::buildDependencyPath(m_options.getXpcfXmlFile());
         if ( xpcfConfigFilePath.extension() != ".xml") {

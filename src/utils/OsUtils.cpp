@@ -117,7 +117,7 @@ void OsUtils::copyLibrary(const fs::path & sourceFile, const fs::path & destinat
         fs::copy_symlink(sourceFile, destinationFolderPath/sourceFile.filename());
     }
     else if (is_regular_file(sourceFile)) {
-        if (fs::exists(destinationFolderPath/sourceFile.filename()) && overwrite) {
+        if (!fs::exists(destinationFolderPath/sourceFile.filename()) || overwrite) {
             fs::copy_file(sourceFile , destinationFolderPath/sourceFile.filename(), fs::copy_option::overwrite_if_exists);
         }
     }
@@ -126,9 +126,20 @@ void OsUtils::copyLibrary(const fs::path & sourceFile, const fs::path & destinat
 void OsUtils::copyLibraries(const fs::path & sourceRootFolder, const fs::path & destinationFolderPath, const std::string_view & suffix)
 {
     fs::detail::utf8_codecvt_facet utf8;
-
+    std::vector<fs::path> symlinkFiles;
+    // first copy concrete libraries, store symlinks
     for (fs::directory_entry& x : fs::directory_iterator(sourceRootFolder)) {
-        copyLibrary(x.path(), destinationFolderPath, suffix);
+        auto linkStatus = fs::symlink_status(x.path());
+        if (linkStatus.type() == fs::symlink_file) {
+            symlinkFiles.push_back(x.path());
+        }
+        else {
+            copyLibrary(x.path(), destinationFolderPath, suffix);
+        }
+    }
+    // then copy symlinks
+    for (auto & file: symlinkFiles) {
+         copyLibrary(file, destinationFolderPath, suffix);
     }
 }
 

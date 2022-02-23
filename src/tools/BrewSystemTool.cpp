@@ -83,19 +83,26 @@ void BrewSystemTool::search(const std::string & pkgName, const std::string & ver
     }
 }
 
-void BrewSystemTool::bundleLib(const std::string & libPath)
+void BrewSystemTool::bundleLib(const std::string & lib)
 {
-    std::vector<std::string> libPaths = split( run ("list", {}, libPath) );
+    fs::detail::utf8_codecvt_facet utf8;
+    std::vector<std::string> libPaths = split( run ("list", {}, lib) );
+    std::map<fs::path,bool> libPathsMap;
+    m_options.verboseMessage("====> [" + lib + "]");
     for (auto & libPathStr : libPaths) {
         fs::detail::utf8_codecvt_facet utf8;
         fs::path libPath (libPathStr, utf8);
         if (boost::filesystem::exists(libPath) &&
             libPath.extension().generic_string((utf8)) == OsUtils::sharedSuffix(m_options.getOS())) {
-            if (!fs::exists(m_options.getBundleDestinationRoot()/libPath.filename())) {
-                m_options.verboseMessage("=====> adding: " + libPathStr);
-                OsUtils::copyLibrary(libPath, m_options.getBundleDestinationRoot(), OsUtils::sharedSuffix(m_options.getOS()));
+            if (!mapContains(libPathsMap,libPath.parent_path())
+                && !fs::exists(m_options.getBundleDestinationRoot()/libPath.filename())) {
+                libPathsMap.insert({libPath.parent_path(),true});
             }
         }
+    }
+    for (auto & [path,val]: libPathsMap) {
+        m_options.verboseMessage("=====> adding libraries from " + path.generic_string(utf8));
+        OsUtils::copySharedLibraries(path,m_options);
     }
 }
 
@@ -107,7 +114,6 @@ void BrewSystemTool::bundle (const Dependency & dependency)
     bundleLib(source);
     std::vector<std::string> deps = split( run ("deps", {}, source) );
     for (auto & dep : deps) {
-        std::cout<<dep<<std::endl;
         bundleLib(dep);
     }
 }

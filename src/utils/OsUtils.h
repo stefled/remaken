@@ -35,7 +35,7 @@ public:
     OsUtils() = delete;
     ~OsUtils() = delete;
     static bool isElevated();
-    static void copyLibrary(const fs::path & sourceFile, const fs::path & destinationFolderPath, const std::string_view & suffix, bool overwrite = true);
+    static void copyLibrary(const fs::path & sourceFile, const fs::path & destinationFolderPath, const std::string_view & suffix, bool overwrite = false);
     static void copySharedLibraries(const fs::path & sourceRootFolder, const CmdOptions & options);
     static void copyStaticLibraries(const fs::path & sourceRootFolder, const CmdOptions & options);
     static void copyLibraries(const fs::path & sourceRootFolder, const CmdOptions & options, std::function<const std::string_view &(const std::string_view &)> suffixFunction);
