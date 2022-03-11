@@ -109,16 +109,18 @@ void OsUtils::copyLibrary(const fs::path & sourceFile, const fs::path & destinat
         fileSuffix = currentPath.extension();
         currentPath = currentPath.stem();
     }
-    auto linkStatus = fs::symlink_status(sourceFile);
-    if (linkStatus.type() == fs::symlink_file) {
-        if (fs::is_symlink(destinationFolderPath/sourceFile.filename())) {
-            fs::remove(destinationFolderPath/sourceFile.filename());
+    if (fileSuffix.string(utf8) == suffix) {
+        auto linkStatus = fs::symlink_status(sourceFile);
+        if (linkStatus.type() == fs::symlink_file) {
+            if (fs::is_symlink(destinationFolderPath/sourceFile.filename())) {
+                fs::remove(destinationFolderPath/sourceFile.filename());
+            }
+            fs::copy_symlink(sourceFile, destinationFolderPath/sourceFile.filename());
         }
-        fs::copy_symlink(sourceFile, destinationFolderPath/sourceFile.filename());
-    }
-    else if (is_regular_file(sourceFile)) {
-        if (!fs::exists(destinationFolderPath/sourceFile.filename()) || overwrite) {
-            fs::copy_file(sourceFile , destinationFolderPath/sourceFile.filename(), fs::copy_option::overwrite_if_exists);
+        else if (is_regular_file(sourceFile)) {
+            if (!fs::exists(destinationFolderPath/sourceFile.filename()) || overwrite) {
+                fs::copy_file(sourceFile , destinationFolderPath/sourceFile.filename(), fs::copy_option::overwrite_if_exists);
+            }
         }
     }
 }
