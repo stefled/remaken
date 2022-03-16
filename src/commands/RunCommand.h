@@ -33,7 +33,11 @@ public:
     static constexpr const char * NAME="run";
 
 private:
+    void findBinary(const std::string & pkgName, const std::string & pkgVersion);
     const CmdOptions & m_options;
+    fs::path m_depsFile;
+    fs::path m_xpcfXmlFile;
+    fs::path m_applicationFile;
 };
 
 #endif

@@ -53,6 +53,7 @@ public:
     static void generateConfigureConditionsFile(const CmdOptions & options, const fs::path &  rootFolderPath, const std::vector<Dependency> & deps);
     static std::vector<Dependency> filterConditionDependencies(const std::map<std::string,bool> & conditions, const std::vector<Dependency> & depCollection);
     static fs::path downloadFile(const CmdOptions & options, const std::string & source, const fs::path & outputDirectory, const std::string & name = "");
+    static fs::path findPackageFolder(const CmdOptions & options, const std::string & pkgName, const std::string & pkgVersion);
 };
 
 bool yesno_prompt(char const* prompt);

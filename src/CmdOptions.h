@@ -216,6 +216,10 @@ public:
         return m_projectRootPath;
     }
 
+    const std::string & getRemakenPkgRef() const  {
+        return m_remakenPackageRef;
+    }
+
     const std::map<std::string,std::string> & getCompressCommandOptions() const {
         return m_packageCompressOptions;
     }
@@ -281,6 +285,7 @@ private:
     std::string m_profileName = "default";
     fs::path m_moduleSubfolderPath;
     std::string m_generator = "qmake";
+    std::string m_remakenPackageRef;
     bool m_ignoreCache;
     bool m_invertRepositoryOrder = false;
     bool m_verbose;

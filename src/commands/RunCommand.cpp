@@ -4,6 +4,7 @@
 #include "utils/OsUtils.h"
 #include <boost/log/trivial.hpp>
 #include <boost/process.hpp>
+#include <boost/algorithm/string.hpp>
 #include "FileHandlerFactory.h"
 #include <memory>
 
@@ -14,6 +15,57 @@ using namespace std;
 
 RunCommand::RunCommand(const CmdOptions & options):AbstractCommand(RunCommand::NAME),m_options(options)
 {
+    if (!options.getXpcfXmlFile().empty()) {
+        m_xpcfXmlFile = options.getXpcfXmlFile();
+    }
+    if (!options.getDependenciesFile().empty()) {
+        m_depsFile = options.getDependenciesFile();
+    }
+    if (!m_options.getApplicationFile().empty()) {
+        m_applicationFile = m_options.getApplicationFile();
+    }
+}
+
+void RunCommand::findBinary(const std::string & pkgName, const std::string & pkgVersion)
+{
+    fs::path pkgPath = DepUtils::findPackageFolder(m_options, pkgName, pkgVersion);
+    if (!pkgPath.empty()) {
+        if (!fs::exists(pkgPath/"bin")) {
+            // there is no application
+            return;
+        }
+    }
+    fs::detail::utf8_codecvt_facet utf8;
+    for (fs::directory_entry& pathElt : fs::recursive_directory_iterator(pkgPath/"bin"/m_options.getArchitecture())) {
+        if (fs::is_regular_file(pathElt.path())) {
+            if (pathElt.path().extension() == ".xml") {
+                if (m_xpcfXmlFile.empty()) {
+                    m_xpcfXmlFile = pathElt.path();
+                }
+            }
+            if (pathElt.path().extension().empty() ||
+                    ((m_options.getOS() == "win") && (pathElt.path().extension().generic_string(utf8) == ".exe"))) {
+                if (pathElt.path().filename().stem().generic_string(utf8) == pkgName) {
+                    m_applicationFile = pathElt.path();
+                }
+            }
+        }
+    }
+    for (fs::directory_entry& pathElt : fs::directory_iterator(pkgPath)) {
+        if (fs::is_regular_file(pathElt.path())) {
+            if (pathElt.path().extension() == ".xml") {
+                if (m_xpcfXmlFile.empty()) {
+                    m_xpcfXmlFile = pathElt.path();
+                }
+            }
+            if (pathElt.path().filename() == "packagedependencies.txt") {
+                if (m_depsFile.empty() || m_depsFile == "packagedependencies.txt") {
+                    m_depsFile = pathElt.path();
+                }
+            }
+        }
+    }
+
 }
 
 int RunCommand::execute()
@@ -26,12 +78,22 @@ int RunCommand::execute()
     // conan -> generate json
     // brew, vcpkg, choco, conan -> get libPaths
     // remaken -> get path for each remaken deps (from xml or from pkgdeps parsing)
+    fs::detail::utf8_codecvt_facet utf8;
+    std::vector<std::string> results;
+    boost::split(results, m_options.getRemakenPkgRef(), [](char c){return c == ':';});
+    if (results.size() == 2) {
+        std::string pkgName, pkgVersion;
+        pkgName = results[0];
+        pkgVersion = results[1];
+        findBinary(pkgName, pkgVersion);
+    }
+
     std::vector<Dependency> deps;
     std::vector<fs::path> libPaths;
-    if (!m_options.getXpcfXmlFile().empty()) {
+    if (!m_xpcfXmlFile.empty()) {
         XpcfXmlManager xpcfManager(m_options);
         try {
-            fs::path xpcfConfigFilePath = DepUtils::buildDependencyPath(m_options.getXpcfXmlFile());
+            fs::path xpcfConfigFilePath = DepUtils::buildDependencyPath(m_xpcfXmlFile.generic_string(utf8));
             if ( xpcfConfigFilePath.extension() != ".xml") {
                 return -1;
             }
@@ -58,8 +120,8 @@ int RunCommand::execute()
         }
     }
 
-    if (!m_options.getDependenciesFile().empty()) {
-        DepUtils::parseRecurse(m_options.getDependenciesFile(), m_options, deps);
+    if (!m_depsFile.empty()) {
+        DepUtils::parseRecurse(m_depsFile, m_options, deps);
     }
     // std::cout<<"Exhaustive deps list:"<<std::endl;
     std::map<std::string,Dependency> depsMap;
@@ -87,14 +149,14 @@ int RunCommand::execute()
     }
 
     int result = 0;
-    if (!m_options.getApplicationFile().empty()) {
-        if (!fs::exists(m_options.getApplicationFile())) {
+    if (!m_applicationFile.empty()) {
+        if (!fs::exists(m_applicationFile)) {
             BOOST_LOG_TRIVIAL(error)<<"Unable to find application file "<<m_options.getApplicationFile();
             return -1;
         }
         auto env = boost::this_process::environment();
         bp::environment runEnv = env;
-        for (auto path: libPaths) {
+        for (auto & path: libPaths) {
             fs::detail::utf8_codecvt_facet utf8;
             runEnv[SharedLibraryPathEnvName] += path.generic_string(utf8);
         }
@@ -109,7 +171,7 @@ int RunCommand::execute()
             parsedArgs.push_back(argument);
         }
 
-        result = bp::system(m_options.getApplicationFile(), bp::args(parsedArgs), runEnv);
+        result = bp::system(m_applicationFile, bp::args(parsedArgs), runEnv);
     }
 
     return result;

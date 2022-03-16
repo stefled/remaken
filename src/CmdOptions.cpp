@@ -187,7 +187,7 @@ CmdOptions::CmdOptions()
     bundleXpcfCommand->add_option("--modules-subfolder,-s", m_moduleSubfolder, "relative folder where XPCF modules will be "
                                                                                "copied with their dependencies"); // ,true);
     bundleXpcfCommand->add_option("--pkgdeps", m_dependenciesFile, "Remaken dependencies files"); // ,true);
-    bundleXpcfCommand->add_option("file", m_xpcfConfigurationFile, "XPCF xml module declaration file")->required();
+    bundleXpcfCommand->add_option("xpcf_file", m_xpcfConfigurationFile, "XPCF xml module declaration file")->required();
 
     CLI::App * cleanCommand = m_cliApp.add_subcommand("clean", "WARNING : remove every remaken installed packages");
 
@@ -275,7 +275,8 @@ CmdOptions::CmdOptions()
     runCommand->add_option("--xpcf", m_xpcfConfigurationFile, "XPCF xml module declaration file path");
     runCommand->add_flag("--env", m_environment, "don't run executable, only retrieve run environment informations from files (dependencies and/or XPCF xml module declaration file)");
     runCommand->add_option("--deps", m_dependenciesFile, "Remaken dependencies files"); // ,true);
-    runCommand->add_option("application", m_applicationFile, "executable file path");
+    runCommand->add_option("--ref", m_remakenPackageRef, "Remaken application package reference i.e. name:version");
+    runCommand->add_option("--app", m_applicationFile, "executable file path");
     runCommand->add_option("arguments", m_applicationArguments, "executable arguments");
 
     // PACKAGE COMMAND
@@ -463,8 +464,8 @@ CmdOptions::OptionResult CmdOptions::parseArguments(int argc, char** argv)
                 cout << "Error : application file and environment set ! choose between --env or provide an application file to run but don't provide both options simultaneously!"<<endl;
                 return OptionResult::RESULT_ERROR;
             }
-            if (!environmentOnly() && getApplicationFile().empty()) {
-                cout << "Error : neither application file nor environment set ! provide either --env or an application file to run (don't provide both options simultaneously)!"<<endl;
+            if (!environmentOnly() && getApplicationFile().empty() && getRemakenPkgRef().empty()) {
+                cout << "Error : neither ref,  application file nor environment set ! provide either --ref, --env or an application file to run (don't provide both options simultaneously)!"<<endl;
                 return OptionResult::RESULT_ERROR;
             }
         }

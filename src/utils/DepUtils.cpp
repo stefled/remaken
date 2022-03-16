@@ -1,4 +1,5 @@
 #include "DepUtils.h"
+#include "OsUtils.h"
 #include "Constants.h"
 #include "FileHandlerFactory.h"
 #include "retrievers/HttpFileRetriever.h"
@@ -323,6 +324,25 @@ fs::path DepUtils::downloadFile(const CmdOptions & options, const std::string & 
     }
     fs::remove(compressedDependency);
     return outputDirectory/name;
+}
+
+fs::path DepUtils::findPackageFolder(const CmdOptions & options, const std::string & pkgName, const std::string & pkgVersion)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    fs::path remakenRootPackagesPath = OsUtils::computeRemakenRootPackageDir(options);
+    if (!fs::exists(remakenRootPackagesPath)) {
+        return fs::path();
+    }
+    for (fs::directory_entry& x : fs::recursive_directory_iterator(remakenRootPackagesPath)) {
+        if (fs::is_directory(x.path())) {
+            fs::path leafFolder = x.path().filename();
+            std::string leafFolderStr = leafFolder.generic_string(utf8);
+            std::string parentFolderStr = x.path().parent_path().filename().generic_string(utf8);
+            if (parentFolderStr == pkgName && leafFolderStr == pkgVersion) {
+                return x.path();
+            }
+        }
+    }
 }
 
 
