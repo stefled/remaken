@@ -29,7 +29,8 @@ class QMakeGeneratorBackend : virtual public AbstractGeneratorBackend
 public:
     QMakeGeneratorBackend(const CmdOptions & options):AbstractGeneratorBackend(options) {}
     ~QMakeGeneratorBackend() override = default;
-    fs::path generate(const std::vector<Dependency> & deps, Dependency::Type depType) override;
+    std::pair<std::string, fs::path> generate(const std::vector<Dependency> & deps, Dependency::Type depType) override;
+    void generateIndex(std::map<std::string,fs::path> setupInfos) override;
 };
 
 #endif // QMAKEGENERATORBACKEND_H

@@ -50,7 +50,7 @@ std::vector<fs::path> BaseSystemTool::libPaths([[maybe_unused]] const Dependency
     return std::vector<fs::path>();
 }
 
-fs::path BaseSystemTool::invokeGenerator([[maybe_unused]] std::vector<Dependency> & deps)
+std::pair<std::string, fs::path> BaseSystemTool::invokeGenerator([[maybe_unused]] std::vector<Dependency> & deps)
 {
     PkgConfigTool pkgConfig(m_options);
     // call pkg-config on dep and populate libs and cflags variables

@@ -61,7 +61,7 @@ fs::path DepUtils::buildDependencyPath(const std::string & filePath)
 fs::path DepUtils::getBuildPlatformFolder(const CmdOptions & options)
 {
     fs::detail::utf8_codecvt_facet utf8;
-    fs::path targetPath ("build", utf8);
+    fs::path targetPath (Constants::REMAKEN_BUILD_RULES_FOLDER, utf8);
     std::string targetPlatform = options.getOS() + "-" + options.getBuildToolchain() + "-" + options.getArchitecture();
     targetPath /= targetPlatform;
     return targetPath;

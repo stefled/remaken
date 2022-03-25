@@ -277,6 +277,7 @@ CmdOptions::CmdOptions()
     runCommand->add_option("--deps", m_dependenciesFile, "Remaken dependencies files"); // ,true);
     runCommand->add_option("--ref", m_remakenPackageRef, "Remaken application package reference i.e. name:version");
     runCommand->add_option("--app", m_applicationFile, "executable file path");
+    runCommand->add_option("--name", m_applicationName, "executable file name (without any extension) - Useful only when application name differs from --ref package name");
     runCommand->add_option("arguments", m_applicationArguments, "executable arguments");
 
     // PACKAGE COMMAND
@@ -466,6 +467,14 @@ CmdOptions::OptionResult CmdOptions::parseArguments(int argc, char** argv)
             }
             if (!environmentOnly() && getApplicationFile().empty() && getRemakenPkgRef().empty()) {
                 cout << "Error : neither ref,  application file nor environment set ! provide either --ref, --env or an application file to run (don't provide both options simultaneously)!"<<endl;
+                return OptionResult::RESULT_ERROR;
+            }
+            if (!getApplicationFile().empty() && !getApplicationName().empty()) {
+                cout << "Error : providing at the same time the application name and the application file path is ambiguous !"<<endl;
+                return OptionResult::RESULT_ERROR;
+            }
+            if (getRemakenPkgRef().empty() && !getApplicationName().empty()) {
+                cout << "Error : providing the application name without a remaken ref is inconsistent !"<<endl;
                 return OptionResult::RESULT_ERROR;
             }
         }

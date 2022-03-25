@@ -82,7 +82,7 @@ std::vector<std::string> ConanFileRetriever::buildOptions(const Dependency & dep
 fs::path ConanFileRetriever::createConanFile(const fs::path & projectFolderPath)
 {
     fs::detail::utf8_codecvt_facet utf8;
-    fs::path conanFilePath = projectFolderPath / "build" / m_options.getConfig() / "conanfile.txt";
+    fs::path conanFilePath = projectFolderPath / Constants::REMAKEN_BUILD_RULES_FOLDER / m_options.getConfig() / "conanfile.txt";
     ofstream fos(conanFilePath.generic_string(utf8),ios::out);
     fos<<"[requires]"<<'\n';
     for (auto & dependency : m_installedDeps) {
@@ -112,7 +112,7 @@ void ConanFileRetriever::invokeGenerator(const fs::path & conanFilePath, ConanSy
 //conan install $$_PRO_FILE_PWD_/build/$$OUTPUTDIR/conanfile.txt -s $${conanArch} -s compiler.cppstd=$${conanCppStd} -s build_type=$${CONANBUILDTYPE} --build=missing -if $$_PRO_FILE_PWD_/build/$$OUTPUTDIR
 }*/
 
-fs::path ConanFileRetriever::invokeGenerator(std::vector<Dependency> & deps)
+std::pair<std::string, fs::path> ConanFileRetriever::invokeGenerator(std::vector<Dependency> & deps)
 {
     return m_tool->invokeGenerator(deps);
 }

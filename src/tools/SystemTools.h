@@ -51,7 +51,7 @@ public:
     virtual std::string computeSourcePath (const Dependency &  dependency);
     virtual fs::path sudo () { return m_sudoCmd; }
     bool bundleScripted() { return m_bundleScripted; }
-    virtual fs::path invokeGenerator([[maybe_unused]] std::vector<Dependency> & deps);
+    virtual std::pair<std::string, fs::path> invokeGenerator([[maybe_unused]] std::vector<Dependency> & deps);
     virtual void listRemotes() = 0;
     virtual void addRemote(const std::string & remoteReference) = 0;
 

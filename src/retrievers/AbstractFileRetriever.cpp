@@ -68,7 +68,7 @@ fs::path AbstractFileRetriever::installArtefact(const Dependency & dependency)
 }
 
 
-fs::path AbstractFileRetriever::invokeGenerator(std::vector<Dependency> & deps)
+std::pair<std::string, fs::path> AbstractFileRetriever::invokeGenerator(std::vector<Dependency> & deps)
 {
     fs::detail::utf8_codecvt_facet utf8;
     PkgConfigTool pkgConfig(m_options);

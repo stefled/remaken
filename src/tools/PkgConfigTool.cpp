@@ -87,7 +87,7 @@ static const std::map<Dependency::Type,std::string> type2prefixMap = {
     {Dependency::Type::VCPKG,"VCPKG"}
 };
 
-fs::path PkgConfigTool::generate(const std::vector<Dependency> & deps, Dependency::Type depType)
+std::pair<std::string, fs::path> PkgConfigTool::generate(const std::vector<Dependency> & deps, Dependency::Type depType)
 {
     std::shared_ptr<IGeneratorBackend> generator = BackendGeneratorFactory::getGenerator(m_options);
     return generator->generate(deps, depType);

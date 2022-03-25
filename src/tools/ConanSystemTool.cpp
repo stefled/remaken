@@ -1,6 +1,6 @@
 #include "ConanSystemTool.h"
 #include "utils/OsUtils.h"
-
+#include "PkgConfigTool.h"
 #include <boost/process.hpp>
 #include <boost/predef.h>
 #include <string>
@@ -278,7 +278,86 @@ fs::path ConanSystemTool::createConanFile(const std::vector<Dependency> & deps)
     return conanFilePath;
 }
 
-fs::path ConanSystemTool::invokeGenerator(std::vector<Dependency> & deps)
+fs::path extractPath(const fs::path & first, const fs::path & second)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    if (first.empty() || second.empty()) {
+        return fs::path();
+    }
+    std::string firstStr = first.generic_string(utf8);
+    std::string secondStr = second.generic_string(utf8);
+    if (first.size() < second.size()) {
+        firstStr =  second.generic_string(utf8);
+        secondStr = first.generic_string(utf8);
+    }
+    secondStr += fs::path::separator;
+    boost::algorithm::replace_first(firstStr, secondStr,"");
+    return fs::path(firstStr,utf8);
+}
+
+void ConanSystemTool::translateJsonToRemakenDep(std::vector<Dependency> & deps, const fs::path & conanJsonBuildInfo)
+{
+    std::map<std::string,Dependency&> depsMap;
+    for (auto & dep : deps) {
+        depsMap.insert({dep.getPackageName(),dep});
+    }
+    std::vector<fs::path> conanPaths;
+    BaseSystemTool::PathType libPathNode = BaseSystemTool::PathType::LIB_PATHS;
+
+#ifdef BOOST_OS_WINDOWS_AVAILABLE
+    if (m_options.crossCompiling() && m_options.getOS() != "win") {
+        libPathNode = BaseSystemTool::PathType::LIB_PATHS;
+
+    }
+    else {
+        libPathNode = BaseSystemTool::PathType::BIN_PATHS;
+
+    }
+#endif
+    fs::detail::utf8_codecvt_facet utf8;
+    if (fs::exists(conanJsonBuildInfo)) {
+        std::ifstream ifs1{ conanJsonBuildInfo.generic_string(utf8) };
+        nj::json conanBuildData = nj::json::parse(ifs1);
+        for (auto dep : conanBuildData["dependencies"]) {
+            std::string name = dep["name"];
+            std::string version = dep["version"];
+            std::string root = dep["rootpath"];
+            std::vector<std::string> conan_bin_paths = dep["bin_paths"];
+            std::vector<std::string> conan_lib_paths = dep["lib_paths"];
+            std::vector<std::string> conan_include_paths = dep["include_paths"];
+            std::vector<std::string> conan_libs = dep["libs"];
+            if (!mapContains(depsMap,name)) {
+                Dependency d(m_options, name, version, Dependency::Type::CONAN);
+                depsMap.insert({name,d});
+                deps.push_back(d);
+            }
+            auto & rDep = depsMap.at(name);
+            rDep.prefix() = root;
+            fs::path rootPath(root,utf8);
+            //rDep.prefix() = localPkgConfigPath.parent_path().parent_path().generic_string(utf8);
+            for (auto libPath: conan_bin_paths) {
+                fs::path p(libPath,utf8);
+                fs::path libp = name / extractPath(rootPath,p);
+                rDep.libdirs().push_back(libp.generic_string(utf8));
+            }
+            for (auto libPath: conan_lib_paths) {
+                fs::path p(libPath,utf8);
+                fs::path libp = name / extractPath(rootPath,p);
+                rDep.libdirs().push_back(libp.generic_string(utf8));
+            }
+            for (auto & conan_path : conan_include_paths) {
+                fs::path p(conan_path,utf8);
+                fs::path incp = extractPath(rootPath,p);
+                rDep.cflags().push_back("-I" + incp.generic_string(utf8));
+            }
+            for (auto & lib : conan_libs) {
+                rDep.libs().push_back("-l" + lib);
+            }
+        }
+    }
+}
+
+std::pair<std::string, fs::path> ConanSystemTool::invokeGenerator(std::vector<Dependency> & deps)
 {
     fs::detail::utf8_codecvt_facet utf8;
     fs::path destination = DepUtils::getProjectBuildSubFolder(m_options);
@@ -311,9 +390,11 @@ fs::path ConanSystemTool::invokeGenerator(std::vector<Dependency> & deps)
     }
 
     if (m_options.getGenerator() == GeneratorType::bazel) {
-        // parse json to generate .bzl as conan doesn't provide a bazel generator
+         translateJsonToRemakenDep(deps,destination/"conanbuildinfo.json");
+         PkgConfigTool pkgConfig(m_options);
+         return pkgConfig.generate(deps, Dependency::Type::CONAN);
     }
-    return destination/m_options.getGeneratorFilePath("conanbuildinfo");
+    return {"conan_basic_setup",destination/m_options.getGeneratorFilePath("conanbuildinfo")};
 }
 
 

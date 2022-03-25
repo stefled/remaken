@@ -39,7 +39,7 @@ public:
 
     void libs(Dependency & dep, const std::vector<std::string> & options = {});
     void cflags(Dependency & dep, const std::vector<std::string> & options = {});
-    fs::path generate(const std::vector<Dependency> & deps, Dependency::Type depType);
+    std::pair<std::string, fs::path> generate(const std::vector<Dependency> & deps, Dependency::Type depType);
 
 
 protected:

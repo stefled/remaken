@@ -31,7 +31,14 @@ static const std::map<Dependency::Type,std::string> type2prefixMap = {
     {Dependency::Type::VCPKG,"VCPKG"}
 };
 
-fs::path BazelGeneratorBackend::generate(const std::vector<Dependency> & deps, Dependency::Type depType)
+BazelGeneratorBackend::BazelGeneratorBackend(const CmdOptions & options):AbstractGeneratorBackend(options) {
+    fs::detail::utf8_codecvt_facet utf8;
+    fs::path filePath = DepUtils::getProjectBuildSubFolder(m_options)/"BUILD";
+    std::ofstream buildFile(filePath.generic_string(utf8),std::ios::out);
+    buildFile.close();
+}
+
+std::pair<std::string, fs::path> BazelGeneratorBackend::generate(const std::vector<Dependency> & deps, Dependency::Type depType)
 {
     fs::detail::utf8_codecvt_facet utf8;
     if (!mapContains(type2prefixMap,depType)) {
@@ -41,8 +48,9 @@ fs::path BazelGeneratorBackend::generate(const std::vector<Dependency> & deps, D
     std::string filename = boost::to_lower_copy(prefix) + m_options.getGeneratorFilePath("buildinfo");
     fs::path filePath = DepUtils::getProjectBuildSubFolder(m_options)/filename;
     std::ofstream fos(filePath.generic_string(utf8),std::ios::out);
-    std::string libdirs, libsStr, defines;
-    for (auto & dep : deps ) {
+    std::string defines;
+    std::vector<std::string> libsVect, setupFuncVect;
+    for (auto dep : deps ) {
         fos<<"def _setup_"<<dep.getName()<<"_impl(ctx):"<<std::endl;
         fos<<"    "<< dep.getName()<<"_root = \""<<dep.prefix()<<"\""<<std::endl;
         fos<<std::endl;
@@ -50,8 +58,8 @@ fs::path BazelGeneratorBackend::generate(const std::vector<Dependency> & deps, D
         fos<<"    ctx.file(\"BUILD\", \"\"\""<<std::endl;
         fos<<"cc_library("<<std::endl;
         fos<<"    name = \""<<dep.getName()<<"\","<<std::endl;
-        fos<<"    hdrs = glob([\""<<dep.getName()<<"/include/**/*.h\"]),"<<std::endl;
-        fos<<"    strip_include_prefix = \""<<dep.getName()<<"/include\","<<std::endl;
+
+        std::vector<std::string> incPaths;
         for (auto & cflagInfos : dep.cflags()) {
             std::vector<std::string> cflagsVect;
             boost::split_regex(cflagsVect, cflagInfos, boost::regex( " -" ));
@@ -64,7 +72,8 @@ fs::path BazelGeneratorBackend::generate(const std::vector<Dependency> & deps, D
                     // remove -I
                     cflag.erase(0,1);
                     boost::trim(cflag);
-                   // fos<<prefix<<"_INCLUDEPATH += \""<<cflag<<"\""<<std::endl;
+                    incPaths.push_back(cflag);
+                    // fos<<prefix<<"_INCLUDEPATH += \""<<cflag<<"\""<<std::endl;
                 }
                 else if (cflagPrefix == "D") {
                     // remove -D
@@ -74,6 +83,17 @@ fs::path BazelGeneratorBackend::generate(const std::vector<Dependency> & deps, D
                 }
             }
         }
+        fos<<"    hdrs = glob([";
+        bool start = true;
+        for (auto & incP : incPaths) {
+            if (!start) {
+                fos<<", ";
+            }
+            fos<<"\""<<dep.getName()<<"/"<<incP<<"/**/*.h\", \""<<dep.getName()<<"/"<<incP<<"/**/*.hpp\", \""<<dep.getName()<<"/"<<incP<<"/**/*.ipp\"";
+            start = false;
+        }
+        fos<<"]),"<<std::endl;
+        fos<<"    strip_include_prefix = \""<<dep.getName()<<"/include\","<<std::endl;
         //fos<<prefix<<"_DEFINES += "<<defines<<std::endl;
         fos<<"    visibility = [\"//visibility:public\"],"<<std::endl;
         fos<<"    linkopts = ["<<std::endl;
@@ -88,16 +108,20 @@ fs::path BazelGeneratorBackend::generate(const std::vector<Dependency> & deps, D
                 std::string optionPrefix = option.substr(0,1);
                 if (optionPrefix == "L") {
                     option.erase(0,1);
-                    libdirs += " -L\"" + option + "\"";
-                    fos<<"        \"-L"<<option<<"\""<<std::endl;
+                    dep.libdirs().push_back(option);
                 }
                 //TODO : extract lib paths from libdefs and put quotes around libs path
                 else {
                     boost::trim(option);
-                    libsStr += " -" + option;
-                    fos<<"        \"-"<<option<<"\""<<std::endl;
+                    libsVect.push_back(option);
                 }
             }
+        }
+        for (auto & libPath : dep.libdirs()) {
+            fos<<"        \"-L"<<libPath<<"\","<<std::endl;
+        }
+        for (auto & lib : libsVect) {
+            fos<<"        \"-"<<lib<<"\","<<std::endl;
         }
         fos<<"        \"-Wl,--end-group\"],"<<std::endl;
         fos<<")"<<std::endl;
@@ -107,11 +131,42 @@ fs::path BazelGeneratorBackend::generate(const std::vector<Dependency> & deps, D
         fos<<"    implementation = _setup_"<<dep.getName()<<"_impl"<<std::endl;
         fos<<")"<<std::endl;
         fos<<std::endl;
+        setupFuncVect.push_back("setup_"+ dep.getName() + "()");
         fos<<"def setup_"<<dep.getName()<<"():"<<std::endl;
+        fos<<"    print(\"--> Setup "<<dep.getName()<<" dependency\")"<<std::endl;
         fos<<"    _setup_"<<dep.getName()<<"(name = \""<<dep.getName()<<"\")"<<std::endl;
         fos<<std::endl;
     }
+    std::string setupFunc = "setup_" + boost::to_lower_copy(prefix) + "_deps";
+    fos<<"def "<<setupFunc<<"():"<<std::endl;
+    fos<<"    print(\"--> Setup "<<boost::to_lower_copy(prefix)<<" dependencies\")"<<std::endl;
+    for (auto & setupFunc : setupFuncVect) {
+        fos<<"    "<<setupFunc<<std::endl;
+    }
     fos.close();
-    return filePath;
+    return {setupFunc,filePath};
+}
+
+void BazelGeneratorBackend::generateIndex(std::map<std::string,fs::path> setupInfos)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    fs::path buildProjectSubFolderPath = DepUtils::getProjectBuildSubFolder(m_options);
+    fs::path depsInfoFilePath = buildProjectSubFolderPath / m_options.getGeneratorFilePath("dependenciesBuildInfo"); // extension should later depend on generator type
+    std::ofstream depsOstream(depsInfoFilePath.generic_string(utf8),std::ios::out);
+
+    fs::path  buildSubFolderPath = DepUtils::getBuildSubFolder(m_options);
+    for (auto & kv : setupInfos) {
+        fs::path setupFilePath = kv.second.filename();
+        if (!setupFilePath.empty()) {
+            depsOstream<<"load(\"//"<<buildSubFolderPath.generic_string(utf8)<<":"<<setupFilePath.filename().generic_string(utf8)<<"\",\""<<kv.first<<"\")"<<std::endl;
+        }
+    }
+
+    depsOstream<<"def setup_remaken_deps():"<<std::endl;
+    depsOstream<<"    print(\"Setup remaken dependencies\")"<<std::endl;
+    for (auto & kv : setupInfos) {
+        depsOstream<<"    "<<kv.first<<"()"<<std::endl;
+    }
+    depsOstream.close();
 }
 

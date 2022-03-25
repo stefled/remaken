@@ -21,6 +21,8 @@
  */
 
 #include "backends/QMakeGeneratorBackend.h"
+#include <fstream>
+#include <ios>
 
 static const std::map<Dependency::Type,std::string> type2prefixMap = {
     {Dependency::Type::BREW,"BREW"},
@@ -32,7 +34,7 @@ static const std::map<Dependency::Type,std::string> type2prefixMap = {
     {Dependency::Type::VCPKG,"VCPKG"}
 };
 
-fs::path QMakeGeneratorBackend::generate(const std::vector<Dependency> & deps, Dependency::Type depType)
+std::pair<std::string, fs::path> QMakeGeneratorBackend::generate(const std::vector<Dependency> & deps, Dependency::Type depType)
 {
     fs::detail::utf8_codecvt_facet utf8;
     if (!mapContains(type2prefixMap,depType)) {
@@ -111,5 +113,26 @@ fs::path QMakeGeneratorBackend::generate(const std::vector<Dependency> & deps, D
     fos<<"QMAKE_CFLAGS += $$"<<prefix<<"_QMAKE_CFLAGS"<<std::endl;
     fos<<"QMAKE_LFLAGS += $$"<<prefix<<"_QMAKE_LFLAGS"<<std::endl;
     fos.close();
-    return filePath;
+    return {boost::to_lower_copy(prefix)+"_basic_setup", filePath};
 }
+
+
+void QMakeGeneratorBackend::generateIndex(std::map<std::string,fs::path> setupInfos)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    fs::path buildProjectSubFolderPath = DepUtils::getProjectBuildSubFolder(m_options);
+    fs::path depsInfoFilePath = buildProjectSubFolderPath / m_options.getGeneratorFilePath("dependenciesBuildInfo"); // extension should later depend on generator type
+    std::ofstream depsOstream(depsInfoFilePath.generic_string(utf8),std::ios::out);
+    for (auto & kv : setupInfos) {
+        depsOstream<<"CONFIG += "<<kv.first<<std::endl;
+    }
+    fs::path  buildSubFolderPath = DepUtils::getBuildSubFolder(m_options);
+    for (auto & kv : setupInfos) {
+        fs::path setupFilePath = kv.second.filename();
+        if (!setupFilePath.empty()) {
+            depsOstream<<"include($$_PRO_FILE_PWD_/"<<buildSubFolderPath.generic_string(utf8)<<"/"<<setupFilePath.filename().generic_string(utf8)<<")\n";
+        }
+    }
+    depsOstream.close();
+}
+

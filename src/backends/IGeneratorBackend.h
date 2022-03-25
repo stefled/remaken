@@ -36,7 +36,8 @@ class IGeneratorBackend
 {
 public:
     virtual ~IGeneratorBackend() = default;
-    virtual fs::path generate(const std::vector<Dependency> & deps, Dependency::Type depType) = 0;
+    virtual std::pair<std::string, fs::path> generate(const std::vector<Dependency> & deps, Dependency::Type depType) = 0;
+    virtual void generateIndex(std::map<std::string,fs::path> setupInfos) = 0;
 };
 
 

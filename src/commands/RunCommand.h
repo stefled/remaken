@@ -38,6 +38,7 @@ private:
     fs::path m_depsFile;
     fs::path m_xpcfXmlFile;
     fs::path m_applicationFile;
+    fs::path m_applicationName;
 };
 
 #endif

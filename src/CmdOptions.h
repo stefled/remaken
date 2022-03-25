@@ -220,6 +220,10 @@ public:
         return m_remakenPackageRef;
     }
 
+    const std::string & getApplicationName() const  {
+        return m_applicationName;
+    }
+
     const std::map<std::string,std::string> & getCompressCommandOptions() const {
         return m_packageCompressOptions;
     }
@@ -286,6 +290,7 @@ private:
     fs::path m_moduleSubfolderPath;
     std::string m_generator = "qmake";
     std::string m_remakenPackageRef;
+    std::string m_applicationName = "";
     bool m_ignoreCache;
     bool m_invertRepositoryOrder = false;
     bool m_verbose;

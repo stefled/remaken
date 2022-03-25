@@ -21,13 +21,21 @@ RunCommand::RunCommand(const CmdOptions & options):AbstractCommand(RunCommand::N
     if (!options.getDependenciesFile().empty()) {
         m_depsFile = options.getDependenciesFile();
     }
-    if (!m_options.getApplicationFile().empty()) {
-        m_applicationFile = m_options.getApplicationFile();
+    if (!options.getApplicationName().empty()) {
+        m_applicationName = options.getApplicationName();
+    }
+    else if (!options.getApplicationFile().empty()) {
+        m_applicationFile = options.getApplicationFile();
     }
 }
 
 void RunCommand::findBinary(const std::string & pkgName, const std::string & pkgVersion)
 {
+    fs::detail::utf8_codecvt_facet utf8;
+    std::string appName = pkgName;
+    if (!m_applicationName.empty()) {
+        appName = m_applicationName.generic_string(utf8);
+    }
     fs::path pkgPath = DepUtils::findPackageFolder(m_options, pkgName, pkgVersion);
     if (!pkgPath.empty()) {
         if (!fs::exists(pkgPath/"bin")) {
@@ -35,7 +43,6 @@ void RunCommand::findBinary(const std::string & pkgName, const std::string & pkg
             return;
         }
     }
-    fs::detail::utf8_codecvt_facet utf8;
     for (fs::directory_entry& pathElt : fs::recursive_directory_iterator(pkgPath/"bin"/m_options.getArchitecture())) {
         if (fs::is_regular_file(pathElt.path())) {
             if (pathElt.path().extension() == ".xml") {
@@ -45,8 +52,10 @@ void RunCommand::findBinary(const std::string & pkgName, const std::string & pkg
             }
             if (pathElt.path().extension().empty() ||
                     ((m_options.getOS() == "win") && (pathElt.path().extension().generic_string(utf8) == ".exe"))) {
-                if (pathElt.path().filename().stem().generic_string(utf8) == pkgName) {
-                    m_applicationFile = pathElt.path();
+                if (pathElt.path().filename().stem().generic_string(utf8) == appName) {
+                    if (pathElt.path().parent_path().filename().generic_string(utf8) == m_options.getConfig()) {
+                        m_applicationFile = pathElt.path();
+                    }
                 }
             }
         }

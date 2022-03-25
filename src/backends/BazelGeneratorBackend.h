@@ -27,9 +27,10 @@
 class BazelGeneratorBackend : virtual public AbstractGeneratorBackend
 {
 public:
-    BazelGeneratorBackend(const CmdOptions & options):AbstractGeneratorBackend(options) {}
+    BazelGeneratorBackend(const CmdOptions & options);
     ~BazelGeneratorBackend() override = default;
-    fs::path generate(const std::vector<Dependency> & deps, Dependency::Type depType) override;
+    std::pair<std::string, fs::path> generate(const std::vector<Dependency> & deps, Dependency::Type depType) override;
+    void generateIndex(std::map<std::string,fs::path> setupInfos) override;
 };
 
 #endif // BAZELGENERATORBACKEND_H

@@ -140,7 +140,7 @@ std::string BrewSystemTool::retrieveInstallCommand(const Dependency & dependency
     return installCmd;
 }
 
-fs::path BrewSystemTool::invokeGenerator(std::vector<Dependency> & deps)
+std::pair<std::string, fs::path> BrewSystemTool::invokeGenerator(std::vector<Dependency> & deps)
 {
     static const std::map<std::string,std::string> brewRootPathMap = {
         {"mac","/usr/local"},

@@ -8,6 +8,7 @@
 #include <memory>
 #include <map>
 #include <vector>
+#include "backends/BackendGeneratorFactory.h"
 
 
 namespace bp = boost::process;
@@ -92,50 +93,34 @@ int ConfigureCommand::execute()
         for (auto & dep : dependencies) {
             depsVectMap[dep.getType()].push_back(dep);
         }
-        std::vector<fs::path> generatedFiles;
-        std::vector<std::string> setups;
+        std::map<std::string,fs::path> setupInfoMap;
         if (mapContains(depsVectMap, Dependency::Type::CONAN)) {
             std::cout<<std::endl<<"=> Conan dependencies build information generation in progress ... please wait"<<std::endl;
             auto & depVect = depsVectMap[Dependency::Type::CONAN];
             shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(Dependency::Type::CONAN, m_options, "conan");
-            generatedFiles.push_back(fileRetriever->invokeGenerator(depVect));
-            setups.push_back("conan_basic_setup");
+            setupInfoMap.insert(fileRetriever->invokeGenerator(depVect));
         }
         if (mapContains(depsVectMap, Dependency::Type::REMAKEN)) {
             std::cout<<std::endl<<"=> Remaken dependencies build information generation in progress ... please wait"<<std::endl;
             auto & depVect = depsVectMap[Dependency::Type::REMAKEN];
             shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(Dependency::Type::REMAKEN, m_options, "github");
-            generatedFiles.push_back(fileRetriever->invokeGenerator(depVect));
-            setups.push_back("remaken_basic_setup");
+            setupInfoMap.insert(fileRetriever->invokeGenerator(depVect));
         }
         if (mapContains(depsVectMap, Dependency::Type::BREW)) {
             std::cout<<std::endl<<"=> Brew dependencies build information generation in progress ... please wait"<<std::endl;
             auto & depVect = depsVectMap[Dependency::Type::BREW];
             shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(Dependency::Type::BREW, m_options, "system");
-            generatedFiles.push_back(fileRetriever->invokeGenerator(depVect));
-            setups.push_back("brew_basic_setup");
+            setupInfoMap.insert(fileRetriever->invokeGenerator(depVect));
         }
         if (mapContains(depsVectMap, Dependency::Type::SYSTEM)) {
             std::cout<<std::endl<<"=> System dependencies build information generation in progress ... please wait"<<std::endl;
             auto & depVect = depsVectMap[Dependency::Type::SYSTEM];
             shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(Dependency::Type::SYSTEM, m_options, "system");
-            generatedFiles.push_back(fileRetriever->invokeGenerator(depVect));
-            setups.push_back("system_basic_setup");
+            setupInfoMap.insert(fileRetriever->invokeGenerator(depVect));
         }
         std::cout<<std::endl<<"=> Generating main dependenciesBuildInfo file"<<std::endl;
-
-        fs::path depsInfoFilePath = buildProjectSubFolderPath / m_options.getGeneratorFilePath("dependenciesBuildInfo"); // extension should later depend on generator type
-        ofstream depsOstream(depsInfoFilePath.generic_string(utf8),ios::out);
-        for (auto & config : setups) {
-            depsOstream<<"CONFIG += "<<config<<std::endl;
-        }
-        fs::path  buildSubFolderPath = DepUtils::getBuildSubFolder(m_options);
-        for (auto & file : generatedFiles) {
-            if (!file.empty()) {
-                depsOstream<<"include($$_PRO_FILE_PWD_/"<<buildSubFolderPath.generic_string(utf8)<<"/"<<file.filename().generic_string(utf8)<<")\n";
-            }
-        }
-        depsOstream.close();
+        std::shared_ptr<IGeneratorBackend> generator = BackendGeneratorFactory::getGenerator(m_options);
+        generator->generateIndex(setupInfoMap);
         std::ofstream fos(timestampPath.generic_string(utf8),std::ios::out);
         int64_t nanoSeconds = nsDuration.count();
         fos<<std::to_string(nanoSeconds)<<std::endl;

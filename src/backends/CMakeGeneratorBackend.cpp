@@ -22,8 +22,12 @@
 
 #include "backends/CMakeGeneratorBackend.h"
 
-fs::path CMakeGeneratorBackend::generate(const std::vector<Dependency> & deps, Dependency::Type depType)
+std::pair<std::string, fs::path> CMakeGeneratorBackend::generate(const std::vector<Dependency> & deps, Dependency::Type depType)
 {
-    return fs::path();
+    return {"",fs::path()};
 }
 
+void CMakeGeneratorBackend::generateIndex(std::map<std::string,fs::path> setupInfos)
+{
+
+}

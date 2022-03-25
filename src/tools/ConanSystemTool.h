@@ -55,7 +55,7 @@ public:
     std::vector<fs::path> binPaths(const Dependency & dependency) override;
     std::vector<fs::path> libPaths(const Dependency & dependency) override;
     std::string computeSourcePath( const Dependency &  dependency) override;
-    fs::path invokeGenerator(std::vector<Dependency> & deps) override;
+    std::pair<std::string, fs::path> invokeGenerator(std::vector<Dependency> & deps) override;
     std::vector<fs::path> retrievePaths(const Dependency & dependency, BaseSystemTool::PathType conanNode, const fs::path & destination);
     std::vector<std::string> buildOptions(const Dependency & dep);
     void listRemotes() override;
@@ -67,6 +67,8 @@ private:
     fs::path createConanFile(const std::vector<Dependency> & deps);
     std::string computeToolRef( const Dependency &  dependency) override;
     std::string computeConanRef( const Dependency &  dependency, bool cliMode = false);
+    void translateJsonToRemakenDep(std::vector<Dependency> & deps, const fs::path & conanJsonBuildInfo);
+
 };
 
 #endif
