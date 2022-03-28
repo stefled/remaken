@@ -53,7 +53,7 @@ void RunCommand::findBinary(const std::string & pkgName, const std::string & pkg
             if (pathElt.path().extension().empty() ||
                     ((m_options.getOS() == "win") && (pathElt.path().extension().generic_string(utf8) == ".exe"))) {
                 if (pathElt.path().filename().stem().generic_string(utf8) == appName) {
-                    if (pathElt.path().parent_path().filename().generic_string(utf8) == m_options.getConfig()) {
+                    if (pathElt.path().parent_path().generic_string(utf8).find(m_options.getConfig()) != std::string::npos) {
                         m_applicationFile = pathElt.path();
                     }
                 }
