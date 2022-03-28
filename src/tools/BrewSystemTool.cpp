@@ -200,8 +200,13 @@ std::pair<std::string, fs::path> BrewSystemTool::invokeGenerator(std::vector<Dep
                             pkgVersion = depInfo[1];
                         }
                         Dependency d(m_options, depPkgName, pkgVersion, Dependency::Type::BREW);
-                        d.prefix() = localPkgConfigPath.parent_path().parent_path().generic_string(utf8);
-                        d.libdirs().push_back(localPkgConfigPath.parent_path().generic_string(utf8));
+                        fs::path depPrefixPath = localPkgConfigPath.parent_path();
+                        auto it = localPkgConfigPath.end();
+                        depPrefixPath = depPrefixPath.parent_path();
+                        depPrefixPath = depPrefixPath.parent_path();
+                        d.prefix() = depPrefixPath.generic_string(utf8);
+                        depPrefixPath /= "lib";
+                        d.libdirs().push_back(depPrefixPath.generic_string(utf8));
                         deps.push_back(d);
                     }
                 }
