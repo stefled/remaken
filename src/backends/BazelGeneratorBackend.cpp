@@ -20,6 +20,7 @@
  * @date 2019-11-15
  */
 #include "backends/BazelGeneratorBackend.h"
+#include "utils/OsUtils.h"
 
 static const std::map<Dependency::Type,std::string> type2prefixMap = {
     {Dependency::Type::BREW,"BREW"},
@@ -38,6 +39,15 @@ BazelGeneratorBackend::BazelGeneratorBackend(const CmdOptions & options):Abstrac
     buildFile.close();
 }
 
+std::string getValidName(const std::string & originalName)
+{
+    std::string validName = originalName;
+    if (originalName.find("+")) {
+        boost::replace_all(validName,"+","p");
+    }
+    return validName;
+}
+
 std::pair<std::string, fs::path> BazelGeneratorBackend::generate(const std::vector<Dependency> & deps, Dependency::Type depType)
 {
     fs::detail::utf8_codecvt_facet utf8;
@@ -49,17 +59,12 @@ std::pair<std::string, fs::path> BazelGeneratorBackend::generate(const std::vect
     fs::path filePath = DepUtils::getProjectBuildSubFolder(m_options)/filename;
     std::ofstream fos(filePath.generic_string(utf8),std::ios::out);
     std::string defines;
-    std::vector<std::string> libsVect, setupFuncVect;
+    std::vector<std::string> setupFuncVect;
     for (auto dep : deps ) {
-        fos<<"def _setup_"<<dep.getName()<<"_impl(ctx):"<<std::endl;
-        fos<<"    "<< dep.getName()<<"_root = \""<<dep.prefix()<<"\""<<std::endl;
-        fos<<std::endl;
-        fos<<"    ctx.symlink("<<dep.getName()<<"_root, \""<<dep.getName()<<"\")"<<std::endl;
-        fos<<"    ctx.file(\"BUILD\", \"\"\""<<std::endl;
-        fos<<"cc_library("<<std::endl;
-        fos<<"    name = \""<<dep.getName()<<"\","<<std::endl;
+        std::string bazelPkgName = getValidName(dep.getName());
 
-        std::vector<std::string> incPaths;
+        std::map<std::string,bool> incPaths, defines;
+        std::vector<std::string> libsVect;
         for (auto & cflagInfos : dep.cflags()) {
             std::vector<std::string> cflagsVect;
             boost::split_regex(cflagsVect, cflagInfos, boost::regex( " -" ));
@@ -72,32 +77,22 @@ std::pair<std::string, fs::path> BazelGeneratorBackend::generate(const std::vect
                     // remove -I
                     cflag.erase(0,1);
                     boost::trim(cflag);
-                    incPaths.push_back(cflag);
-                    // fos<<prefix<<"_INCLUDEPATH += \""<<cflag<<"\""<<std::endl;
+                    fs::path incPath = OsUtils::extractPath(dep.prefix(),cflag);
+                    fs::path symlinkFolder(bazelPkgName, utf8);
+                    if (!mapContains(incPaths,(symlinkFolder/incPath).generic_string(utf8))) {
+                        incPaths.insert({(symlinkFolder/incPath).generic_string(utf8),true});
+                    }
                 }
                 else if (cflagPrefix == "D") {
                     // remove -D
                     cflag.erase(0,1);
                     boost::trim(cflag);
-                    defines += " " + cflag;
+                    if (!mapContains(defines,cflag)) {
+                        defines.insert({cflag,true});
+                    }
                 }
             }
         }
-        fos<<"    hdrs = glob([";
-        bool start = true;
-        for (auto & incP : incPaths) {
-            if (!start) {
-                fos<<", ";
-            }
-            fos<<"\""<<dep.getName()<<"/"<<incP<<"/**/*.h\", \""<<dep.getName()<<"/"<<incP<<"/**/*.hpp\", \""<<dep.getName()<<"/"<<incP<<"/**/*.ipp\"";
-            start = false;
-        }
-        fos<<"]),"<<std::endl;
-        fos<<"    strip_include_prefix = \""<<dep.getName()<<"/include\","<<std::endl;
-        //fos<<prefix<<"_DEFINES += "<<defines<<std::endl;
-        fos<<"    visibility = [\"//visibility:public\"],"<<std::endl;
-        fos<<"    linkopts = ["<<std::endl;
-        fos<<"        \"-Wl,--start-group\","<<std::endl;
         for (auto & libInfos : dep.libs()) {
             std::vector<std::string> optionsVect;
             boost::split_regex(optionsVect, libInfos, boost::regex( " -" ));
@@ -117,8 +112,52 @@ std::pair<std::string, fs::path> BazelGeneratorBackend::generate(const std::vect
                 }
             }
         }
-        for (auto & libPath : dep.libdirs()) {
-            fos<<"        \"-L"<<libPath<<"\","<<std::endl;
+
+        fos<<"def _setup_"<<bazelPkgName<<"_impl(ctx):"<<std::endl;
+        fos<<"    "<< bazelPkgName<<"_root = \""<<dep.prefix()<<"\""<<std::endl;
+        fos<<std::endl;
+        fos<<"    ctx.symlink("<<bazelPkgName<<"_root, \""<<bazelPkgName<<"\")"<<std::endl;
+        fos<<"    ctx.file(\"BUILD\", \"\"\""<<std::endl;
+        fos<<"cc_library("<<std::endl;
+        fos<<"    name = \""<<bazelPkgName<<"\","<<std::endl;
+        fos<<"    hdrs = glob([";
+        bool start = true;
+        for (auto & [incP,b] : incPaths) {
+            if (!start) {
+                fos<<", ";
+            }
+            fos<<"\""<<incP<<"/**/*.h\", \""<<incP<<"/**/*.hpp\", \""<<incP<<"/**/*.ipp\"";
+            start = false;
+        }
+        fos<<"]),"<<std::endl;
+        start = true;
+        fos<<"    includes = [";
+        for (auto & [incP,b]: incPaths) {
+            if (!start) {
+                fos<<", ";
+            }
+            fos<<"\""<<incP<<"\"";
+            start = false;
+        }
+        fos<<"],"<<std::endl;
+        start = true;
+        fos<<"    defines = [";
+        for (auto & [def,b] : defines) {
+            if (!start) {
+                fos<<", ";
+            }
+            std::string define = boost::replace_all_copy(def,"\"","\\\"");
+            fos<<"\""<<define<<"\"";
+            start = false;
+        }
+        fos<<"],"<<std::endl;
+        fos<<"    visibility = [\"//visibility:public\"],"<<std::endl;
+        fos<<"    linkopts = ["<<std::endl;
+        fos<<"        \"-Wl,--start-group\","<<std::endl;
+        for (auto & libFolder : dep.libdirs()) {
+            fs::path libPath = OsUtils::extractPath(dep.prefix(),libFolder);
+            fs::path symlinkFolder(bazelPkgName, utf8);
+            fos<<"        \"-L"<<(symlinkFolder/libPath).generic_string(utf8)<<"\","<<std::endl;
         }
         for (auto & lib : libsVect) {
             fos<<"        \"-"<<lib<<"\","<<std::endl;
@@ -127,14 +166,14 @@ std::pair<std::string, fs::path> BazelGeneratorBackend::generate(const std::vect
         fos<<")"<<std::endl;
         fos<<"\"\"\")"<<std::endl;
         fos<<std::endl;
-        fos<<"_setup_"<<dep.getName()<<" = repository_rule("<<std::endl;
-        fos<<"    implementation = _setup_"<<dep.getName()<<"_impl"<<std::endl;
+        fos<<"_setup_"<<bazelPkgName<<" = repository_rule("<<std::endl;
+        fos<<"    implementation = _setup_"<<bazelPkgName<<"_impl"<<std::endl;
         fos<<")"<<std::endl;
         fos<<std::endl;
-        setupFuncVect.push_back("setup_"+ dep.getName() + "()");
-        fos<<"def setup_"<<dep.getName()<<"():"<<std::endl;
+        setupFuncVect.push_back("setup_"+ bazelPkgName + "()");
+        fos<<"def setup_"<<bazelPkgName<<"():"<<std::endl;
         fos<<"    print(\"--> Setup "<<dep.getName()<<" dependency\")"<<std::endl;
-        fos<<"    _setup_"<<dep.getName()<<"(name = \""<<dep.getName()<<"\")"<<std::endl;
+        fos<<"    _setup_"<<bazelPkgName<<"(name = \""<<bazelPkgName<<"\")"<<std::endl;
         fos<<std::endl;
     }
     std::string setupFunc = "setup_" + boost::to_lower_copy(prefix) + "_deps";
@@ -162,8 +201,8 @@ void BazelGeneratorBackend::generateIndex(std::map<std::string,fs::path> setupIn
         }
     }
 
-    depsOstream<<"def setup_remaken_deps():"<<std::endl;
-    depsOstream<<"    print(\"Setup remaken dependencies\")"<<std::endl;
+    depsOstream<<"def setup_all_remaken_deps():"<<std::endl;
+    depsOstream<<"    print(\"Setup all remaken dependencies\")"<<std::endl;
     for (auto & kv : setupInfos) {
         depsOstream<<"    "<<kv.first<<"()"<<std::endl;
     }

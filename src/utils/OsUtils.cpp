@@ -241,3 +241,20 @@ void OsUtils::releaseTempFolderPath(const fs::path & tmpDir)
         throw std::runtime_error("Unable to cleanup working directory " + tmpDir.generic_string(utf8));
     }
 }
+
+fs::path OsUtils::extractPath(const fs::path & first, const fs::path & second)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    if (first.empty() || second.empty()) {
+        return fs::path();
+    }
+    std::string firstStr = first.generic_string(utf8);
+    std::string secondStr = second.generic_string(utf8);
+    if (first.size() < second.size()) {
+        firstStr =  second.generic_string(utf8);
+        secondStr = first.generic_string(utf8);
+    }
+    secondStr += fs::path::separator;
+    boost::algorithm::replace_first(firstStr, secondStr,"");
+    return fs::path(firstStr,utf8);
+}
