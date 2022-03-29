@@ -247,8 +247,6 @@ void BazelGeneratorBackend::parseConditionsFile(const fs::path &  rootFolderPath
 {
     fs::detail::utf8_codecvt_facet utf8;
     fs::path configureFilePath = rootFolderPath / getGeneratorFileName("configure_conditions");
-    //std::map<std::string,bool> conditionsMap;
-
     if (!fs::exists(configureFilePath)) {
         return;
     }
@@ -258,18 +256,20 @@ void BazelGeneratorBackend::parseConditionsFile(const fs::path &  rootFolderPath
         std::vector<std::string> results;
         std::string curStr;
         getline(configureFile,curStr);
-        std::string formatRegexStr = "^[\t\s]*REMAKENDEFINES[\t\s]*=[\[]+([a-zA-Z0-9_-]*)[\]]+";
-        //std::regex formatRegexr(formatRegexStr, std::regex_constants::extended);
+        std::string formatRegexStr = "^[\t ]*REMAKENDEFINES[\t ]*=[\t ]*[\[]+([a-zA-Z0-9_, ]*)[\]]+";
+        std::regex formatRegexr(formatRegexStr, std::regex_constants::extended);
         std::smatch sm;
-        //check string format is ^[\t\s]*DEFINES[\t\s]*+=[\t\s]*[a-zA-Z0-9_-]*
-        // if (std::regex_search(curStr, sm, formatRegexr, std::regex_constants::match_any)) {
-        boost::split(results, curStr, [](char c){return c == ',';});
-        if (results.size() == 2) {
-            std::string conditionValue = results[1];
-            boost::trim(conditionValue);
-            conditionsMap.insert_or_assign(conditionValue, true);
+        if (std::regex_search(curStr, sm, formatRegexr, std::regex_constants::match_any)) {
+            if (sm.size() >= 2) {
+                std::string defines = sm[1];
+                boost::split(results, defines, [](char c){return c == ',';});
+                for (auto & result: results) {
+                    std::string conditionValue = result;
+                    boost::trim(conditionValue);
+                    conditionsMap.insert_or_assign(conditionValue, true);
+                }
+            }
         }
-        // }
     }
     configureFile.close();
 }
