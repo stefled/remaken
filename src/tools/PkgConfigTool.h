@@ -44,6 +44,7 @@ public:
 
 protected:
     static std::string getPkgConfigToolIdentifier();
+    std::string deduceRemakenPkgConfigFilename(const Dependency & dep);
     fs::path m_pkgConfigToolPath;
     std::string m_pkgConfigPaths;
     const CmdOptions & m_options;

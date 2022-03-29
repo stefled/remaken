@@ -105,63 +105,6 @@ std::vector<Dependency> removeRedundantDependencies(const std::multimap<std::str
     return depVector;
 }
 
-void DepUtils::parseConditionsFile(const CmdOptions & options, const fs::path &  rootFolderPath, std::map<std::string,bool> & conditionsMap)
-{
-    fs::detail::utf8_codecvt_facet utf8;
-    fs::path configureFilePath = rootFolderPath / options.getGeneratorFilePath("configure_conditions");
-    //std::map<std::string,bool> conditionsMap;
-
-    if (!fs::exists(configureFilePath)) {
-        return;
-    }
-
-    std::ifstream configureFile(configureFilePath.generic_string(utf8).c_str(), std::ios::in);
-    while (!configureFile.eof()) {
-        std::vector<std::string> results;
-        string curStr;
-        getline(configureFile,curStr);
-        std::string formatRegexStr = "^[\t\s]*DEFINES[\t\s]*+=[\t\s]*[a-zA-Z0-9_-]*";
-        //std::regex formatRegexr(formatRegexStr, std::regex_constants::extended);
-        std::smatch sm;
-        //check string format is ^[\t\s]*DEFINES[\t\s]*+=[\t\s]*[a-zA-Z0-9_-]*
-        // if (std::regex_search(curStr, sm, formatRegexr, std::regex_constants::match_any)) {
-        boost::split(results, curStr, [](char c){return c == '=';});
-        if (results.size() == 2) {
-            std::string conditionValue = results[1];
-            boost::trim(conditionValue);
-            conditionsMap.insert_or_assign(conditionValue, true);
-        }
-        // }
-    }
-    configureFile.close();
-}
-
-void DepUtils::generateConfigureConditionsFile(const CmdOptions & options, const fs::path &  rootFolderPath, const std::vector<Dependency> & deps)
-{
-    fs::detail::utf8_codecvt_facet utf8;
-    fs::path buildFolderPath = rootFolderPath/DepUtils::getBuildPlatformFolder(options);
-    fs::path configureFilePath = buildFolderPath / options.getGeneratorFilePath("configure_conditions");
-    if (fs::exists(configureFilePath) ) {
-        fs::remove(configureFilePath);
-    }
-
-    if (deps.empty()) {
-        return;
-    }
-
-    if (!fs::exists(buildFolderPath)) {
-        fs::create_directories(buildFolderPath);
-    }
-    std::ofstream configureFile(configureFilePath.generic_string(utf8).c_str(), std::ios::out);
-    for (auto & dep : deps) {
-        for (auto & condition : dep.getConditions()) {
-            configureFile << "DEFINES += " << condition;
-            configureFile << "\n";
-        }
-    }
-    configureFile.close();
-}
-
 std::vector<Dependency> DepUtils::filterConditionDependencies(const std::map<std::string,bool> & conditions, const std::vector<Dependency> & depCollection)
 {
     std::vector<Dependency> filteredDepCollection;

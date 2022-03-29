@@ -10,6 +10,7 @@
 #include "tools/SystemTools.h"
 #include "utils/DepUtils.h"
 #include "utils/OsUtils.h"
+#include "backends/BackendGeneratorFactory.h"
 #include <boost/log/trivial.hpp>
 #include "utils/PathBuilder.h"
 #include <regex>
@@ -297,8 +298,9 @@ void DependencyManager::retrieveDependencies(const fs::path &  dependenciesFile,
 {
     fs::detail::utf8_codecvt_facet utf8;
     std::vector<fs::path> dependenciesFileList = DepUtils::getChildrenDependencies(dependenciesFile.parent_path(), m_options.getOS(), dependenciesFile.stem().generic_string(utf8));
-    std::map<std::string,bool> conditionsMap;
-    DepUtils::parseConditionsFile(m_options, dependenciesFile.parent_path(), conditionsMap);
+    std::map<std::string,bool> conditionsMap;   
+    std::shared_ptr<IGeneratorBackend> generator = BackendGeneratorFactory::getGenerator(m_options);
+    generator->parseConditionsFile(dependenciesFile.parent_path(), conditionsMap);
     std::vector<Dependency> conditionsDependencies;
     for (fs::path depsFile : dependenciesFileList) {
         if (fs::exists(depsFile)) {
@@ -329,7 +331,7 @@ void DependencyManager::retrieveDependencies(const fs::path &  dependenciesFile,
             }
         }
     }
-    DepUtils::generateConfigureConditionsFile(m_options, dependenciesFile.parent_path(), conditionsDependencies);
+    generator->generateConfigureConditionsFile(dependenciesFile.parent_path(), conditionsDependencies);
 }
 
 

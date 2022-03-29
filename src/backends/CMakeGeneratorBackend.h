@@ -27,10 +27,12 @@
 class CMakeGeneratorBackend : virtual public AbstractGeneratorBackend
 {
 public:
-    CMakeGeneratorBackend(const CmdOptions & options):AbstractGeneratorBackend(options) {}
+    CMakeGeneratorBackend(const CmdOptions & options):AbstractGeneratorBackend(options,".cmake") {}
     ~CMakeGeneratorBackend() override = default;
     std::pair<std::string, fs::path> generate(const std::vector<Dependency> & deps, Dependency::Type depType) override;
     void generateIndex(std::map<std::string,fs::path> setupInfos) override;
+    void generateConfigureConditionsFile(const fs::path &  rootFolderPath, const std::vector<Dependency> & deps) override;
+    void parseConditionsFile(const fs::path &  rootFolderPath, std::map<std::string,bool> & conditionsMap) override;
 };
 
 #endif // CMAKEGENERATORBACKEND_H

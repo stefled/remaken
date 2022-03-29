@@ -41,6 +41,7 @@ public:
     static constexpr const char * VCPKG_REPOURL = "https://github.com/microsoft/vcpkg";
     static constexpr const char * EXTRA_DEPS = "extra-packages.txt";
     static constexpr const char * REMAKEN_BUILD_RULES_FOLDER = ".build-rules";
+    static constexpr const char * REMAKEN_PKGCONFIG_PREFIX = "remaken-";
 };
 
 typedef enum {

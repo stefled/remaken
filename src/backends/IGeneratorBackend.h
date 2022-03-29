@@ -38,16 +38,25 @@ public:
     virtual ~IGeneratorBackend() = default;
     virtual std::pair<std::string, fs::path> generate(const std::vector<Dependency> & deps, Dependency::Type depType) = 0;
     virtual void generateIndex(std::map<std::string,fs::path> setupInfos) = 0;
+    virtual void generateConfigureConditionsFile(const fs::path &  rootFolderPath, const std::vector<Dependency> & deps) = 0;
+    virtual void parseConditionsFile(const fs::path &  rootFolderPath, std::map<std::string,bool> & conditionsMap) = 0;
+
 };
 
 
 class AbstractGeneratorBackend : virtual public IGeneratorBackend {
 public:
-    AbstractGeneratorBackend(const CmdOptions & options): m_options(options) {}
+    AbstractGeneratorBackend(const CmdOptions & options, const std::string & extension): m_options(options), m_extension(extension) {}
     virtual ~AbstractGeneratorBackend() override = default;
 
 protected:
+    std::string getGeneratorFileName(const std::string & file) const
+    {
+        std::string fileName = file + m_extension;
+        return fileName;
+    }
     const CmdOptions & m_options;
+    std::string m_extension;
 };
 
 

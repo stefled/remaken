@@ -154,6 +154,10 @@ public:
         return m_isXpcfBundle;
     }
 
+    bool debugEnabled() const {
+        return m_debugEnabled;
+    }
+
     bool cleanAllEnabled() const {
         return m_cleanAll;
     }
@@ -306,6 +310,7 @@ private:
     bool m_defaultProfileOptions = false;
     bool m_crossCompile = false;
     bool m_installWizards = false;
+    bool m_debugEnabled = false;
     CLI::App m_cliApp{"remaken"};
 };
 

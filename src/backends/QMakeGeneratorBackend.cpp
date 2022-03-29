@@ -23,6 +23,7 @@
 #include "backends/QMakeGeneratorBackend.h"
 #include <fstream>
 #include <ios>
+#include <regex>
 
 static const std::map<Dependency::Type,std::string> type2prefixMap = {
     {Dependency::Type::BREW,"BREW"},
@@ -41,7 +42,7 @@ std::pair<std::string, fs::path> QMakeGeneratorBackend::generate(const std::vect
         throw std::runtime_error("Error dependency type " + std::to_string(static_cast<uint32_t>(depType)) + " no supported");
     }
     std::string prefix = type2prefixMap.at(depType);
-    std::string filename = boost::to_lower_copy(prefix) + m_options.getGeneratorFilePath("buildinfo");
+    std::string filename = boost::to_lower_copy(prefix) + getGeneratorFileName("buildinfo");
     fs::path filePath = DepUtils::getProjectBuildSubFolder(m_options)/filename;
     std::ofstream fos(filePath.generic_string(utf8),std::ios::out);
     std::string libdirs, libsStr, defines;
@@ -121,7 +122,7 @@ void QMakeGeneratorBackend::generateIndex(std::map<std::string,fs::path> setupIn
 {
     fs::detail::utf8_codecvt_facet utf8;
     fs::path buildProjectSubFolderPath = DepUtils::getProjectBuildSubFolder(m_options);
-    fs::path depsInfoFilePath = buildProjectSubFolderPath / m_options.getGeneratorFilePath("dependenciesBuildInfo"); // extension should later depend on generator type
+    fs::path depsInfoFilePath = buildProjectSubFolderPath / getGeneratorFileName("dependenciesBuildInfo"); // extension should later depend on generator type
     std::ofstream depsOstream(depsInfoFilePath.generic_string(utf8),std::ios::out);
     for (auto & kv : setupInfos) {
         depsOstream<<"CONFIG += "<<kv.first<<std::endl;
@@ -136,3 +137,59 @@ void QMakeGeneratorBackend::generateIndex(std::map<std::string,fs::path> setupIn
     depsOstream.close();
 }
 
+void QMakeGeneratorBackend::generateConfigureConditionsFile(const fs::path &  rootFolderPath, const std::vector<Dependency> & deps)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    fs::path buildFolderPath = rootFolderPath/DepUtils::getBuildPlatformFolder(m_options);
+    fs::path configureFilePath = buildFolderPath / getGeneratorFileName("configure_conditions");
+    if (fs::exists(configureFilePath) ) {
+        fs::remove(configureFilePath);
+    }
+
+    if (deps.empty()) {
+        return;
+    }
+
+    if (!fs::exists(buildFolderPath)) {
+        fs::create_directories(buildFolderPath);
+    }
+    std::ofstream configureFile(configureFilePath.generic_string(utf8).c_str(), std::ios::out);
+    for (auto & dep : deps) {
+        for (auto & condition : dep.getConditions()) {
+            configureFile << "DEFINES += " << condition;
+            configureFile << "\n";
+        }
+    }
+    configureFile.close();
+}
+
+void QMakeGeneratorBackend::parseConditionsFile(const fs::path &  rootFolderPath, std::map<std::string,bool> & conditionsMap)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    fs::path configureFilePath = rootFolderPath / getGeneratorFileName("configure_conditions");
+    //std::map<std::string,bool> conditionsMap;
+
+    if (!fs::exists(configureFilePath)) {
+        return;
+    }
+
+    std::ifstream configureFile(configureFilePath.generic_string(utf8).c_str(), std::ios::in);
+    while (!configureFile.eof()) {
+        std::vector<std::string> results;
+        std::string curStr;
+        getline(configureFile,curStr);
+        std::string formatRegexStr = "^[\t\s]*DEFINES[\t\s]*+=[\t\s]*[a-zA-Z0-9_-]*";
+        //std::regex formatRegexr(formatRegexStr, std::regex_constants::extended);
+        std::smatch sm;
+        //check string format is ^[\t\s]*DEFINES[\t\s]*+=[\t\s]*[a-zA-Z0-9_-]*
+        // if (std::regex_search(curStr, sm, formatRegexr, std::regex_constants::match_any)) {
+        boost::split(results, curStr, [](char c){return c == '=';});
+        if (results.size() == 2) {
+            std::string conditionValue = results[1];
+            boost::trim(conditionValue);
+            conditionsMap.insert_or_assign(conditionValue, true);
+        }
+        // }
+    }
+    configureFile.close();
+}

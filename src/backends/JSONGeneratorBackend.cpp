@@ -21,14 +21,26 @@
  */
 
 #include "backends/JSONGeneratorBackend.h"
+#include <boost/log/trivial.hpp>
 
 std::pair<std::string, fs::path> JSONGeneratorBackend::generate(const std::vector<Dependency> & deps, Dependency::Type depType)
 {
+    BOOST_LOG_TRIVIAL(warning)<<"JSONGeneratorBackend::generate NOT IMPLEMENTED";
     return {"",fs::path()};
 }
 
 
 void JSONGeneratorBackend::generateIndex(std::map<std::string,fs::path> setupInfos)
 {
+    BOOST_LOG_TRIVIAL(warning)<<"JSONGeneratorBackend::generateIndex NOT IMPLEMENTED";
+}
 
+void JSONGeneratorBackend::generateConfigureConditionsFile(const fs::path &  rootFolderPath, const std::vector<Dependency> & deps)
+{
+    BOOST_LOG_TRIVIAL(warning)<<"JSONGeneratorBackend::generateConfigureConditionsFile NOT IMPLEMENTED";
+}
+
+void JSONGeneratorBackend::parseConditionsFile(const fs::path &  rootFolderPath, std::map<std::string,bool> & conditionsMap)
+{
+    BOOST_LOG_TRIVIAL(warning)<<"JSONGeneratorBackend::parseConditionsFile NOT IMPLEMENTED";
 }

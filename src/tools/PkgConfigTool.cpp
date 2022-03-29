@@ -26,6 +26,31 @@ void PkgConfigTool::addPath(const fs::path & pkgConfigPath)
     m_pkgConfigPaths +=  pkgConfigPath.generic_string(utf8);
 }
 
+std::string PkgConfigTool::deduceRemakenPkgConfigFilename(const Dependency & dep)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    fs::path pcFilePath(dep.prefix(),utf8);
+    std::string pkgconfigFileName = Constants::REMAKEN_PKGCONFIG_PREFIX;
+    if (!m_options.debugEnabled()) {
+        pkgconfigFileName += dep.getName();
+    }
+    else {
+        pkgconfigFileName += "debug-";
+        pkgconfigFileName += dep.getName();
+        if (!fs::exists(pcFilePath/(pkgconfigFileName + ".pc"))) {
+            pkgconfigFileName = "bcom-debug-";
+            pkgconfigFileName += dep.getName();
+        }
+        if (!fs::exists(pcFilePath/(pkgconfigFileName + ".pc"))) {
+            pkgconfigFileName = Constants::REMAKEN_PKGCONFIG_PREFIX + dep.getName();
+        }
+    }
+    if (!fs::exists(pcFilePath/(pkgconfigFileName + ".pc"))) {
+        pkgconfigFileName = "bcom-" +  dep.getName();
+    }
+    return pkgconfigFileName;
+}
+
 
 void PkgConfigTool::libs(Dependency & dep, const std::vector<std::string> & options)
 {
@@ -36,7 +61,7 @@ void PkgConfigTool::libs(Dependency & dep, const std::vector<std::string> & opti
     env["PKG_CONFIG_PATH"] = m_pkgConfigPaths;
     std::string pkgconfigFileName = dep.getName();
     if (dep.getType() == Dependency::Type::REMAKEN) {
-        pkgconfigFileName = "bcom-" +  dep.getName();
+        pkgconfigFileName = deduceRemakenPkgConfigFilename(dep);
     }
     int result = bp::system(m_pkgConfigToolPath.generic_string(utf8), "--libs", bp::args(options), env,  pkgconfigFileName, bp::std_out > listOutputFut, ios);
     if (result != 0) {
@@ -60,7 +85,7 @@ void PkgConfigTool::cflags(Dependency & dep, const std::vector<std::string> & op
     env["PKG_CONFIG_PATH"] = m_pkgConfigPaths;
     std::string pkgconfigFileName = dep.getName();
     if (dep.getType() == Dependency::Type::REMAKEN) {
-        pkgconfigFileName = "bcom-" +  dep.getName();
+        pkgconfigFileName = deduceRemakenPkgConfigFilename(dep);
     }
     int result = bp::system(m_pkgConfigToolPath.generic_string(utf8), "--cflags", bp::args(options), env,  pkgconfigFileName, bp::std_out > listOutputFut, ios);
     if (result != 0) {

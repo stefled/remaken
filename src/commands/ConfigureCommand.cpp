@@ -36,6 +36,7 @@ int ConfigureCommand::execute()
 
     std::vector<fs::path> libPaths;
     std::cout<<"--------- Starting dependencies build configuration ---------"<<std::endl;
+    std::shared_ptr<IGeneratorBackend> generator = BackendGeneratorFactory::getGenerator(m_options);
     if (!m_options.getDependenciesFile().empty()) {
         bool projectFolder = false;
         fs::path depPath = DepUtils::buildDependencyPath(m_options.getDependenciesFile());
@@ -43,9 +44,9 @@ int ConfigureCommand::execute()
         std::map<std::string, bool> conditionsMap;
         if (!m_options.override()) {
             // try to parse archived conditions file in project folder
-            DepUtils::parseConditionsFile(m_options, depFolder, conditionsMap);
+            generator->parseConditionsFile(depFolder, conditionsMap);
             // try to parse generated conditions file in build platform folder
-            DepUtils::parseConditionsFile(m_options, depFolder/DepUtils::getBuildPlatformFolder(m_options), conditionsMap);
+            generator->parseConditionsFile(depFolder/DepUtils::getBuildPlatformFolder(m_options), conditionsMap);
         }
         if (m_options.projectModeEnabled()) {
             m_options.setProjectRootPath(depFolder);
@@ -119,13 +120,12 @@ int ConfigureCommand::execute()
             setupInfoMap.insert(fileRetriever->invokeGenerator(depVect));
         }
         std::cout<<std::endl<<"=> Generating main dependenciesBuildInfo file"<<std::endl;
-        std::shared_ptr<IGeneratorBackend> generator = BackendGeneratorFactory::getGenerator(m_options);
         generator->generateIndex(setupInfoMap);
         std::ofstream fos(timestampPath.generic_string(utf8),std::ios::out);
         int64_t nanoSeconds = nsDuration.count();
         fos<<std::to_string(nanoSeconds)<<std::endl;
         fos.close();
-        DepUtils::generateConfigureConditionsFile(m_options, depFolder, dependencies);
+        generator->generateConfigureConditionsFile(depFolder, dependencies);
         std::cout<<"====> Configure done successfully !"<<std::endl;
         return 0;
     }

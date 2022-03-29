@@ -22,12 +22,25 @@
 
 #include "backends/CMakeGeneratorBackend.h"
 
+#include <boost/log/trivial.hpp>
+
 std::pair<std::string, fs::path> CMakeGeneratorBackend::generate(const std::vector<Dependency> & deps, Dependency::Type depType)
 {
+    BOOST_LOG_TRIVIAL(warning)<<"CMakeGeneratorBackend::generate NOT IMPLEMENTED";
     return {"",fs::path()};
 }
 
 void CMakeGeneratorBackend::generateIndex(std::map<std::string,fs::path> setupInfos)
 {
+    BOOST_LOG_TRIVIAL(warning)<<"CMakeGeneratorBackend::generateIndex NOT IMPLEMENTED";
+}
 
+void CMakeGeneratorBackend::generateConfigureConditionsFile(const fs::path &  rootFolderPath, const std::vector<Dependency> & deps)
+{
+    BOOST_LOG_TRIVIAL(warning)<<"CMakeGeneratorBackend::generateConfigureConditionsFile NOT IMPLEMENTED";
+}
+
+void CMakeGeneratorBackend::parseConditionsFile(const fs::path &  rootFolderPath, std::map<std::string,bool> & conditionsMap)
+{
+    BOOST_LOG_TRIVIAL(warning)<<"CMakeGeneratorBackend::parseConditionsFile NOT IMPLEMENTED";
 }
