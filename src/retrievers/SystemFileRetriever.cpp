@@ -15,14 +15,17 @@ SystemFileRetriever::SystemFileRetriever(const CmdOptions & options, Dependency:
     fs::detail::utf8_codecvt_facet utf8;
     m_tool = SystemTools::createTool(options, dependencyType);
 #if defined(BOOST_OS_MACOS_AVAILABLE) || defined(BOOST_OS_LINUX_AVAILABLE)
-    m_scriptFilePath =  m_options.getDestinationRoot() / "bundle_system_install.sh";
-    if (fs::exists(m_scriptFilePath)) {
-        fs::remove(m_scriptFilePath);
+    if (m_tool->bundleScripted()) {
+        std::string scriptFileName = "bundle_" + to_string(dependencyType) + "_install.sh";
+        m_scriptFilePath =  m_options.getDestinationRoot() / scriptFileName;
+        if (fs::exists(m_scriptFilePath)) {
+            fs::remove(m_scriptFilePath);
+        }
+        ofstream fos(m_scriptFilePath.generic_string(utf8),ios::out);
+        fos<<"#!/bin/bash"<< '\n';
+        fos.close();
+        fs::permissions(m_scriptFilePath, fs::add_perms|fs::owner_exe|fs::group_exe|fs::others_exe);
     }
-    ofstream fos(m_scriptFilePath.generic_string(utf8),ios::out);
-    fos<<"#!/bin/bash"<< '\n';
-    fos.close();
-    fs::permissions(m_scriptFilePath, fs::add_perms|fs::owner_exe|fs::group_exe|fs::others_exe);
 #endif
 }
 
@@ -30,7 +33,9 @@ fs::path SystemFileRetriever::bundleArtefact(const Dependency & dependency)
 {
     m_tool->bundle(dependency);
     fs::path outputDirectory = computeLocalDependencyRootDir(dependency);
-    m_tool->bundleScript(dependency, m_scriptFilePath);
+    if (m_tool->bundleScripted()) {
+        m_tool->bundleScript(dependency, m_scriptFilePath);
+    }
     return outputDirectory;
 }
 
@@ -62,7 +67,7 @@ std::vector<fs::path> SystemFileRetriever::libPaths(const Dependency & dependenc
     return m_tool->libPaths(dependency);
 }
 
-fs::path SystemFileRetriever::invokeGenerator(const std::vector<Dependency> & deps, GeneratorType generator)
+std::pair<std::string, fs::path> SystemFileRetriever::invokeGenerator(std::vector<Dependency> & deps)
 {
-    return m_tool->invokeGenerator(deps,generator);
+    return m_tool->invokeGenerator(deps);
 }

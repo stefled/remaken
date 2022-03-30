@@ -10,6 +10,7 @@
 #include "tools/SystemTools.h"
 #include "utils/DepUtils.h"
 #include "utils/OsUtils.h"
+#include "backends/BackendGeneratorFactory.h"
 #include <boost/log/trivial.hpp>
 #include "utils/PathBuilder.h"
 #include <regex>
@@ -42,6 +43,14 @@ int DependencyManager::retrieve()
         if (m_options.projectModeEnabled()) {
             m_options.setProjectRootPath(rootPath.parent_path());
         }
+        fs::path extradeps;
+        if (fs::is_directory(rootPath)) {
+            extradeps = rootPath / Constants::EXTRA_DEPS;
+        }
+        else {
+            extradeps = rootPath.parent_path() / Constants::EXTRA_DEPS;
+        }
+        retrieveDependencies(extradeps, DependencyFileType::EXTRA_DEPS);
         retrieveDependencies(rootPath);
         std::cout<<std::endl;
         std::cout<<"--------- Installation status ---------"<<std::endl;
@@ -180,7 +189,12 @@ bool DependencyManager::installDep(Dependency &  dependency, const std::string &
     return true;
 }
 
-void DependencyManager::retrieveDependency(Dependency &  dependency)
+static const std::map<DependencyFileType, std::string> typeToNameMap = {
+    {DependencyFileType::PACKAGE, "packagedependencies.txt"},
+    {DependencyFileType::EXTRA_DEPS, Constants::EXTRA_DEPS}
+};
+
+void DependencyManager::retrieveDependency(Dependency &  dependency, DependencyFileType type)
 {
     fs::detail::utf8_codecvt_facet utf8;
     shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(dependency, m_options);
@@ -246,13 +260,19 @@ void DependencyManager::retrieveDependency(Dependency &  dependency)
             std::cout<<"===> "<<dependency.getRepositoryType()<<"::"<<dependency.getName()<<"-"<<dependency.getVersion()<<" already installed in folder : "<<outputDirectory<<std::endl;
         }
     }
-    this->retrieveDependencies(outputDirectory/"packagedependencies.txt");
+    if (dependency.getType() == Dependency::Type::REMAKEN) {
+        // recurse on extra-packages or pkgdeps makes sense only for remaken deps
+        this->retrieveDependencies(outputDirectory / Constants::EXTRA_DEPS,  DependencyFileType::EXTRA_DEPS);
+        if (type != DependencyFileType::EXTRA_DEPS) {
+            this->retrieveDependencies(outputDirectory / typeToNameMap.at(type), type);
+        }
+    }
 }
 
 void DependencyManager::generateConfigureFile(const fs::path &  rootFolderPath, const std::vector<Dependency> & deps)
 {
     fs::detail::utf8_codecvt_facet utf8;
-    fs::path buildFolderPath = rootFolderPath/"build";
+    fs::path buildFolderPath = rootFolderPath/DepUtils::getBuildPlatformFolder(m_options);
     fs::path configureFilePath = buildFolderPath/"configure_conditions.pri";
     if (deps.empty()) {
         return;
@@ -274,11 +294,13 @@ void DependencyManager::generateConfigureFile(const fs::path &  rootFolderPath, 
     configureFile.close();
 }
 
-void DependencyManager::retrieveDependencies(const fs::path &  dependenciesFile)
+void DependencyManager::retrieveDependencies(const fs::path &  dependenciesFile, DependencyFileType type)
 {
     fs::detail::utf8_codecvt_facet utf8;
     std::vector<fs::path> dependenciesFileList = DepUtils::getChildrenDependencies(dependenciesFile.parent_path(), m_options.getOS(), dependenciesFile.stem().generic_string(utf8));
-    std::map<std::string,bool> conditionsMap = DepUtils::parseConditionsFile(dependenciesFile.parent_path());
+    std::map<std::string,bool> conditionsMap;   
+    std::shared_ptr<IGeneratorBackend> generator = BackendGeneratorFactory::getGenerator(m_options);
+    generator->parseConditionsFile(dependenciesFile.parent_path(), conditionsMap);
     std::vector<Dependency> conditionsDependencies;
     for (fs::path depsFile : dependenciesFileList) {
         if (fs::exists(depsFile)) {
@@ -298,7 +320,7 @@ void DependencyManager::retrieveDependencies(const fs::path &  dependenciesFile)
 #ifdef REMAKEN_USE_THREADS
                 thread_group.push_back(std::make_shared<std::thread>(&DependencyManager::retrieveDependency,this, dependency));
 #else
-                retrieveDependency(dependency);
+                retrieveDependency(dependency, type);
                 if (dependency.hasConditions()) {
                     conditionsDependencies.push_back(dependency);
                 }
@@ -309,7 +331,7 @@ void DependencyManager::retrieveDependencies(const fs::path &  dependenciesFile)
             }
         }
     }
-    generateConfigureFile(dependenciesFile.parent_path(), conditionsDependencies);
+    generator->generateConfigureConditionsFile(dependenciesFile.parent_path(), conditionsDependencies);
 }
 
 

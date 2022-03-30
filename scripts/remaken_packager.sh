@@ -30,7 +30,7 @@ for prefix in $(ls); do
 			done
 			# Prepare package archive
 			cd  ${platform}_${mode}_${config}
-			zip -r ${prefix}_${package}_${version}_${platform}_${mode}_${config}.zip ${package}
+			zip -r -y ${prefix}_${package}_${version}_${platform}_${mode}_${config}.zip ${package}
 			cd -
 			# Cleanup temporary directory
 			rm -rf ${platform}_${mode}_${config}/${package}

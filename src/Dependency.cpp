@@ -137,6 +137,20 @@ std::string Dependency::parseConditions(const std::string & token)
     return firstPart;
 }
 
+Dependency::Dependency(const CmdOptions & options, const std::string & pkgName, const std::string & name, const std::string & version, Type type)
+{
+    m_mode = options.getMode();
+    m_packageName = pkgName;
+    m_name = name;
+    m_version = version;
+    m_type = type;
+    m_repositoryType = to_string(type);
+}
+
+Dependency::Dependency(const CmdOptions & options, const std::string & pkgName, const std::string & version, Type type):Dependency(options, pkgName, pkgName, version, type)
+{
+}
+
 
 Dependency::Dependency(const std::string & rawFormat, const std::string & mainMode):m_packageChannel("stable"),m_repositoryType("github")
 {

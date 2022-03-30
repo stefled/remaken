@@ -26,6 +26,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include "CmdOptions.h"
 
 class Dependency
 {
@@ -42,6 +43,8 @@ public:
     };
 
     explicit Dependency(const std::string & rawFormat, const std::string & mainMode);
+    Dependency(const CmdOptions & options, const std::string & pkgName, const std::string & name, const std::string & version = "1.0.0", Type type = Type::SYSTEM);
+    Dependency(const CmdOptions & options, const std::string & pkgName, const std::string & version = "1.0.0", Type type = Type::SYSTEM);
     // Dependency(Dependency && dependency) = default;
 
     inline const std::string & getPackageName() const  {
@@ -110,6 +113,39 @@ public:
         return m_buildConditions;
     }
 
+    const std::vector<std::string> & cflags() const {
+        return m_cflags;
+    }
+
+    const std::vector<std::string> & libs() const {
+        return m_libs;
+    }
+
+    std::vector<std::string> & cflags() {
+        return m_cflags;
+    }
+
+    const std::string & prefix() const {
+        return m_prefix;
+    }
+
+     std::string & prefix() {
+        return m_prefix;
+    }
+
+    const std::vector<std::string> & libdirs() const {
+        return m_libdirs;
+    }
+
+    std::vector<std::string> & libdirs() {
+        return m_libdirs;
+    }
+
+
+    std::vector<std::string> & libs() {
+        return m_libs;
+    }
+
     bool isSystemDependency() const;
     bool isSpecificSystemToolDependency() const;
     bool isGenericSystemDependency() const;
@@ -134,6 +170,10 @@ private:
     std::string m_mode;
     std::string m_toolOptions;
     std::vector<std::string> m_buildConditions;
+    std::vector<std::string> m_cflags;
+    std::vector<std::string> m_libs;
+    std::string m_prefix;
+    std::vector<std::string> m_libdirs;
     Type m_type;
     bool m_bHasOptions = false;
     bool m_bHasConditions = false;

@@ -27,7 +27,7 @@ It also avoids other developers to build locally the same dependency.
 To setup a native C/C++ project that uses thirdparty dependencies, a developer must for each dependency (whatever the build system is in either [make](https://www.gnu.org/software/make/manual/make.html), [cmake](https://cmake.org/), [conan](https://conan.io/), [vcpkg](https://github.com/microsoft/vcpkg), [MSVC](https://visualstudio.microsoft.com/) …)  :
 
 1. build each dependency with homogeneous build rules and flags (for instance c++ std version, for each target [*debug*, *release* | *os* | *cpu* | *shared*, *static*])
-2. install each dependency in an accessible path in the system (and eventually, pollute the development environment system for instance using `make install`, or set a different *sysroot*)
+2. install each dependency in an accessible path in the system (and eventually, pollute the development environment system for instance using `make install`, or set a different *sysroot* - make install by default will need sudo access for unix(e)s.)
 3. add include paths, libraries paths and libraries link flags for each dependency and sub dependency in its development project
 4. For each new development, even based on same dependencies : reproduce every dependency build step 1 to 3 (also true for [conan](https://conan.io/) when the binary hosted version doesn’t fit with your options)
 5. Running a final application : each dependency must either be copied in the same folder than the application or paths must be set to each shared dependency folder.
@@ -48,6 +48,8 @@ Shared library or application project heterogeneity across a team can lead to in
 - bundle [xpcf](https://github.com/b-com-software-basis/xpcf) applications from [xpcf](https://github.com/b-com-software-basis/xpcf) configuration file
 - integrate [conan](https://conan.io/) dependencies easily without writing a [conanfile.py](https://docs.conan.io/en/latest/reference/conanfile.html)
 - provide a normalized package installation structure for **remaken** dependencies. cf [Package tree](#package-tree)
+- allow to manage several dependencies version at the same time (each installation is based and searched with the package version number)
+- binaries installation don't occur in system path. It avoids the pollution of the environment. It also avoids the need for sudo access.
 - provide vcpkg installation and bootstrap
 - provide [builddefs-qmake](https://github.com/b-com-software-basis/builddefs-qmake/releases/tag/builddefs-qmake-latest) rules installation and update
  
@@ -110,7 +112,7 @@ The ```remaken init``` command also supports the ```--force``` (alias ```-f```) 
 
 ### Install IDE wizards
 For now, only QtCreator wizards are provided.
-To install the remaken and xpcf projects and classes wizards, use: 
+To install the remaken, xpcf projects and classes wizards, use: 
 - ```remaken init -w```
 - ```remaken init wizards```
 
@@ -223,15 +225,42 @@ The **list** command allows to :
 ### Running applications
 remaken can be used to ease application run by gathering all shared libraries paths and exposing the paths in the appropriate environment variable (LD_LIBRARY_PATH for unixes, DYLD_LIBRARY_PATH for mac and PATH for windows)
 
-```remaken run [-c debug|release] run --env [--deps path_to_remaken_dependencies_description_file.txt] [--xpcf path_to_xpcf_configuration_file.xml] [path_to_executable] [executable arguments list]```
+```remaken run [-c debug|release] run --env [--ref remaken package reference] [--deps path_to_remaken_dependencies_description_file.txt] [--xpcf path_to_xpcf_configuration_file.xml] [--app path_to_executable] [--name ]-- [executable arguments list]```
+
+remaken also allow to run an application installed in remaken packages structure from its package reference (i.e [package name:package version]).
+```remaken run [-c debug|release] --ref [package name:package version]```
+In this configuration, dynamic dependencies are searched in the package dependencies file and added to the platform library search path.
+
+If an xpcf xml file is installed in the package folder or next to the application binary, the xpcf xml file is parsed to add the modules and their dependencies to the platform library search path.
+
+For instance: ```remaken run -c debug --ref testxpcf:2.5.1```
+The ```--ref``` option can be used with other options, especially to overwrite the application name if it differs from the package name, or to retrieve the environment set using ```--env```.
+
+```--app``` represents the complete application filepath including the filename.
 
 **Note** : options in **[executable arguments list]** starting with a dash (-) must be surrounded with quotes and prefixed with \ for instance **"\\-f"** to forward **-f** option to the application (this is due to CLI11 interpretation of options).
 
-## Dependency file syntax
+## Dependency file types
+### packagedependencies dependency file
 
 For each project, a packagedependencies.txt file can be created in the root project folder.
 
 For dependencies specific to a particular os, a packagedependencies-[os].txt can also be created in the root project folder (os is a value in {android, linux, mac, win } ).
+
+### extra-packages dependency file
+An extra-packages.txt file can also be created along the packagedependencies.txt file.
+
+The extra-packages.txt file can be used to add dependencies to install and bundle steps. Dependencies listed in the extra-packages file will not be used
+by configure steps, or by the project build rules. 
+
+The extra-packages purpose is to:
+
+- install and bundle sub-dependencies needed by a project direct dependency when the direct dependency doesn't install its sub-dependency. (for instance, the conan opencv recipe doesn't install gtk+ on linux, but gtk+ is needed when a project uses opencv::imgui, hence the opencv conan recipe is "incomplete" as the imgui functionality is disabled when the gtk+ package is missing)
+- install non-dependency packages : for instance install data needed by an application, configuration files ...
+
+For packages specific to a particular os, an extra-packages-[os].txt can also be created in the root project folder (os is a value in {android, linux, mac, win } ).
+
+## packagedependencies/extra-packages file syntax
 
 The project build rules (builddefs-qmake for instance) will generate a packagedependencies.txt containing the build informations and will gather the dependencies in the original packagedependencies.txt and packagedependencies-[os].txt for the target os the build is run for.
 

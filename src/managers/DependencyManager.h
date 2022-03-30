@@ -46,8 +46,8 @@ public:
 
 private:
     void generateConfigureFile(const fs::path &  rootFolderPath, const std::vector<Dependency> & deps);
-    void retrieveDependencies(const fs::path & dependenciesFiles);
-    void retrieveDependency(Dependency &  dependency);
+    void retrieveDependencies(const fs::path & dependenciesFiles, DependencyFileType type = DependencyFileType::PACKAGE);
+    void retrieveDependency(Dependency &  dependency, DependencyFileType type);
     bool installDep(Dependency &  dependency, const std::string & source,
                     const fs::path & outputDirectory, const fs::path & libDirectory, const fs::path & binDirectory);
     void readInfos(const fs::path &  dependenciesFile);

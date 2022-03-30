@@ -37,16 +37,14 @@ public:
     virtual ~PkgConfigTool() = default;
     void addPath(const fs::path & pkgConfigPath);
 
-    void libs(const std::string & name, std::vector<std::string> & libFlagList, const std::vector<std::string> & options = {});
-    void cflags(const std::string & name,  std::vector<std::string> & cFlagList, const std::vector<std::string> & options = {});
-    fs::path generate(GeneratorType genType, const std::vector<std::string>&  cflags, const std::vector<std::string>&  libs,
-                           Dependency::Type depType);
+    void libs(Dependency & dep, const std::vector<std::string> & options = {});
+    void cflags(Dependency & dep, const std::vector<std::string> & options = {});
+    std::pair<std::string, fs::path> generate(const std::vector<Dependency> & deps, Dependency::Type depType);
 
 
 protected:
     static std::string getPkgConfigToolIdentifier();
-    fs::path generateQmake(const std::vector<std::string>&  cflags, const std::vector<std::string>&  libs,
-                           Dependency::Type type);
+    std::string deduceRemakenPkgConfigFilename(const Dependency & dep);
     fs::path m_pkgConfigToolPath;
     std::string m_pkgConfigPaths;
     const CmdOptions & m_options;

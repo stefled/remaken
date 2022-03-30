@@ -1,4 +1,5 @@
 #include "DepUtils.h"
+#include "OsUtils.h"
 #include "Constants.h"
 #include "FileHandlerFactory.h"
 #include "retrievers/HttpFileRetriever.h"
@@ -57,10 +58,18 @@ fs::path DepUtils::buildDependencyPath(const std::string & filePath)
     return dependenciesFile;
 }
 
-fs::path DepUtils::getBuildSubFolder(const CmdOptions & options)
+fs::path DepUtils::getBuildPlatformFolder(const CmdOptions & options)
 {
     fs::detail::utf8_codecvt_facet utf8;
-    fs::path targetPath ("build", utf8);
+    fs::path targetPath (Constants::REMAKEN_BUILD_RULES_FOLDER, utf8);
+    std::string targetPlatform = options.getOS() + "-" + options.getBuildToolchain() + "-" + options.getArchitecture();
+    targetPath /= targetPlatform;
+    return targetPath;
+}
+
+fs::path DepUtils::getBuildSubFolder(const CmdOptions & options)
+{
+    fs::path targetPath = getBuildPlatformFolder(options);
     targetPath /= options.getMode();
     targetPath /= options.getConfig();
     return targetPath;
@@ -94,38 +103,6 @@ std::vector<Dependency> removeRedundantDependencies(const std::multimap<std::str
         }
     }
     return depVector;
-}
-
-std::map<std::string,bool>  DepUtils::parseConditionsFile(const fs::path &  rootFolderPath)
-{
-    fs::detail::utf8_codecvt_facet utf8;
-    fs::path configureFilePath = rootFolderPath/"configure_conditions.pri";
-    std::map<std::string,bool> conditionsMap;
-
-    if (!fs::exists(configureFilePath)) {
-        return conditionsMap;
-    }
-
-    std::ifstream configureFile(configureFilePath.generic_string(utf8).c_str(), std::ios::in);
-    while (!configureFile.eof()) {
-        std::vector<std::string> results;
-        string curStr;
-        getline(configureFile,curStr);
-        std::string formatRegexStr = "^[\t\s]*DEFINES[\t\s]*+=[\t\s]*[a-zA-Z0-9_-]*";
-        //std::regex formatRegexr(formatRegexStr, std::regex_constants::extended);
-        std::smatch sm;
-        //check string format is ^[\t\s]*DEFINES[\t\s]*+=[\t\s]*[a-zA-Z0-9_-]*
-        // if (std::regex_search(curStr, sm, formatRegexr, std::regex_constants::match_any)) {
-        boost::split(results, curStr, [](char c){return c == '=';});
-        if (results.size() == 2) {
-            std::string conditionValue = results[1];
-            boost::trim(conditionValue);
-            conditionsMap.insert({conditionValue,true});
-        }
-        // }
-    }
-    configureFile.close();
-    return conditionsMap;
 }
 
 std::vector<Dependency> DepUtils::filterConditionDependencies(const std::map<std::string,bool> & conditions, const std::vector<Dependency> & depCollection)
@@ -290,6 +267,25 @@ fs::path DepUtils::downloadFile(const CmdOptions & options, const std::string & 
     }
     fs::remove(compressedDependency);
     return outputDirectory/name;
+}
+
+fs::path DepUtils::findPackageFolder(const CmdOptions & options, const std::string & pkgName, const std::string & pkgVersion)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    fs::path remakenRootPackagesPath = OsUtils::computeRemakenRootPackageDir(options);
+    if (!fs::exists(remakenRootPackagesPath)) {
+        return fs::path();
+    }
+    for (fs::directory_entry& x : fs::recursive_directory_iterator(remakenRootPackagesPath)) {
+        if (fs::is_directory(x.path())) {
+            fs::path leafFolder = x.path().filename();
+            std::string leafFolderStr = leafFolder.generic_string(utf8);
+            std::string parentFolderStr = x.path().parent_path().filename().generic_string(utf8);
+            if (parentFolderStr == pkgName && leafFolderStr == pkgVersion) {
+                return x.path();
+            }
+        }
+    }
 }
 
 

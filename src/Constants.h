@@ -36,16 +36,27 @@ public:
     static constexpr const char * REMAKEN_PROFILES_FOLDER = "profiles";
     static constexpr const char * REMAKEN_CACHE_FILE = ".remaken-cache";
     static constexpr const char * ARTIFACTORY_API_KEY = "artifactoryApiKey";
-    static constexpr const char * QMAKE_RULES_DEFAULT_TAG = "4.9.0";
+    static constexpr const char * QMAKE_RULES_DEFAULT_TAG = "4.9.3";
     static constexpr const char * PKGINFO_FOLDER = ".pkginfo";
     static constexpr const char * VCPKG_REPOURL = "https://github.com/microsoft/vcpkg";
+    static constexpr const char * EXTRA_DEPS = "extra-packages.txt";
+    static constexpr const char * REMAKEN_BUILD_RULES_FOLDER = ".build-rules";
+    static constexpr const char * REMAKEN_PKGCONFIG_PREFIX = "remaken-";
 };
 
 typedef enum {
     cmake = 0x01,
-    qmake = 0x20,
-    pkg_config = 0x40,
+    qmake = 0x02,
+    pkg_config = 0x04,
+    json = 0x08,
+    make = 0x10,
+    bazel = 0x20
 } GeneratorType;
+
+typedef enum DependencyFileType {
+    PACKAGE = 0,
+    EXTRA_DEPS = 1
+};
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>

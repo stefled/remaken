@@ -66,6 +66,7 @@ static const map<std::string,std::vector<std::string>> validationMap ={{"action"
                                                                        {"--alternate-remote-type",{"github","artifactory","nexus","path","http"}},
                                                                        {"--operating-system",{"mac","win","unix","android","ios","linux"}},
                                                                        {"--cpp-std",{"11","14","17","20"}},
+                                                                       {"--generator",{"qmake","cmake","pkgconfig","make","json","bazel"}},
                                                                        #ifdef BOOST_OS_LINUX_AVAILABLE
                                                                        {"--restrict",{"brew","conan","system","vcpkg"}}
                                                                        #endif
@@ -76,6 +77,32 @@ static const map<std::string,std::vector<std::string>> validationMap ={{"action"
                                                                        {"--restrict",{"choco","conan","scoop","system","vcpkg"}}
                                                                        #endif
                                                                       };
+
+static const map<std::string,GeneratorType> generatorTypeMap = {{"qmake",GeneratorType::qmake},
+                                                                {"cmake",GeneratorType::cmake},
+                                                                {"pkgconfig",GeneratorType::pkg_config},
+                                                                {"make",GeneratorType::make},
+                                                                {"json",GeneratorType::json},
+                                                                {"bazel",GeneratorType::bazel}};
+
+static const std::map<GeneratorType, std::string> generatorExtensionMap = {{GeneratorType::qmake,".pri"},
+                                                                           {GeneratorType::cmake,".cmake"},
+                                                                           {GeneratorType::pkg_config,".pc"},
+                                                                           {GeneratorType::make,".mk"},
+                                                                           {GeneratorType::json,".json"},
+                                                                           {GeneratorType::bazel,".bzl"}
+                                                                          };
+
+std::string CmdOptions::getGeneratorFileExtension() const
+{
+    return generatorExtensionMap.at(getGenerator());
+}
+
+std::string CmdOptions::getGeneratorFilePath(const std::string & file) const
+{
+    std::string fileName = file + getGeneratorFileExtension();
+    return fileName;
+}
 
 std::string CmdOptions::getOptionString(const std::string & optionName)
 {
@@ -142,13 +169,15 @@ CmdOptions::CmdOptions()
     m_cliApp.add_flag("--verbose,-v", m_verbose, "verbose mode");
     m_override = false;
     m_cliApp.add_flag("--override,-e", m_override, "override existing files while (re)-installing packages/rules...");
+    m_recurse = false;
+    m_cliApp.add_flag("--recurse", m_recurse, "recursive mode : parse dependencies recursively");
+    m_cliApp.add_option("--conan_profile", m_conanProfile, "force conan profile name to use (overrides detected profile)"); // ,true);
+    m_cliApp.add_option("--generator,-g", m_generator, "generator to use in [" + getOptionString("--generator") + "] (default: qmake) "); // ,true);
     m_dependenciesFile = "packagedependencies.txt";
 
     // BUNDLE COMMAND
     CLI::App * bundleCommand = m_cliApp.add_subcommand("bundle","copy shared libraries dependencies to a destination folder");
     bundleCommand->add_option("--destination,-d", m_destinationRoot, "Destination directory")->required();
-    m_recurse = false;
-    bundleCommand->add_flag("--recurse", m_recurse, "recursive mode : bundle dependencies recursively");
     bundleCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files"); // ,true);
 
     // BUNDLEXPCF COMMAND
@@ -157,14 +186,13 @@ CmdOptions::CmdOptions()
     bundleXpcfCommand->add_option("--destination,-d", m_destinationRoot, "Destination directory")->required();
     bundleXpcfCommand->add_option("--modules-subfolder,-s", m_moduleSubfolder, "relative folder where XPCF modules will be "
                                                                                "copied with their dependencies"); // ,true);
-    bundleXpcfCommand->add_option("file", m_dependenciesFile, "XPCF xml module declaration file")->required();
+    bundleXpcfCommand->add_option("--pkgdeps", m_dependenciesFile, "Remaken dependencies files"); // ,true);
+    bundleXpcfCommand->add_option("xpcf_file", m_xpcfConfigurationFile, "XPCF xml module declaration file")->required();
 
     CLI::App * cleanCommand = m_cliApp.add_subcommand("clean", "WARNING : remove every remaken installed packages");
 
     // CONFIGURE COMMAND
     CLI::App * configureCommand = m_cliApp.add_subcommand("configure", "configure project dependencies");
-    m_recurse = false;
-    configureCommand->add_flag("--recurse", m_recurse, "recursive mode : configure dependencies recursively");
     configureCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files - must be located in project root"); // ,true);
 
     // INFO COMMAND
@@ -204,7 +232,6 @@ CmdOptions::CmdOptions()
     installCommand->add_flag("--invert-remote-order", m_invertRepositoryOrder, "invert alternate and base remote search order : alternate remote is searched before packagedependencies declared remote");
     installCommand->add_option("--apiKey,-k", m_apiKey, "Artifactory api key");
     installCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files : can be a local file or an url to the file"); // ,true);
-    installCommand->add_option("--conan_profile", m_conanProfile, "force conan profile name to use (overrides detected profile)"); // ,true);
     installCommand->add_flag("--project_mode,-p", m_projectMode, "enable project mode to generate project build files from packaging tools (conanbuildinfo ...).");//\nProject mode is enabled automatically when the folder containing the packagedependencies file also contains a QT project file");
 
     m_ignoreCache = false;
@@ -238,12 +265,8 @@ CmdOptions::CmdOptions()
     CLI::App * remoteCommand = m_cliApp.add_subcommand("remote", "Remote/sources/repositories/tap management");
     CLI::App * remoteListCommand = remoteCommand->add_subcommand("list", "list all remotes/sources/tap from installed packaging systems");
     CLI::App * remoteListFileCommand = remoteCommand->add_subcommand("listfile", "list remotes/sources/tap declared from packagedependencies file");
-    m_recurse = false;
-    remoteListFileCommand->add_flag("--recurse", m_recurse, "recursive mode : list remote recursively from dependencies files");
     remoteListFileCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files"); // ,true);
     CLI::App * remoteAddCommand = remoteCommand->add_subcommand("add", "add remotes/sources/tap declared from packagedependencies file");
-    m_recurse = false;
-    remoteAddCommand->add_flag("--recurse", m_recurse, "recursive mode : add remote recursively from dependencies files");
     remoteAddCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files"); // ,true);
 
 
@@ -252,7 +275,9 @@ CmdOptions::CmdOptions()
     runCommand->add_option("--xpcf", m_xpcfConfigurationFile, "XPCF xml module declaration file path");
     runCommand->add_flag("--env", m_environment, "don't run executable, only retrieve run environment informations from files (dependencies and/or XPCF xml module declaration file)");
     runCommand->add_option("--deps", m_dependenciesFile, "Remaken dependencies files"); // ,true);
-    runCommand->add_option("application", m_applicationFile, "executable file path");
+    runCommand->add_option("--ref", m_remakenPackageRef, "Remaken application package reference i.e. name:version");
+    runCommand->add_option("--app", m_applicationFile, "executable file path");
+    runCommand->add_option("--name", m_applicationName, "executable file name (without any extension) - Useful only when application name differs from --ref package name");
     runCommand->add_option("arguments", m_applicationArguments, "executable arguments");
 
     // PACKAGE COMMAND
@@ -306,6 +331,11 @@ void CmdOptions::initBuildConfig()
     m_buildConfig += "|" + getCppVersion();
     m_buildConfig += "|" + getMode();
     m_buildConfig += "|" + getConfig();
+}
+
+GeneratorType CmdOptions::getGenerator() const
+{
+   return generatorTypeMap.at(m_generator);
 }
 
 void CmdOptions::validateOptions()
@@ -365,6 +395,7 @@ void CmdOptions::validateOptions()
         throw std::runtime_error("Error : " + m_zipTool + " command not found on the system. Please install it first.");
     }
     m_crossCompile = (m_os != computeOS());
+    m_debugEnabled = (m_config == "debug");
     // TODO : if linkmode=static and pkgdep = path/to/pkgdep.txt should we replace pkgdep with path/to/pkgdep-static.txt when the file exists ?
 }
 
@@ -435,8 +466,16 @@ CmdOptions::OptionResult CmdOptions::parseArguments(int argc, char** argv)
                 cout << "Error : application file and environment set ! choose between --env or provide an application file to run but don't provide both options simultaneously!"<<endl;
                 return OptionResult::RESULT_ERROR;
             }
-            if (!environmentOnly() && getApplicationFile().empty()) {
-                cout << "Error : neither application file nor environment set ! provide either --env or an application file to run (don't provide both options simultaneously)!"<<endl;
+            if (!environmentOnly() && getApplicationFile().empty() && getRemakenPkgRef().empty()) {
+                cout << "Error : neither ref,  application file nor environment set ! provide either --ref, --env or an application file to run (don't provide both options simultaneously)!"<<endl;
+                return OptionResult::RESULT_ERROR;
+            }
+            if (!getApplicationFile().empty() && !getApplicationName().empty()) {
+                cout << "Error : providing at the same time the application name and the application file path is ambiguous !"<<endl;
+                return OptionResult::RESULT_ERROR;
+            }
+            if (getRemakenPkgRef().empty() && !getApplicationName().empty()) {
+                cout << "Error : providing the application name without a remaken ref is inconsistent !"<<endl;
                 return OptionResult::RESULT_ERROR;
             }
         }

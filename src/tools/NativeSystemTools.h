@@ -28,10 +28,10 @@
 class NativeSystemTool : public BaseSystemTool
 {
 public:
-    NativeSystemTool(const CmdOptions & options, const std::string & installer):BaseSystemTool(options, installer) {}
+    NativeSystemTool(const CmdOptions & options, const std::string & installer):BaseSystemTool(options, installer) { m_bundleScripted = true;}
     virtual ~NativeSystemTool() = default;
     virtual void bundle ([[maybe_unused]] const Dependency & dependency) override {
-        BOOST_LOG_TRIVIAL(warning)<<"bundle() not implemented yet for tool "<<m_systemInstallerPath;
+        BOOST_LOG_TRIVIAL(info)<<"bundle() for tool "<<m_systemInstallerPath<<" generates a shell install script";
     }
     virtual void search (const std::string & pkgName, [[maybe_unused]] const std::string & version) override {
         BOOST_LOG_TRIVIAL(warning)<<"search() not implemented yet for tool "<<m_systemInstallerPath;

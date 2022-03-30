@@ -63,7 +63,16 @@ int BundleManager::bundle()
         if (!fs::exists(m_options.getDestinationRoot())) {
             fs::create_directory(m_options.getDestinationRoot());
         }
-        bundleDependencies(buildDependencyPath());
+        fs::path rootPath = buildDependencyPath();
+        fs::path extradeps;
+        if (fs::is_directory(rootPath)) {
+            extradeps = rootPath / Constants::EXTRA_DEPS;
+        }
+        else {
+            extradeps = rootPath.parent_path() / Constants::EXTRA_DEPS;
+        }
+        bundleDependencies(extradeps, DependencyFileType::EXTRA_DEPS);
+        bundleDependencies(rootPath);
     }
     catch (const std::runtime_error & e) {
         BOOST_LOG_TRIVIAL(error)<<e.what();
@@ -79,10 +88,14 @@ int BundleManager::bundle()
 int BundleManager::bundleXpcf()
 {
     try {
+        // create bundle modules directory
         if (!fs::exists(m_options.getDestinationRoot()/m_options.getModulesSubfolder())) {
             fs::create_directories(m_options.getDestinationRoot()/m_options.getModulesSubfolder());
         }
-        fs::path xpcfConfigFilePath = buildDependencyPath();
+        m_options.verboseMessage("=> bundling direct dependencies");
+        bundle();
+        m_options.verboseMessage("=> bundling XPCF modules dependencies");
+        fs::path xpcfConfigFilePath = DepUtils::buildDependencyPath(m_options.getXpcfXmlFile());
         if ( xpcfConfigFilePath.extension() != ".xml") {
             BOOST_LOG_TRIVIAL(error)<<" the xpcf configuration file must be an xml file with the correct .xml extension, file provided is "<<xpcfConfigFilePath;
             return -1;
@@ -106,7 +119,6 @@ int BundleManager::bundleXpcf()
             else {
                 BOOST_LOG_TRIVIAL(warning)<<"Unable to find packagedependencies.txt file in package path"<<packageRootPath<<" for module "<<name;
             }
-
         }
     }
     catch (const std::runtime_error & e) {
@@ -119,18 +131,25 @@ int BundleManager::bundleXpcf()
     return 0;
 }
 
+static const std::map<DependencyFileType, std::string> typeToNameMap = {
+    {DependencyFileType::PACKAGE, "packagedependencies.txt"},
+    {DependencyFileType::EXTRA_DEPS, Constants::EXTRA_DEPS}
+};
 
-void BundleManager::bundleDependency(const Dependency & dependency)
+void BundleManager::bundleDependency(const Dependency & dependency, DependencyFileType type)
 {
     fs::detail::utf8_codecvt_facet utf8;
     shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(dependency, m_options);
     fs::path outputDirectory = fileRetriever->bundleArtefact(dependency);
     if (!outputDirectory.empty() && dependency.getType() == Dependency::Type::REMAKEN && m_options.recurse()) {
-        this->bundleDependencies(outputDirectory/"packagedependencies.txt");
+        this->bundleDependencies(outputDirectory / Constants::EXTRA_DEPS,  DependencyFileType::EXTRA_DEPS);
+        if (type != DependencyFileType::EXTRA_DEPS) {
+            this->bundleDependencies(outputDirectory / typeToNameMap.at(type), type);
+        }
     }
 }
 
-void BundleManager::bundleDependencies(const fs::path &  dependenciesFile)
+void BundleManager::bundleDependencies(const fs::path &  dependenciesFile, DependencyFileType type)
 {
     fs::detail::utf8_codecvt_facet utf8;
     std::vector<fs::path> dependenciesFileList = DepUtils::getChildrenDependencies(dependenciesFile.parent_path(), m_options.getOS(),dependenciesFile.stem().generic_string(utf8));
@@ -147,7 +166,7 @@ void BundleManager::bundleDependencies(const fs::path &  dependenciesFile)
                         || dependency.getType() == Dependency::Type::VCPKG
                         || dependency.getType() == Dependency::Type::SYSTEM) {
                     if (!mapContains(m_ignoredPackages, dependency.getPackageName())) {
-                        bundleDependency(dependency);
+                        bundleDependency(dependency, type);
                     }
                 }
             }

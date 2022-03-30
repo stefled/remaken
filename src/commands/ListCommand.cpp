@@ -92,21 +92,15 @@ int ListCommand::listPackageFiles(const std::string & pkgName, const std::string
     if (!fs::exists(remakenRootPackagesPath)) {
         return -1;
     }
-    for (fs::directory_entry& x : fs::recursive_directory_iterator(remakenRootPackagesPath)) {
-        if (fs::is_directory(x.path())) {
-            fs::path leafFolder = x.path().filename();
-            std::string leafFolderStr = leafFolder.generic_string(utf8);
-            std::string parentFolderStr = x.path().parent_path().filename().generic_string(utf8);
-            if (parentFolderStr == pkgName && leafFolderStr == pkgVersion) {
-                if (m_options.treeEnabled()) {
-                    DepUtils::readInfos(x.path()/"packagedependencies.txt", m_options);
-                }
-                std::cout<<std::endl;
-                for (fs::directory_entry& pathElt : fs::recursive_directory_iterator(x.path())) {
-                    if (fs::is_regular_file(pathElt.path())) {
-                        std::cout<< pathElt.path().generic_string(utf8)<<std::endl;
-                    }
-                }
+    fs::path pkgPath = DepUtils::findPackageFolder(m_options, pkgName, pkgVersion);
+    if (!pkgPath.empty()) {
+        if (m_options.treeEnabled()) {
+            DepUtils::readInfos(pkgPath/"packagedependencies.txt", m_options);
+        }
+        std::cout<<std::endl;
+        for (fs::directory_entry& pathElt : fs::recursive_directory_iterator(pkgPath)) {
+            if (fs::is_regular_file(pathElt.path())) {
+                std::cout<< pathElt.path().generic_string(utf8)<<std::endl;
             }
         }
     }

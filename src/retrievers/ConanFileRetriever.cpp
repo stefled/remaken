@@ -10,9 +10,10 @@ ConanFileRetriever::ConanFileRetriever(const CmdOptions & options):SystemFileRet
 
 fs::path ConanFileRetriever::bundleArtefact(const Dependency & dependency)
 {
+    m_options.verboseMessage("--------------- Conan bundle ---------------");
+    m_options.verboseMessage("===> bundling: " + dependency.getName() + "/"+ dependency.getVersion());
     m_tool->bundle(dependency);
-    fs::path outputDirectory = computeLocalDependencyRootDir(dependency);
-    return outputDirectory;
+    return fs::path();
 }
 /*
  *             equals(pkg.repoType,"conan") {# conan system package handling
@@ -81,7 +82,7 @@ std::vector<std::string> ConanFileRetriever::buildOptions(const Dependency & dep
 fs::path ConanFileRetriever::createConanFile(const fs::path & projectFolderPath)
 {
     fs::detail::utf8_codecvt_facet utf8;
-    fs::path conanFilePath = projectFolderPath / "build" / m_options.getConfig() / "conanfile.txt";
+    fs::path conanFilePath = projectFolderPath / Constants::REMAKEN_BUILD_RULES_FOLDER / m_options.getConfig() / "conanfile.txt";
     ofstream fos(conanFilePath.generic_string(utf8),ios::out);
     fos<<"[requires]"<<'\n';
     for (auto & dependency : m_installedDeps) {
@@ -111,8 +112,8 @@ void ConanFileRetriever::invokeGenerator(const fs::path & conanFilePath, ConanSy
 //conan install $$_PRO_FILE_PWD_/build/$$OUTPUTDIR/conanfile.txt -s $${conanArch} -s compiler.cppstd=$${conanCppStd} -s build_type=$${CONANBUILDTYPE} --build=missing -if $$_PRO_FILE_PWD_/build/$$OUTPUTDIR
 }*/
 
-fs::path ConanFileRetriever::invokeGenerator(const std::vector<Dependency> & deps, GeneratorType generator)
+std::pair<std::string, fs::path> ConanFileRetriever::invokeGenerator(std::vector<Dependency> & deps)
 {
-    return m_tool->invokeGenerator(deps, generator);
+    return m_tool->invokeGenerator(deps);
 }
 

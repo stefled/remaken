@@ -41,7 +41,7 @@ public:
     virtual fs::path computeRootLibDir( const Dependency & dependency) override;
     virtual fs::path computeLocalDependencyRootDir( const Dependency &  dependency) override;
     virtual const std::vector<Dependency> & installedDependencies() const override final { return m_installedDeps; }
-    virtual fs::path invokeGenerator(const std::vector<Dependency> & deps, GeneratorType generator) override;
+    virtual std::pair<std::string, fs::path> invokeGenerator(std::vector<Dependency> & deps) override;
 
 protected:
     virtual fs::path installArtefactImpl(const Dependency & dependency);

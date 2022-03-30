@@ -42,15 +42,16 @@ public:
     static fs::path buildDependencyPath(const std::string & filePath);
     fs::path detectDependencyPath(const fs::path & folderPath, const std::string & linkMode);
     static fs::path getBuildSubFolder(const CmdOptions & options);
+    static fs::path getBuildPlatformFolder(const CmdOptions & options);
     static fs::path getProjectBuildSubFolder(const CmdOptions & options);
     static std::vector<fs::path> getChildrenDependencies(const fs::path & outputDirectory, const std::string & osPlatform, const std::string & filePrefix = "packagedependencies");
     static std::vector<Dependency> parse(const fs::path & dependenciesPath, const std::string & linkMode);
     // parseRecurse appends found dependencies to the deps vector - even duplicates.
     static void parseRecurse(const fs::path & dependenciesPath, const CmdOptions & options, std::vector<Dependency> & deps);
     static void readInfos(const fs::path &  dependenciesFile, const CmdOptions & options, uint32_t indentLevel = 0);
-    static std::map<std::string,bool> parseConditionsFile(const fs::path & rootFolderPath);
     static std::vector<Dependency> filterConditionDependencies(const std::map<std::string,bool> & conditions, const std::vector<Dependency> & depCollection);
     static fs::path downloadFile(const CmdOptions & options, const std::string & source, const fs::path & outputDirectory, const std::string & name = "");
+    static fs::path findPackageFolder(const CmdOptions & options, const std::string & pkgName, const std::string & pkgVersion);
 };
 
 bool yesno_prompt(char const* prompt);

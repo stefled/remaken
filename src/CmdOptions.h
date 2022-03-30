@@ -27,6 +27,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 #include <libs/CLI11/include/CLI/CLI.hpp>
+#include "Constants.h"
 
 //remaken install -r  path_to_remaken_root -i -o linux -t github -l nexus -u http://url_to_root_nexus_repo --cpp-std 17 -c debug -- packagedependencies-github.txt
 
@@ -93,6 +94,14 @@ public:
         return m_destinationRootPath;
     }
 
+    fs::path getBundleDestinationRoot() const {
+        fs::path destinationFolderPath = m_destinationRootPath;
+        if (m_isXpcfBundle) {
+            destinationFolderPath /= m_moduleSubfolderPath;
+        }
+        return destinationFolderPath;
+    }
+
     const fs::path & getRemakenRoot() const {
         return m_remakenRootPath;
     }
@@ -143,6 +152,10 @@ public:
 
     bool isXpcfBundle() const {
         return m_isXpcfBundle;
+    }
+
+    bool debugEnabled() const {
+        return m_debugEnabled;
     }
 
     bool cleanAllEnabled() const {
@@ -207,6 +220,14 @@ public:
         return m_projectRootPath;
     }
 
+    const std::string & getRemakenPkgRef() const  {
+        return m_remakenPackageRef;
+    }
+
+    const std::string & getApplicationName() const  {
+        return m_applicationName;
+    }
+
     const std::map<std::string,std::string> & getCompressCommandOptions() const {
         return m_packageCompressOptions;
     }
@@ -224,6 +245,12 @@ public:
             std::cout<<msg<<std::endl;
         }
     }
+
+    GeneratorType getGenerator() const;
+
+    std::string getGeneratorFileExtension() const;
+
+    std::string getGeneratorFilePath(const std::string & file) const;
 
     void writeConfigurationFile(const std::string & profileName = "default") const;
     void displayConfigurationSettings() const;
@@ -265,6 +292,9 @@ private:
     std::string m_conanProfile = "default";
     std::string m_profileName = "default";
     fs::path m_moduleSubfolderPath;
+    std::string m_generator = "qmake";
+    std::string m_remakenPackageRef;
+    std::string m_applicationName = "";
     bool m_ignoreCache;
     bool m_invertRepositoryOrder = false;
     bool m_verbose;
@@ -280,6 +310,7 @@ private:
     bool m_defaultProfileOptions = false;
     bool m_crossCompile = false;
     bool m_installWizards = false;
+    bool m_debugEnabled = false;
     CLI::App m_cliApp{"remaken"};
 };
 

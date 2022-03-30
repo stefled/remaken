@@ -20,23 +20,13 @@
  * @date 2019-11-15
  */
 
-#ifndef CONANFILERETRIEVER_H
-#define CONANFILERETRIEVER_H
+#ifndef BACKENDGENERATORFACTORY_H
+#define BACKENDGENERATORFACTORY_H
 
-#include "SystemFileRetriever.h"
+#include "backends/IGeneratorBackend.h"
 
-class ConanFileRetriever : public SystemFileRetriever
-{
-public:
-    ConanFileRetriever(const CmdOptions & options);
-    ~ConanFileRetriever() override = default;
-    fs::path bundleArtefact(const Dependency & dependency) override;
-    fs::path createConanFile(const fs::path & projectFolderPath);
-    std::pair<std::string, fs::path> invokeGenerator(std::vector<Dependency> & deps) override;
+namespace BackendGeneratorFactory {
+    std::shared_ptr<IGeneratorBackend> getGenerator(const CmdOptions & options);
+}
 
-protected:
-    std::vector<std::string> buildOptions(const Dependency & dep);
-
-};
-
-#endif // CONANFILERETRIEVER_H
+#endif // BACKENDGENERATORFACTORY_H
