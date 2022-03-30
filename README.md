@@ -112,7 +112,7 @@ The ```remaken init``` command also supports the ```--force``` (alias ```-f```) 
 
 ### Install IDE wizards
 For now, only QtCreator wizards are provided.
-To install the remaken and xpcf projects and classes wizards, use: 
+To install the remaken, xpcf projects and classes wizards, use: 
 - ```remaken init -w```
 - ```remaken init wizards```
 
@@ -225,7 +225,18 @@ The **list** command allows to :
 ### Running applications
 remaken can be used to ease application run by gathering all shared libraries paths and exposing the paths in the appropriate environment variable (LD_LIBRARY_PATH for unixes, DYLD_LIBRARY_PATH for mac and PATH for windows)
 
-```remaken run [-c debug|release] run --env [--deps path_to_remaken_dependencies_description_file.txt] [--xpcf path_to_xpcf_configuration_file.xml] [path_to_executable] [executable arguments list]```
+```remaken run [-c debug|release] run --env [--ref remaken package reference] [--deps path_to_remaken_dependencies_description_file.txt] [--xpcf path_to_xpcf_configuration_file.xml] [--app path_to_executable] [--name ]-- [executable arguments list]```
+
+remaken also allow to run an application installed in remaken packages structure from its package reference (i.e [package name:package version]).
+```remaken run [-c debug|release] --ref [package name:package version]```
+In this configuration, dynamic dependencies are searched in the package dependencies file and added to the platform library search path.
+
+If an xpcf xml file is installed in the package folder or next to the application binary, the xpcf xml file is parsed to add the modules and their dependencies to the platform library search path.
+
+For instance: ```remaken run -c debug --ref testxpcf:2.5.1```
+The ```--ref``` option can be used with other options, especially to overwrite the application name if it differs from the package name, or to retrieve the environment set using ```--env```.
+
+```--app``` represents the complete application filepath including the filename.
 
 **Note** : options in **[executable arguments list]** starting with a dash (-) must be surrounded with quotes and prefixed with \ for instance **"\\-f"** to forward **-f** option to the application (this is due to CLI11 interpretation of options).
 
