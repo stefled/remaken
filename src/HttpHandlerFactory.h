@@ -22,7 +22,6 @@
 
 #ifndef HTTPHANDLERFACTORY_H
 #define HTTPHANDLERFACTORY_H
-#include "IFileRetriever.h"
 #include "CmdOptions.h"
 #include <atomic>
 #include <memory>

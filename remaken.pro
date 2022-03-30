@@ -1,5 +1,5 @@
 TARGET = remaken
-VERSION=1.7.2
+VERSION=1.9.2
 
 CONFIG += c++1z
 CONFIG += console
@@ -18,7 +18,6 @@ CONFIG(release,debug|release) {
 }
 
 DEFINES += BOOST_ALL_NO_LIB
-DEFINES += ROOTFOLDERENV=$$shell_quote(\"REMAKEN_ROOT\")
 
 # Include bundle configuration parameters
 include(_BundleConfig.pri)
@@ -32,70 +31,113 @@ CONFIG += app_setup
 include (builddefs/qmake/templateappconfig.pri)
 
 HEADERS += \
-    src/BundleXpcfCommand.h \
-    src/CleanCommand.h \
+    src/backends/BackendGeneratorFactory.h \
+    src/backends/BazelGeneratorBackend.h \
+    src/backends/CMakeGeneratorBackend.h \
+    src/backends/IGeneratorBackend.h \
+    src/backends/JSONGeneratorBackend.h \
+    src/backends/QMakeGeneratorBackend.h \
+    src/commands/RemoteCommand.h \
+    src/commands/SearchCommand.h \
+    src/managers/BundleManager.h \
+    src/commands/BundleXpcfCommand.h \
+    src/commands/CleanCommand.h \
+    src/commands/ConfigureCommand.h \
     src/Dependency.h \
-    src/DependencyManager.h \
+    src/managers/DependencyManager.h \
     src/CmdOptions.h \
     src/Constants.h \
     src/Cache.h \
-    src/AbstractCommand.h \
-    src/InfoCommand.h \
-    src/InitCommand.h \
-    src/InstallCommand.h \
-    src/PathBuilder.h \
-    src/ProfileCommand.h \
-    src/VersionCommand.h \
+    src/commands/AbstractCommand.h \
+#    src/HttpAsyncDownloader.h \
+    src/commands/ListCommand.h \
+    src/managers/XpcfXmlManager.h \
+    src/tools/BrewSystemTool.h \
+    src/tools/ConanSystemTool.h \
+    src/tools/GitTool.h \
+    src/commands/InfoCommand.h \
+    src/commands/InitCommand.h \
+    src/commands/InstallCommand.h \
+    src/commands/PackageCommand.h \
+    src/tools/NativeSystemTools.h \
+    src/tools/PkgConfigTool.h \
+    src/utils/DepUtils.h \
+    src/utils/OsUtils.h \
+    src/utils/PathBuilder.h \
+    src/commands/ProfileCommand.h \
+    src/commands/RunCommand.h \
+    src/commands/VersionCommand.h \
     src/FileHandlerFactory.h \
-    src/CredentialsFileRetriever.h \
-    src/HttpFileRetriever.h \
-    src/FSFileRetriever.h \
-    src/IFileRetriever.h \
-    src/AbstractFileRetriever.h \
+    src/retrievers/CredentialsFileRetriever.h \
+    src/retrievers/HttpFileRetriever.h \
+    src/retrievers/FSFileRetriever.h \
+    src/retrievers/IFileRetriever.h \
+    src/retrievers/AbstractFileRetriever.h \
     src/AsioWrapper.h \
     src/HttpHandlerFactory.h \
-    src/ConanFileRetriever.h \
-    src/VCPKGFileRetriever.h \
-    src/SystemFileRetriever.h \
-    src/SystemTools.h \
-    src/ParseCommand.h \
-    src/BundleCommand.h \
-    src/ZipTool.h \
-    src/OsTools.h \
+    src/retrievers/ConanFileRetriever.h \
+    src/retrievers/SystemFileRetriever.h \
+    src/tools/SystemTools.h \
+    src/commands/ParseCommand.h \
+    src/commands/BundleCommand.h \
+    src/tools/VCPKGSystemTool.h \
+    src/tools/ZipTool.h \
     src/tinyxml2.h \
     src/tinyxmlhelper.h
 
 SOURCES += \
-    src/BundleXpcfCommand.cpp \
-    src/CleanCommand.cpp \
-    src/InfoCommand.cpp \
-    src/InitCommand.cpp \
-    src/PathBuilder.cpp \
-    src/ProfileCommand.cpp \
-    src/ZipTool.cpp \
+    src/backends/BackendGeneratorFactory.cpp \
+    src/backends/BazelGeneratorBackend.cpp \
+    src/backends/CMakeGeneratorBackend.cpp \
+    src/backends/JSONGeneratorBackend.cpp \
+    src/backends/QMakeGeneratorBackend.cpp \
+    src/commands/RemoteCommand.cpp \
+    src/commands/SearchCommand.cpp \
+    src/managers/BundleManager.cpp \
+    src/commands/BundleXpcfCommand.cpp \
+    src/commands/CleanCommand.cpp \
+#    src/HttpAsyncDownloader.cpp \
+    src/commands/ConfigureCommand.cpp \
+    src/commands/ListCommand.cpp \
+    src/managers/XpcfXmlManager.cpp \
+    src/tools/BrewSystemTool.cpp \
+    src/tools/ConanSystemTool.cpp \
+    src/tools/GitTool.cpp \
+    src/commands/InfoCommand.cpp \
+    src/commands/PackageCommand.cpp \
+    src/commands/InitCommand.cpp \
+    src/tools/NativeSystemTools.cpp \
+    src/tools/PkgConfigTool.cpp \
+    src/utils/DepUtils.cpp \
+    src/utils/OsUtils.cpp \
+    src/utils/PathBuilder.cpp \
+    src/commands/ProfileCommand.cpp \
+    src/commands/RunCommand.cpp \
+    src/tools/VCPKGSystemTool.cpp \
+    src/tools/ZipTool.cpp \
     src/main.cpp \
     src/Dependency.cpp \
-    src/DependencyManager.cpp \
+    src/managers/DependencyManager.cpp \
     src/CmdOptions.cpp \
     src/Cache.cpp \
-    src/InstallCommand.cpp \
-    src/VersionCommand.cpp \
-    src/AbstractCommand.cpp \
+    src/commands/InstallCommand.cpp \
+    src/commands/VersionCommand.cpp \
+    src/commands/AbstractCommand.cpp \
     src/FileHandlerFactory.cpp \
-    src/CredentialsFileRetriever.cpp \
-    src/FSFileRetriever.cpp \
-    src/HttpFileRetriever.cpp \
-    src/AbstractFileRetriever.cpp \
+    src/retrievers/CredentialsFileRetriever.cpp \
+    src/retrievers/FSFileRetriever.cpp \
+    src/retrievers/HttpFileRetriever.cpp \
+    src/retrievers/AbstractFileRetriever.cpp \
     src/HttpHandlerFactory.cpp \
-    src/ConanFileRetriever.cpp \
-    src/VCPKGFileRetriever.cpp \
-    src/SystemFileRetriever.cpp \
-    src/SystemTools.cpp \
-    src/ParseCommand.cpp \
-    src/BundleCommand.cpp \
-    src/OsTools.cpp \
+    src/retrievers/ConanFileRetriever.cpp \
+    src/retrievers/SystemFileRetriever.cpp \
+    src/tools/SystemTools.cpp \
+    src/commands/ParseCommand.cpp \
+    src/commands/BundleCommand.cpp \
     src/tinyxml2.cpp \
     src/tinyxmlhelper.cpp
+
+INCLUDEPATH += src
 
 unix {
    # QMAKE_CXXFLAGS += --coverage
@@ -138,7 +180,10 @@ INCLUDEPATH += libs/nlohmann-json/single_include libs/CLI11/include
 
 DISTFILES += \
     packagedependencies.txt \
+    samples/packagedependencies-artifactory.txt \
+    samples/packagedependencies-brew.txt \
     samples/packagedependencies-github.txt \
     samples/packagedependencies-mixed.txt \
     resources/install_remaken_3rdparties.nsh \
-    resources/install_remaken_custom_pages.nsh
+    resources/install_remaken_custom_pages.nsh \
+    samples/packagedependencies-system-linux.txt

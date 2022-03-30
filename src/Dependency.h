@@ -25,6 +25,8 @@
 
 #include <string>
 #include <sstream>
+#include <vector>
+#include "CmdOptions.h"
 
 class Dependency
 {
@@ -34,10 +36,15 @@ public:
         REMAKEN = 0,
         CONAN,
         VCPKG,
+        BREW,
+        CHOCO,
+        SCOOP,
         SYSTEM
     };
 
     explicit Dependency(const std::string & rawFormat, const std::string & mainMode);
+    Dependency(const CmdOptions & options, const std::string & pkgName, const std::string & name, const std::string & version = "1.0.0", Type type = Type::SYSTEM);
+    Dependency(const CmdOptions & options, const std::string & pkgName, const std::string & version = "1.0.0", Type type = Type::SYSTEM);
     // Dependency(Dependency && dependency) = default;
 
     inline const std::string & getPackageName() const  {
@@ -68,6 +75,11 @@ public:
         m_baseRepository = otherRepo;
     }
 
+    inline void resetBaseRepository() {
+        m_baseRepository = m_originalBaseRepository;
+    }
+
+
     inline const std::string & getMode() const  {
         return m_mode;
     }
@@ -84,33 +96,91 @@ public:
         return m_bHasOptions;
     }
 
+
+    inline bool hasConditions() const {
+        return m_bHasConditions;
+    }
+
     inline bool hasIdentifier() const {
         return m_bHasIdentifier;
     }
-
 
     inline const std::string & getToolOptions() const {
         return m_toolOptions;
     }
 
-    bool validate();
+    inline const std::vector<std::string> & getConditions() const {
+        return m_buildConditions;
+    }
+
+    const std::vector<std::string> & cflags() const {
+        return m_cflags;
+    }
+
+    const std::vector<std::string> & libs() const {
+        return m_libs;
+    }
+
+    std::vector<std::string> & cflags() {
+        return m_cflags;
+    }
+
+    const std::string & prefix() const {
+        return m_prefix;
+    }
+
+     std::string & prefix() {
+        return m_prefix;
+    }
+
+    const std::vector<std::string> & libdirs() const {
+        return m_libdirs;
+    }
+
+    std::vector<std::string> & libdirs() {
+        return m_libdirs;
+    }
+
+
+    std::vector<std::string> & libs() {
+        return m_libs;
+    }
+
+    bool isSystemDependency() const;
+    bool isSpecificSystemToolDependency() const;
+    bool isGenericSystemDependency() const;
+    bool needsPriviledgeElevation() const;
+    bool validate() const;
 
     friend std::ostream& operator<< (std::ostream& stream, const Dependency& dep);
+    std::string toString() const;
+
+    bool operator==(const Dependency& dep) const;
 
 private:
+    std::string parseConditions(const std::string & token);
     std::string m_packageName;
     std::string m_packageChannel;
     std::string m_name;
     std::string m_version;
     std::string m_baseRepository;
+    std::string m_originalBaseRepository;
     std::string m_identifier;
     std::string m_repositoryType;
     std::string m_mode;
     std::string m_toolOptions;
+    std::vector<std::string> m_buildConditions;
+    std::vector<std::string> m_cflags;
+    std::vector<std::string> m_libs;
+    std::string m_prefix;
+    std::vector<std::string> m_libdirs;
     Type m_type;
     bool m_bHasOptions = false;
+    bool m_bHasConditions = false;
     bool m_bHasIdentifier = false;
 };
+
+std::string to_string(Dependency::Type type);
 
 template <typename T>
 std::string log(const T & t);

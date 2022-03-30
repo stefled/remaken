@@ -54,21 +54,55 @@ FunctionEnd
 
 ; REMAKEN_PKG_ROOT first path defintion
 Var remaken_pkg_root_text
+Var xpcf_module_root_text
 
+#install - add env var
 Section "!Remaken"	REMAKEN_APP
 	EnVar::SetHKCU
-	EnVar::AddValue "REMAKEN_PKG_ROOT" "$remaken_pkg_root_text\.remaken"
+	# check with different default values
+	StrCmp $remaken_pkg_root_text '' default_remaken_pkg_root
+	StrCmp $remaken_pkg_root_text "$PROFILE" default_remaken_pkg_root
+	StrCmp $remaken_pkg_root_text "$PROFILE\.remaken" default_remaken_pkg_root
+		# add env var if custom value
+		EnVar::AddValue "REMAKEN_PKG_ROOT" "$remaken_pkg_root_text"
+		Goto end_remaken_pkg_root		
+	default_remaken_pkg_root:
+		# remove env var if default value
+		EnVar::Delete "REMAKEN_PKG_ROOT"
+	end_remaken_pkg_root:		
 SectionEnd
 
+Section "XPCF_MODULE_ROOT"	XPCF_MODULE_ENVVAR
+	EnVar::SetHKCU
+	EnVar::AddValue "XPCF_MODULE_ROOT" "$xpcf_module_root_text"
+SectionEnd
+
+#uninstall - delete env var
 Section "!un.Remaken"
 	EnVar::SetHKCU
 	EnVar::Delete "REMAKEN_PKG_ROOT"
 SectionEnd
 
+Section "un.XPCF_MODULE_ROOT"
+	EnVar::SetHKCU
+	EnVar::Delete "XPCF_MODULE_ROOT"
+SectionEnd
+
+# write .packagespath during install
 Section
-	FileOpen $9 $PROFILE\.remaken\.packagespath w
-	FileWrite $9 "$remaken_pkg_root_text\.remaken"
-	FileClose $9 
+	# check with different default values
+	StrCmp $remaken_pkg_root_text '' default_remaken_pkg_root
+	StrCmp $remaken_pkg_root_text "$PROFILE" default_remaken_pkg_root
+	StrCmp $remaken_pkg_root_text "$PROFILE\.remaken" default_remaken_pkg_root
+		# write file if custom value
+		FileOpen $9 $PROFILE\.remaken\.packagespath w
+		FileWrite $9 "$remaken_pkg_root_text"
+		FileClose $9 
+		Goto end_remaken_pkg_root
+	default_remaken_pkg_root:
+		# remove file if default value
+		Delete $PROFILE\.remaken\.packagespath
+	end_remaken_pkg_root:
 SectionEnd	
 
 var python_install_dir
@@ -119,8 +153,13 @@ SectionGroup /e "Chocolatey" CHOCO_TOOLS
 		;always install/update conan
 		;IfFileExists $1\Python3\Scripts\conan.exe conan_exists
 			ExecWait '$python_install_dir\Scripts\pip install --upgrade conan'
-			ExecWait '$python_install_dir\Scripts\conan remote add --force --insert 0 conan-community https://api.bintray.com/conan/conan-community/conan'
-			ExecWait '$python_install_dir\Scripts\conan remote add --force bincrafters https://api.bintray.com/conan/bincrafters/public-conan'
+			# remove old conan-commnunity remote
+			ExecWait '$python_install_dir\Scripts\conan remote remove conan-community'
+			# remove binCrafters and conan-center remote url
+			ExecWait '$python_install_dir\Scripts\conan remote remove bincrafters'
+			ExecWait '$python_install_dir\Scripts\conan remote remove conan-center'
+			# reset config for binCrafters remote
+			ExecWait '$python_install_dir\Scripts\conan config set general.revisions_enabled=0'
 		;conan_exists:
 	SectionEnd	
 	Section "pkg-config" CHOCO_TOOLS_PKG_CONFIG
@@ -161,19 +200,30 @@ Function CustomizeOnInit
 	SectionSetFlags ${CHOCO_TOOLS_7ZIP} 17
 	SectionSetFlags ${CHOCO_TOOLS_CURL} 17
 	
-	; manage custom REMAKEN_PKG_ROOT
-	SetRegView 64
-	ReadRegStr $0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${SETUP_GUID}" "current_remaken_pkg_root"
+	# disable for test in dev
+	#SectionSetFlags ${CONAN} 0
+	#SectionSetFlags ${CHOCO_TOOLS_PKG_CONFIG} 0
+	#SectionSetFlags ${CHOCO_TOOLS_CMAKE} 0
+	
+	#read current REMAKEN_PKG_ROOT env var
+	ReadEnvStr $0 REMAKEN_PKG_ROOT
 	StrCpy $remaken_pkg_root_text $0
+	
+	#read current XPCF_MODULE_ROOT env var
+	ReadEnvStr $0 XPCF_MODULE_ROOT
+	StrCpy $xpcf_module_root_text $0
 FunctionEnd
 !endif
 
 !ifdef CUSTOMIZE_UNONINIT
 Function un.CustomizeUnOnInit
-	; manage custom REMAKEN_PKG_ROOT
-	SetRegView 64
-	ReadRegStr $0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${SETUP_GUID}" "current_remaken_pkg_root"
+	#read current REMAKEN_PKG_ROOT env var
+	ReadEnvStr $0 REMAKEN_PKG_ROOT
 	StrCpy $remaken_pkg_root_text $0
+	
+	#read current XPCF_MODULE_ROOT env var
+	ReadEnvStr $0 XPCF_MODULE_ROOT
+	StrCpy $xpcf_module_root_text $0
 FunctionEnd
 !endif
 
@@ -181,6 +231,7 @@ FunctionEnd
 ; Section descriptions
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
   !insertmacro MUI_DESCRIPTION_TEXT ${REMAKEN_APP} "Install Remaken Tool"
+  !insertmacro MUI_DESCRIPTION_TEXT ${XPCF_MODULE_ENVVAR} "Configure and create XPCF_MODULE_ROOT environment variable"
   !insertmacro MUI_DESCRIPTION_TEXT ${CHOCO_TOOLS} "Remaken use Chocolatey as system install tool"
   !insertmacro MUI_DESCRIPTION_TEXT ${CHOCO_TOOLS_7ZIP} "Remaken use 7zip as system file compression/extraction tool"
   !insertmacro MUI_DESCRIPTION_TEXT ${CHOCO_TOOLS_CURL} "Remaken use Curl as system file download tool"
@@ -196,42 +247,55 @@ Var TextBox
 Var BrowseButton
 Var NextButton
 Var Label
+Var remaken_pkg_root_text_display
 Function custompage_remakenroot 
 	
-	;if empty use $PROFILE else currentdir read in registry
-	StrCmp $remaken_pkg_root_text '' 0 lbl_currentdir
-	StrCpy $remaken_pkg_root_text "$PROFILE"
-	lbl_currentdir:
-		
+	#https://nsis.sourceforge.io/Show_custom_page_when_a_section_has_been_selected
+	SectionGetFlags ${XPCF_MODULE_ENVVAR} $R0 
+	IntOp $R0 $R0 & ${SF_SELECTED} 
+	IntCmp $R0 ${SF_SELECTED} show 
+ 	Abort 
+	show:	
+
+	; set empty if equals $PROFILE - manage remaken_pkg_root_text_display for display information
+	
+	StrCpy $remaken_pkg_root_text_display $remaken_pkg_root_text
+	StrCmp $remaken_pkg_root_text '' notdefined_remaken_pkg_root_text 
+	StrCmp $remaken_pkg_root_text "$PROFILE" clear_remaken_pkg_root_text continue 
+	StrCmp $remaken_pkg_root_text "$PROFILE\.remaken" clear_remaken_pkg_root_text continue
+	clear_remaken_pkg_root_text:
+		StrCpy $remaken_pkg_root_text ''
+		StrCpy $remaken_pkg_root_text_display "Default value (then removed when setup Remaken)"
+		Goto continue
+	notdefined_remaken_pkg_root_text:
+		StrCpy $remaken_pkg_root_text ''
+		StrCpy $remaken_pkg_root_text_display "Not defined - use default install path"
+	continue:
+	
 	!insertmacro MUI_HEADER_TEXT "Define where to install Remaken packages" ""
     nsDialogs::Create 1018
     Pop $0
-    ;${NSD_CreateLabel} 0 0 100% 12u "Define where to install Remaken packages : "
-	${NSD_CreateLabel} 0 0u 100% 12u "When not overrided in a previous install, it defaults to :"
-	${NSD_CreateLabel} 12u 12u 100% 12u "$PROFILE (+ \.remaken\packages)"
-	${NSD_CreateLabel} 0u 28u 100% 12u "Current Remaken packages 'root path' is : $remaken_pkg_root_text"
-	${NSD_CreateLabel} 0u 44u 100% 12u "Please select Remaken packages 'root path' (named below PKG_ROOT_PATH) :"
+    ${NSD_CreateLabel} 0 0u 100% 12u "By default, Remaken packages are installed in :"
+	${NSD_CreateLabel} 12u 12u 100% 12u "$PROFILE\.remaken\packages"
+	${NSD_CreateLabel} 0u 28u 100% 12u "A custom path can be defined saved in REMAKEN_PKG_ROOT env var"
+	${NSD_CreateLabel} 0u 44u 100% 12u "Current REMAKEN_PKG_ROOT : $remaken_pkg_root_text_display"
+	${NSD_CreateLabel} 0u 60u 100% 12u "You can select a 'Remaken packages custom path' (set/keep empty for default behaviour) :"
 		
 	Pop $0
-	${NSD_CreateDirRequest} 0 56u 84% 12u "$remaken_pkg_root_text"
+	${NSD_CreateDirRequest} 0 72u 84% 12u "$remaken_pkg_root_text"
     Pop $TextBox
     ${NSD_SetText} $TextBox $remaken_pkg_root_text
     
-	${NSD_CreateBrowseButton} 85% 56u 15% 12u "Browse"
+	${NSD_CreateBrowseButton} 85% 72u 15% 12u "Browse"
     Pop $BrowseButton
-    ${NSD_OnClick} $BrowseButton OnBrowseForDir	
-	
-	${NSD_CreateLabel} 0u 74u 100% 12u "REMAKEN_PKG_ROOT env var is PKG_ROOT_PATH\.remaken"
+    ${NSD_OnClick} $BrowseButton OnBrowseForDir_remakenroot
 	
 	${NSD_CreateLabel} 0u 102u 100% 12u "Note : please run 'remaken init' to install qmake rules"
 	Pop $Label
 	CreateFont $0 "Arial" 14
 	SendMessage $Label ${WM_SETFONT} $0 1
 	
-
 	GetDlgItem $NextButton $HWNDPARENT 1 ; next=1, cancel=2, back=315
-	${NSD_OnChange} $TextBox OnValidatePath
-	
 	System::Call shlwapi::SHAutoComplete(p$TextBox,i${SHACF_FILESYSTEM})
 	
 	nsDialogs::Show
@@ -240,11 +304,9 @@ FunctionEnd
 
 Function custompage_remakenroot_leave
 	${NSD_GetText} $TextBox $remaken_pkg_root_text
-	SetRegView 64
-	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${SETUP_GUID}" "current_remaken_pkg_root" "$remaken_pkg_root_text"
 FunctionEnd
 
-Function OnBrowseForDir
+Function OnBrowseForDir_remakenroot
 	${NSD_GetText} $TextBox $remaken_pkg_root_text
     nsDialogs::SelectFolderDialog /NOUNLOAD "Directory" $remaken_pkg_root_text
     Pop $0
@@ -255,19 +317,66 @@ Function OnBrowseForDir
     ${EndIf}
 FunctionEnd
 
+Function custompage_xpcfmoduleroot 
+	
+	;if empty use $PROFILE else currentdir read in registry
+	StrCmp $xpcf_module_root_text '' 0 lbl_xpcfcurrentdir
+	StrCpy $xpcf_module_root_text "$PROFILE\.remaken\packages\win-cl-14.1\"
+	lbl_xpcfcurrentdir:
+		
+	!insertmacro MUI_HEADER_TEXT "Define XPCF_MODULE_ROOT environment variable" ""
+    nsDialogs::Create 1018
+    Pop $0
+    ${NSD_CreateLabel} 0 0u 100% 12u "When not overrided in a previous install, it defaults to :"
+	${NSD_CreateLabel} 12u 12u 100% 12u "$PROFILE\.remaken\packages\win-cl_14.1"
+	${NSD_CreateLabel} 0u 28u 100% 12u "Current XPCF_MODULE_ROOT value is : $xpcf_module_root_text"
+	${NSD_CreateLabel} 0u 44u 100% 12u "Please select XPCF_MODULE_ROOT path :"
+		
+	Pop $0
+	${NSD_CreateDirRequest} 0 56u 84% 12u "$xpcf_module_root_text"
+    Pop $TextBox
+    ${NSD_SetText} $TextBox $xpcf_module_root_text
+    
+	${NSD_CreateBrowseButton} 85% 56u 15% 12u "Browse"
+    Pop $BrowseButton
+    ${NSD_OnClick} $BrowseButton OnBrowseFor_xpcfmoduleroot	
+	
+	GetDlgItem $NextButton $HWNDPARENT 1 ; next=1, cancel=2, back=315
+	${NSD_OnChange} $TextBox OnValidate_xpcfmoduleroot
+	
+	System::Call shlwapi::SHAutoComplete(p$TextBox,i${SHACF_FILESYSTEM})
+	
+	nsDialogs::Show
+	
+FunctionEnd
+
+Function custompage_xpcfmoduleroot_leave
+	${NSD_GetText} $TextBox $xpcf_module_root_text
+FunctionEnd
+
+Function OnBrowseFor_xpcfmoduleroot	
+	${NSD_GetText} $TextBox $xpcf_module_root_text
+    nsDialogs::SelectFolderDialog /NOUNLOAD "Directory" $xpcf_module_root_text
+    Pop $0
+    ${If} $0 == error
+    ${Else}
+        StrCpy $xpcf_module_root_text $0
+        ${NSD_SetText} $TextBox $xpcf_module_root_text
+    ${EndIf}
+FunctionEnd
+
 ; check valid path
-Function OnValidatePath	
-	${NSD_GetText} $TextBox $remaken_pkg_root_text
-	StrCpy $R2 $remaken_pkg_root_text 1 2
+Function OnValidate_xpcfmoduleroot	
+	${NSD_GetText} $TextBox $xpcf_module_root_text
+	StrCpy $R2 $xpcf_module_root_text 1 2
 	StrCmp $R2 "\" PathOK
 	EnableWindow $NextButton 0 ;disable next/install button
-	goto OnValidatePathEnd
+	goto OnValidateXpcfPathEnd
 	
 	PathOK:
 		EnableWindow $NextButton 1 ;enable next/install button
-	OnValidatePathEnd:
+	OnValidateXpcfPathEnd:
 FunctionEnd
-
 
 !endif
 
