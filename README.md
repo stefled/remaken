@@ -177,9 +177,10 @@ To add the remotes declared in a packagedependencies.txt, run (using ```--recurs
 To get a sample how to declare an additional remote/bucket/ppa ... see the repository_url section in chapter [Dependency file syntax](#dependency-file-syntax)
 
 
-### Installing dependencies
-add conditions configuration description
+### Installing/Configure dependencies
 ```remaken install [--conan_profile conan_profile_name] [-r  path_to_remaken_root] -i [-o linux] -t github [-l nexus -u http://url_to_root_nexus_repo] [--cpp-std 17] [-c debug|release] [--project_mode,-p] [path_to_remaken_dependencies_description_file.txt] ```
+
+```remaken configure [--conan_profile conan_profile_name] [-r  path_to_remaken_root] -i [-o linux] -t github [-l nexus -u http://url_to_root_nexus_repo] [--cpp-std 17] [-c debug|release] [--project_mode,-p] [path_to_remaken_dependencies_description_file.txt] ```
 
 **Notes:**
  
@@ -193,6 +194,37 @@ add conditions configuration description
    When ```--conan_profile ``` is not specified:
   -  for native compilation: the ```default``` conan profile is used
   -  for cross compilation: remaken expects a ```[os]-[build-toolchain]-[architecture]``` profile to be available - for instance for android build, expects a ```android-clang-armv8``` profile
+
+#### Configure Conditions
+
+By default, remaken (install or configure) prompt users for enabled or disabled configure conditions 
+
+**Note:**
+	A condition is defined just after library name.
+
+a ```configure_conditions.pri``` file can be added into the project root folder to avoid user prompt :
+
+	DEFINES+=CONDITION1
+	DEFINES-=CONDITION2
+
+After `remaken install` or `configure`, a `configure_conditions.pri` file is generated in ```.build-rules/[os]-[build-toolchain]-[architecture]``` folder with specified (by file or by user_prompt) enabled conditions.
+
+The generated file is used when run remaken configure of qmake (on current project) for enable/disable dependencies automatically.
+ 
+Then as only dependencies used are in the generated packagedependencies.txt, only enabled condtions are generated in this file.
+
+#### Specific to Configure  - Currently not used in projects
+
+Also generates build flags in remaken build rules folder (```.build-rules/[os]-[build-toolchain]-[architecture]```) :
+
+- a master file ```dependenciesBuildInfo.pri``` includes
+  - ```conanbuildinfo.pri``` : conan dependencies flags
+  - ```remakenbuildinfo.pri``` : remaken dependencies flags 
+
+This file can be used automatically in qmake projects by using ```use_remaken_parser``` value in ```DEPENDENCIESCONFIG```, ```CONFIG``` or ```REMAKENCONFIG``` value.
+It disables package dependencies parsing made by **builddefs-qmake** rules.
+
+###
  
 ### Bundling dependencies together
 ```remaken bundle [--recurse] [-d path_to_bundle_destination] [--cpp-std 11|14|17|20] [-c debug|release] [path_to_remaken_dependencies_description_file.txt]```
@@ -267,10 +299,12 @@ The project build rules (builddefs-qmake for instance) will generate a packagede
 ### Line syntax
 Each line follows the pattern :
 
-```framework#channel | version | [condition]%library name | identifier@repository_type | repository_url | link_mode | options```
+```framework#channel | version | library name%[condition] | identifier@repository_type | repository_url | link_mode | options```
+
+[more informations ](https://github.com/b-com-software-basis/builddefs-qmake/tree/develop#dependencies-declaration-file)
 
 
-| ```framework[#channel]``` | ```version``` | ```[condition]%library name``` | ```repository_type``` | ```repository_url``` | ```link_mode``` | ```options```|
+| ```framework[#channel]``` | ```version``` | ```library name%[condition]``` | ```repository_type``` | ```repository_url``` | ```link_mode``` | ```options```|
 |---|---|---|---|---|---|---|
 |the framework name. Optionnally the channel to get the package from |the version number|the library name| a value in: [ artifactory, nexus, github or http (http or https public repositories), vcpkg, conan, system, path : local or network filesystem root path hosting the dependencies ]|---|optional value in : [ static, shared, default (inherits the project's link mode), na (not applicable) ] |---|
 
