@@ -125,7 +125,7 @@ void OsUtils::copyLibrary(const fs::path & sourceFile, const fs::path & destinat
     }
 }
 
-void OsUtils::copyLibraries(const fs::path & sourceRootFolder, const fs::path & destinationFolderPath, const std::string_view & suffix)
+void OsUtils::copyLibraries(const fs::path & sourceRootFolder, const fs::path & destinationFolderPath, const std::string_view & suffix, bool overwrite)
 {
     fs::detail::utf8_codecvt_facet utf8;
     std::vector<fs::path> symlinkFiles;
@@ -136,12 +136,12 @@ void OsUtils::copyLibraries(const fs::path & sourceRootFolder, const fs::path & 
             symlinkFiles.push_back(x.path());
         }
         else {
-            copyLibrary(x.path(), destinationFolderPath, suffix);
+            copyLibrary(x.path(), destinationFolderPath, suffix, overwrite);
         }
     }
     // then copy symlinks
     for (auto & file: symlinkFiles) {
-         copyLibrary(file, destinationFolderPath, suffix);
+         copyLibrary(file, destinationFolderPath, suffix, overwrite);
     }
 }
 
@@ -186,7 +186,7 @@ void OsUtils::copyLibraries(const fs::path & sourceRootFolder, const CmdOptions 
     if (options.isXpcfBundle()) {
         destinationFolderPath /= options.getModulesSubfolder();
     }
-    copyLibraries(sourceRootFolder, destinationFolderPath, suffixFunction(options.getOS()));
+    copyLibraries(sourceRootFolder, destinationFolderPath, suffixFunction(options.getOS()), options.override());
 }
 
 
