@@ -185,9 +185,16 @@ void QMakeGeneratorBackend::parseConditionsFile(const fs::path &  rootFolderPath
         // if (std::regex_search(curStr, sm, formatRegexr, std::regex_constants::match_any)) {
         boost::split(results, curStr, [](char c){return c == '=';});
         if (results.size() == 2) {
+            std::string definesValue = results[0];
             std::string conditionValue = results[1];
+            boost::algorithm::erase_all(definesValue, " ");
             boost::trim(conditionValue);
-            conditionsMap.insert_or_assign(conditionValue, true);
+            if (definesValue == "DEFINES+") {
+                conditionsMap.insert_or_assign(conditionValue, true);
+            }
+            if (definesValue == "DEFINES-") {
+                conditionsMap.insert_or_assign(conditionValue, false);
+            }
         }
         // }
     }

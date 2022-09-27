@@ -120,7 +120,12 @@ std::vector<Dependency> DepUtils::filterConditionDependencies(const std::map<std
                     }
                 }
                 else {
-                    std::cout<<"Configuring project with [" + condition + "] (=> " + dep.getPackageName() +":"+dep.getVersion() +")"<<std::endl;
+                    if (conditions.at(condition) == true) {
+                        std::cout<<"Configuring project with [" + condition + "] (=> " + dep.getPackageName() +":"+dep.getVersion() +")"<<std::endl;
+                    } else {
+                        conditionsFullfilled = false;
+                        std::cout<<"Configuring project without [" + condition + "] (=> don't use of " + dep.getPackageName() +":"+dep.getVersion() +")"<<std::endl;
+                    }
                 }
             }
         }

@@ -20,10 +20,12 @@ PkgConfigTool::PkgConfigTool(const CmdOptions & options):m_options(options)
 void PkgConfigTool::addPath(const fs::path & pkgConfigPath)
 {
     fs::detail::utf8_codecvt_facet utf8;
-    if (!m_pkgConfigPaths.empty()) {
-        m_pkgConfigPaths += ":";
+    if (m_pkgConfigPaths.find(pkgConfigPath.generic_string(utf8)) == std::string::npos) {
+        if (!m_pkgConfigPaths.empty()) {
+            m_pkgConfigPaths += ":";
+        }
+        m_pkgConfigPaths +=  pkgConfigPath.generic_string(utf8);
     }
-    m_pkgConfigPaths +=  pkgConfigPath.generic_string(utf8);
 }
 
 std::string PkgConfigTool::deduceRemakenPkgConfigFilename(const Dependency & dep)

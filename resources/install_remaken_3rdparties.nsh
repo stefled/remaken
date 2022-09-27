@@ -327,7 +327,7 @@ Function custompage_xpcfmoduleroot
 	!insertmacro MUI_HEADER_TEXT "Define XPCF_MODULE_ROOT environment variable" ""
     nsDialogs::Create 1018
     Pop $0
-    ${NSD_CreateLabel} 0 0u 100% 12u "When not overrided in a previous install, it defaults to :"
+    ${NSD_CreateLabel} 0 0u 100% 12u "When not overriden in a previous install, it defaults to :"
 	${NSD_CreateLabel} 12u 12u 100% 12u "$PROFILE\.remaken\packages\win-cl_14.1"
 	${NSD_CreateLabel} 0u 28u 100% 12u "Current XPCF_MODULE_ROOT value is : $xpcf_module_root_text"
 	${NSD_CreateLabel} 0u 44u 100% 12u "Please select XPCF_MODULE_ROOT path :"

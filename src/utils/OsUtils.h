@@ -39,7 +39,7 @@ public:
     static void copySharedLibraries(const fs::path & sourceRootFolder, const CmdOptions & options);
     static void copyStaticLibraries(const fs::path & sourceRootFolder, const CmdOptions & options);
     static void copyLibraries(const fs::path & sourceRootFolder, const CmdOptions & options, std::function<const std::string_view &(const std::string_view &)> suffixFunction);
-    static void copyLibraries(const fs::path & sourceRootFolder, const fs::path & destinationFolderPath, const std::string_view & suffix);
+    static void copyLibraries(const fs::path & sourceRootFolder, const fs::path & destinationFolderPath, const std::string_view & suffix, bool overwrite = false);
     static const std::string_view & sharedSuffix(const std::string_view & osStr);
     static const std::string_view & staticSuffix(const std::string_view & osStr);
     static const std::string_view & sharedLibraryPathEnvName(const std::string_view & osStr);
