@@ -243,7 +243,7 @@ CmdOptions::CmdOptions()
     m_zipTool = ZipTool::getZipToolIdentifier();
     installCommand->add_option("--ziptool,-z", m_zipTool, "unzipper tool name : unzip, compact ..."); // ,true);
     installCommand->add_flag("--remote-only", m_projectMode, "Only add remote/source/tap from package dependencies, dependencies are not installed");//\nProject mode is enabled automatically when the folder containing the packagedependencies file also contains a QT project file");
-
+    installCommand->add_option("--conan-build", m_conanForceBuildRefs, "conan force build reference");
 
     // LIST COMMAND
     CLI::App * listCommand = m_cliApp.add_subcommand("list", "list remaken installed dependencies. If package is provided, list the package available version. If package and version are provided, list the package files");

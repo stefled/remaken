@@ -66,6 +66,10 @@ public:
         return m_applicationArguments;
     }
 
+    const std::vector<std::string> & getConanForceBuildRefs() const {
+        return m_conanForceBuildRefs;
+    }
+
     const std::string & getXpcfXmlFile() const {
         return m_xpcfConfigurationFile;
     }
@@ -311,6 +315,7 @@ private:
     bool m_crossCompile = false;
     bool m_installWizards = false;
     bool m_debugEnabled = false;
+    std::vector<std::string> m_conanForceBuildRefs;
     CLI::App m_cliApp{"remaken"};
 };
 
