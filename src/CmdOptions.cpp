@@ -274,6 +274,7 @@ CmdOptions::CmdOptions()
     CLI::App * runCommand = m_cliApp.add_subcommand("run", "run binary (and set dependencies path depending on the run environment) - verbose disabled by default");
     runCommand->add_option("--xpcf", m_xpcfConfigurationFile, "XPCF xml module declaration file path");
     runCommand->add_flag("--env", m_environment, "don't run executable, only retrieve run environment informations from files (dependencies and/or XPCF xml module declaration file)");
+    runCommand->add_option("--destination,-d", m_destinationRoot, "only used with --env, Destination directory for script with debug environnement");
     runCommand->add_option("--deps", m_dependenciesFile, "Remaken dependencies files"); // ,true);
     runCommand->add_option("--ref", m_remakenPackageRef, "Remaken application package reference i.e. name:version");
     runCommand->add_option("--app", m_applicationFile, "executable file path");

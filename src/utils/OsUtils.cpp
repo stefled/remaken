@@ -74,12 +74,47 @@ static const std::map<const std::string_view,const  std::string_view> os2sharedP
     {"linux","LD_LIBRARY_PATH"}
 };
 
+static const std::map<const std::string_view,const  std::string_view> os2sharedPathEnvPrefix = {
+    {"mac","$"},
+    {"win","%"},
+    {"unix","$"},
+    {"android","$"},
+    {"ios","$"},
+    {"linux","$"}
+};
+
+static const std::map<const std::string_view,const  std::string_view> os2sharedPathEnvSuffix = {
+    {"mac",""},
+    {"win","%"},
+    {"unix",""},
+    {"android",""},
+    {"ios",""},
+    {"linux",""}
+};
+
+static const std::map<const std::string_view,const  std::string_view> os2sharedPathEnvSeparator = {
+    {"mac",":"},
+    {"win",";"},
+    {"unix",":"},
+    {"android",":"},
+    {"ios",":"},
+    {"linux",":"}
+};
+
 const std::string_view & OsUtils::sharedSuffix(const std::string_view & osStr)
 {
     if (os2sharedSuffix.find(osStr) == os2sharedSuffix.end()) {
         return os2sharedSuffix.at("unix");
     }
     return os2sharedSuffix.at(osStr);
+}
+
+const std::string_view & OsUtils::staticSuffix(const std::string_view & osStr)
+{
+    if (os2staticSuffix.find(osStr) == os2staticSuffix.end()) {
+        return os2staticSuffix.at("unix");
+    }
+    return os2staticSuffix.at(osStr);
 }
 
 const std::string_view & OsUtils::sharedLibraryPathEnvName(const std::string_view & osStr)
@@ -90,14 +125,28 @@ const std::string_view & OsUtils::sharedLibraryPathEnvName(const std::string_vie
     return os2sharedPathEnv.at(osStr);
 }
 
-
-
-const std::string_view & OsUtils::staticSuffix(const std::string_view & osStr)
+const std::string_view & OsUtils::PathEnvPrefix(const std::string_view & osStr)
 {
-    if (os2staticSuffix.find(osStr) == os2staticSuffix.end()) {
-        return os2staticSuffix.at("unix");
+    if (os2sharedPathEnvPrefix.find(osStr) == os2sharedPathEnvPrefix.end()) {
+        return os2sharedPathEnvPrefix.at("unix");
     }
-    return os2staticSuffix.at(osStr);
+    return os2sharedPathEnvPrefix.at(osStr);
+}
+
+const std::string_view & OsUtils::PathEnvSuffix(const std::string_view & osStr)
+{
+    if (os2sharedPathEnvSuffix.find(osStr) == os2sharedPathEnvSuffix.end()) {
+        return os2sharedPathEnvSuffix.at("unix");
+    }
+    return os2sharedPathEnvSuffix.at(osStr);
+}
+
+const std::string_view & OsUtils::PathEnvSeparator(const std::string_view & osStr)
+{
+    if (os2sharedPathEnvSeparator.find(osStr) == os2sharedPathEnvSeparator.end()) {
+        return os2sharedPathEnvSeparator.at("unix");
+    }
+    return os2sharedPathEnvSeparator.at(osStr);
 }
 
 void OsUtils::copyLibrary(const fs::path & sourceFile, const fs::path & destinationFolderPath, const std::string_view & suffix, bool overwrite)

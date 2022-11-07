@@ -43,6 +43,9 @@ public:
     static const std::string_view & sharedSuffix(const std::string_view & osStr);
     static const std::string_view & staticSuffix(const std::string_view & osStr);
     static const std::string_view & sharedLibraryPathEnvName(const std::string_view & osStr);
+    static const std::string_view & PathEnvPrefix(const std::string_view & osStr);
+    static const std::string_view & PathEnvSuffix(const std::string_view & osStr);
+    static const std::string_view & PathEnvSeparator(const std::string_view & osStr);
     static fs::path computeRemakenRootPackageDir(const CmdOptions & options);
     static void copyFolder(const fs::path & srcFolderPath, const fs::path & dstFolderPath, bool bRecurse);
     static fs::path extractPath(const fs::path & first, const fs::path & second);

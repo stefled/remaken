@@ -145,15 +145,49 @@ int RunCommand::execute()
     }
 
     std::string SharedLibraryPathEnvName(OsUtils::sharedLibraryPathEnvName(m_options.getOS()));
+    std::string envPrefix(OsUtils::PathEnvPrefix(m_options.getOS()));
+    std::string envSuffix(OsUtils::PathEnvSuffix(m_options.getOS()));
+    std::string envSeparator(OsUtils::PathEnvSeparator(m_options.getOS()));
 
     if (m_options.environmentOnly()) {
         // display results
+        std::string result;
         std::cout<<SharedLibraryPathEnvName<<"=";
         for (auto path: libPaths) {
             fs::detail::utf8_codecvt_facet utf8;
-            std::cout<<":"<<path.generic_string(utf8);
+            result += path.generic_string(utf8) + envSeparator;
         }
-        std::cout<<":$"<<SharedLibraryPathEnvName<<std::endl;
+        std::cout<<result<<envPrefix<<SharedLibraryPathEnvName<<envSuffix<<std::endl;
+
+        if (!m_options.getDestinationRoot().empty()) {
+#if defined(BOOST_OS_MACOS_AVAILABLE) || defined(BOOST_OS_LINUX_AVAILABLE)
+            std::string scriptFileName = "prepare_project_env.sh";
+            fs::path m_scriptFilePath =  m_options.getDestinationRoot() / scriptFileName;
+            if (fs::exists(m_scriptFilePath)) {
+                fs::remove(m_scriptFilePath);
+            }
+            ofstream fos(m_scriptFilePath.generic_string(utf8),ios::out);
+            fos<<"#!/bin/bash"<< '\n';
+            fos<<"export REMAKEN_RUN_ENV="<<result<<'\n';
+            fos<<"export "<<SharedLibraryPathEnvName<<"=$REMAKEN_RUN_ENV"<<envSeparator<<envPrefix<<SharedLibraryPathEnvName<<envSuffix<<'\n';
+            fos.close();
+            fs::permissions(m_scriptFilePath, fs::add_perms|fs::owner_exe|fs::group_exe|fs::others_exe);
+#endif
+#if defined (BOOST_OS_WINDOWS_AVAILABLE)
+            std::string scriptFileName = "prepare_project_env.bat";
+            fs::path m_scriptFilePath =  m_options.getDestinationRoot() / scriptFileName;
+            if (fs::exists(m_scriptFilePath)) {
+                fs::remove(m_scriptFilePath);
+            }
+            ofstream fos(m_scriptFilePath.generic_string(utf8),ios::out);
+            fos<<"@ECHO OFF"<< '\n';
+            fos<<"set REMAKEN_RUN_ENV="<<result<<'\n';
+            fos<<"set "<<SharedLibraryPathEnvName<<"=%REMAKEN_RUN_ENV%"<<envSeparator<<envPrefix<<SharedLibraryPathEnvName<<envSuffix<<'\n';
+            fos.close();
+            fs::permissions(m_scriptFilePath, fs::add_perms|fs::owner_exe|fs::group_exe|fs::others_exe);
+#endif
+        }
+
         return 0;
     }
 
