@@ -22,7 +22,7 @@ XpcfXmlManager::XpcfXmlManager(const CmdOptions & options):m_options(options)
 {
 }
 
-fs::path XpcfXmlManager::findPackageRoot(const fs::path & moduleLibPath)
+fs::path XpcfXmlManager::findPackageRoot(const fs::path & moduleLibPath, bool verbose)
 {
     fs::detail::utf8_codecvt_facet utf8;
     std::string versionRegex = "[0-9]+\.[0-9]+\.[0-9]+";
@@ -35,8 +35,10 @@ fs::path XpcfXmlManager::findPackageRoot(const fs::path & moduleLibPath)
         std::string currentFilenameStr = currentFilename.string(utf8);
         if (std::regex_search(currentFilenameStr, sm, tmplRegex, std::regex_constants::match_any)) {
             std::string matchStr = sm.str(0);
-            BOOST_LOG_TRIVIAL(warning)<<"Found "<< matchStr<<" version for modulepath "<<currentModulePath;
-            std::cout<<"Found "<< matchStr<<" version "<<std::endl;
+            if (verbose) {
+                BOOST_LOG_TRIVIAL(warning)<<"Found "<< matchStr<<" version for modulepath "<<currentModulePath;
+                std::cout<<"Found "<< matchStr<<" version "<<std::endl;
+            }
             return currentModulePath;
         }
         else {

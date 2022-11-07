@@ -109,7 +109,7 @@ int BundleManager::bundleXpcf()
         }
 
         for (auto & [name,modulePath] : modulesPathMap) {
-            fs::path packageRootPath = XpcfXmlManager::findPackageRoot(modulePath);
+            fs::path packageRootPath = XpcfXmlManager::findPackageRoot(modulePath, m_options.getVerbose());
             if (!fs::exists(packageRootPath)) {
                 BOOST_LOG_TRIVIAL(warning)<<"Unable to find root package path "<<packageRootPath<<" for module "<<name;
             }

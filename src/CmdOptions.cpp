@@ -271,7 +271,7 @@ CmdOptions::CmdOptions()
 
 
     // RUN COMMAND
-    CLI::App * runCommand = m_cliApp.add_subcommand("run", "run binary (and set dependencies path depending on the run environment)");
+    CLI::App * runCommand = m_cliApp.add_subcommand("run", "run binary (and set dependencies path depending on the run environment) - verbose disabled by default");
     runCommand->add_option("--xpcf", m_xpcfConfigurationFile, "XPCF xml module declaration file path");
     runCommand->add_flag("--env", m_environment, "don't run executable, only retrieve run environment informations from files (dependencies and/or XPCF xml module declaration file)");
     runCommand->add_option("--deps", m_dependenciesFile, "Remaken dependencies files"); // ,true);

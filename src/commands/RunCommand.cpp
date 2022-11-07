@@ -109,7 +109,7 @@ int RunCommand::execute()
             const std::map<std::string, fs::path> & modulesPathMap = xpcfManager.parseXpcfModulesConfiguration(xpcfConfigFilePath);
 
             for (auto & [name,modulePath] : modulesPathMap) {
-                fs::path packageRootPath = XpcfXmlManager::findPackageRoot(modulePath);
+                fs::path packageRootPath = XpcfXmlManager::findPackageRoot(modulePath, m_options.getVerbose());
                 if (!fs::exists(packageRootPath)) {
                     BOOST_LOG_TRIVIAL(warning)<<"Unable to find root package path "<<packageRootPath<<" for module "<<name<<" path="<<modulePath;
                 }

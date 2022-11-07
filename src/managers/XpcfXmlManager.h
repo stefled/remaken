@@ -39,7 +39,7 @@ public:
     XpcfXmlManager(const CmdOptions & options);
     const std::map<std::string, fs::path> & parseXpcfModulesConfiguration(const fs::path & configurationFilePath);
     int updateXpcfModulesPath(const fs::path & configurationFilePath);
-    static fs::path findPackageRoot(const fs::path & moduleLibPath);
+    static fs::path findPackageRoot(const fs::path & moduleLibPath, bool verbose);
 
 private:
     void updateModuleNode(tinyxml2::XMLElement * xmlModuleElt);
