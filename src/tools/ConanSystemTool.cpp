@@ -256,7 +256,14 @@ std::vector<std::string> ConanSystemTool::buildOptions(const Dependency & dep)
     if (dep.hasOptions()) {
         boost::split(options, dep.getToolOptions(), [](char c){return c == '#';});
         for (const auto & option: options) {
-            results.push_back(dep.getPackageName() + ":" + option);
+            std::vector<std::string> optionInfos;
+            boost::split(optionInfos, option, [](char c){return c == ':';});
+            optionInfos.erase(optionInfos.begin());
+            if (optionInfos.empty()) {
+                results.push_back(dep.getPackageName() + ":" + option);
+            } else {
+                results.push_back(option);
+            }
         }
     }
     return results;
@@ -279,10 +286,16 @@ fs::path ConanSystemTool::createConanFile(const std::vector<Dependency> & deps)
     fos<<generator<<'\n';
     fos<<"\n";
     fos<<"[options]"<<'\n';
+    std::vector<std::string> options;
     for (auto & dependency : deps) {
         for (auto & option : buildOptions(dependency)) {
-            fos<<option<<'\n';
+            if (std::find(options.begin(), options.end(), option) == options.end()) {
+                options.push_back(option);
+            }
         }
+    }
+    for (const auto & option: options) {
+        fos<<option<<'\n';
     }
     fos.close();
     return conanFilePath;
