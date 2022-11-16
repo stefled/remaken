@@ -131,7 +131,28 @@ fs::path AbstractFileRetriever::bundleArtefact(const Dependency & dependency)
     fs::detail::utf8_codecvt_facet utf8;
     fs::path rootLibDir = computeRootLibDir(dependency);
     if (!fs::exists(rootLibDir)) { // ignoring header only dependencies
-        BOOST_LOG_TRIVIAL(warning)<<"Ignoring "<<dependency.getName()<<" dependency: no shared library found from "<<rootLibDir;
+        if (m_options.ignoreErrors() || (dependency.getType() != Dependency::Type::REMAKEN)) {
+            BOOST_LOG_TRIVIAL(warning)<<"Ignoring bundle artefact error : "<<dependency.getName()<<" dependency: no shared library found from "<<rootLibDir;
+        } else {
+            // backward compatibility values
+            bool withLibDir = true;
+            bool withHeaders = true;
+            fs::path outputDirectory = computeLocalDependencyRootDir(dependency);
+            if (fs::exists(outputDirectory/Constants::PKGINFO_FOLDER)) {
+                // use existing package informations
+                withLibDir = fs::exists(outputDirectory/Constants::PKGINFO_FOLDER/".lib");
+                withHeaders = fs::exists(outputDirectory/Constants::PKGINFO_FOLDER/".headers");
+            }
+
+            if (dependency.getMode() == "na" || (withHeaders && !withLibDir)) {
+                BOOST_LOG_TRIVIAL(info)<<"Ignoring "<<dependency.getName()<<" dependency: header only library";
+            }
+            else if (withLibDir) {
+                throw std::runtime_error("Error : " + dependency.getName() + " dependency: no shared library found from " + rootLibDir.generic_string(utf8));
+            } else {
+                throw std::runtime_error("Error : " + dependency.getName() + " dependency: no shared library found from " + rootLibDir.generic_string(utf8) +  ", and no .pkginfo/.lib folder found from " + outputDirectory.generic_string(utf8));
+            }
+        }
         return "";
     }
     m_options.verboseMessage("--------------- Remaken bundle ---------------");

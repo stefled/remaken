@@ -179,6 +179,7 @@ CmdOptions::CmdOptions()
     CLI::App * bundleCommand = m_cliApp.add_subcommand("bundle","copy shared libraries dependencies to a destination folder");
     bundleCommand->add_option("--destination,-d", m_destinationRoot, "Destination directory")->required();
     bundleCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files"); // ,true);
+    bundleCommand->add_flag("--ignore-errors", m_ignoreErrors, "force command execution : ignore error when a remaken dependency doesn't contains shared library");
 
     // BUNDLEXPCF COMMAND
     CLI::App * bundleXpcfCommand = m_cliApp.add_subcommand("bundleXpcf","copy xpcf modules and their dependencies from their declaration in a xpcf xml file");
@@ -188,6 +189,7 @@ CmdOptions::CmdOptions()
                                                                                "copied with their dependencies"); // ,true);
     bundleXpcfCommand->add_option("--pkgdeps", m_dependenciesFile, "Remaken dependencies files"); // ,true);
     bundleXpcfCommand->add_option("xpcf_file", m_xpcfConfigurationFile, "XPCF xml module declaration file")->required();
+    bundleXpcfCommand->add_flag("--ignore-errors", m_ignoreErrors, "force command execution : ignore error when a remaken dependency doesn't contains shared library");
 
     CLI::App * cleanCommand = m_cliApp.add_subcommand("clean", "WARNING : remove every remaken installed packages");
 

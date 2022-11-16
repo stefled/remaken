@@ -105,6 +105,16 @@ int BundleManager::bundleXpcf()
         const std::map<std::string, fs::path> & modulesPathMap = m_xpcfManager.parseXpcfModulesConfiguration(xpcfConfigFilePath);
         m_xpcfManager.updateXpcfModulesPath(m_options.getDestinationRoot()/xpcfConfigFilePath.filename());
         for (auto & [name,modulePath] : modulesPathMap) {
+            fs::detail::utf8_codecvt_facet utf8;
+            if (!fs::exists(modulePath)) {
+                if (m_options.ignoreErrors()) {
+                    BOOST_LOG_TRIVIAL(warning)<<"Ignoring bundleXpcf artefact error: shared library " << modulePath.generic_string(utf8) << " folder not found";
+                } else {
+                    throw std::runtime_error("Error : bundleXpcf: shared library " + modulePath.generic_string(utf8) + " folder not found");
+                }
+            }
+            m_options.verboseMessage("--------------- Remaken bundleXpcf ---------------");
+            m_options.verboseMessage("===> bundling from : " + modulePath.generic_string(utf8));
             OsUtils::copySharedLibraries(modulePath,m_options);
         }
 

@@ -178,6 +178,10 @@ public:
         return m_force;
     }
 
+    bool ignoreErrors() const {
+        return m_ignoreErrors;
+    }
+
     bool regexEnabled() const {
         return m_regex;
     }
@@ -310,6 +314,7 @@ private:
     bool m_isXpcfBundle = false;
     bool m_cleanAll = true;
     bool m_force = false;
+    bool m_ignoreErrors = false;
     bool m_override = false;
     bool m_defaultProfileOptions = false;
     bool m_crossCompile = false;
