@@ -4,6 +4,7 @@
 #include "utils/PathBuilder.h"
 #include "retrievers/HttpFileRetriever.h"
 #include "utils/OsUtils.h"
+#include "utils/DepUtils.h"
 #include "tools/GitTool.h"
 #include <boost/log/trivial.hpp>
 #include <boost/process.hpp>
@@ -64,6 +65,40 @@ int setupBrew()
 }
 #endif
 
+int setupArtifactPackager(const CmdOptions & options)
+{
+    fs::path remakenRootPath = PathBuilder::getHomePath() / Constants::REMAKEN_FOLDER;
+    fs::path remakenScriptsPath = remakenRootPath / "scripts";
+
+    if (!fs::exists(remakenScriptsPath)) {
+        fs::create_directories(remakenScriptsPath);
+    }
+
+    std::string source="https://github.com/b-com-software-basis/remaken/releases/download/";
+    std::string release = "artifactpackager";
+    std::string tag = options.getArtifactPackagerTag();
+    if (!tag.empty()) {
+        release = tag;
+    }
+    source += release;
+    source += "/";
+#ifdef BOOST_OS_WINDOWS_AVAILABLE
+    std::string filename = "win_artiPackager.bat";
+#endif
+#ifdef BOOST_OS_MACOS_AVAILABLE
+    std::string filename = "mac_artiPackager.sh";
+#endif
+#ifdef BOOST_OS_LINUX_AVAILABLE
+    std::string filename = "unixes_artiPackager.sh";
+#endif
+    source +=filename;
+    BOOST_LOG_TRIVIAL(info)<<"Installing ArtifactManager version ["<<release<<"]";
+    //fs::path artefactFolder = installArtefact(options,source,remakenScriptsPath,false);
+    fs::path artefactPath = DepUtils::downloadFile(options,source,remakenScriptsPath,filename);
+    fs::permissions(artefactPath, fs::add_perms|fs::owner_exe|fs::group_exe|fs::others_exe);
+    return 0;
+}
+
 int setupWizards(const fs::path & rulesPath)
 {
     BOOST_LOG_TRIVIAL(info)<<"Installing qt creator wizards";
@@ -110,6 +145,9 @@ int InitCommand::execute()
         return setupBrew();
     }
 #endif
+    if (subCommand == "artifactpkg") {
+        return setupArtifactPackager(m_options);
+    }
 
     // process init command
     fs::path remakenRootPath = PathBuilder::getHomePath() / Constants::REMAKEN_FOLDER;

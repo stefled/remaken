@@ -218,6 +218,8 @@ CmdOptions::CmdOptions()
     initCommand->add_flag("--installwizards,-w", m_installWizards, "installs qtcreator wizards for remaken/Xpcf projects");
     CLI::App * initVcpkgCommand = initCommand->add_subcommand("vcpkg", "setup vcpkg repository");
     initVcpkgCommand->add_option("--tag", m_vcpkgTag, "the vcpkg tag version to install");
+    CLI::App * initArtifactPackager = initCommand->add_subcommand("artifactpkg", "setup artifact packager script");
+    initArtifactPackager->add_option("--tag", m_artifactPackagerTag, "the artifact packager tag version to install");
     CLI::App * initWizardsCommand = initCommand->add_subcommand("wizards", "installs qtcreator wizards for remaken/Xpcf projects");
 
 #if defined(BOOST_OS_MACOS_AVAILABLE) || defined(BOOST_OS_LINUX_AVAILABLE)
@@ -446,8 +448,9 @@ CmdOptions::OptionResult CmdOptions::parseArguments(int argc, char** argv)
                 if (!m_subcommand.empty()) {
                     if ((m_subcommand != "vcpkg")
                         && (m_subcommand != "brew")
+                        && (m_subcommand != "artifactpkg")
                         && (m_subcommand != "wizards")) {
-                        cout << "Error : init subcommand must be one among [ vcpkg | brew | wizards ]. "<<m_subcommand<<" is an invalid subcommand !"<<endl;
+                        cout << "Error : init subcommand must be one among [ vcpkg | brew | wizards | artifactpkg ]. "<<m_subcommand<<" is an invalid subcommand !"<<endl;
                         return OptionResult::RESULT_ERROR;
                     }
                 }

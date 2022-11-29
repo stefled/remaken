@@ -216,6 +216,10 @@ public:
         return m_vcpkgTag;
     }
 
+    const std::string & getArtifactPackagerTag() const {
+        return m_artifactPackagerTag;
+    }
+
     const std::string & getConanProfile() const {
         return m_conanProfile;
     }
@@ -297,6 +301,7 @@ private:
     std::string m_subcommand;
     std::string m_qmakeRulesTag;
     std::string m_vcpkgTag = "";
+    std::string m_artifactPackagerTag = "";
     std::string m_conanProfile = "default";
     std::string m_profileName = "default";
     fs::path m_moduleSubfolderPath;
