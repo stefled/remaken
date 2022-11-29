@@ -91,7 +91,8 @@ Download and install the latest [setup file](https://github.com/b-com-software-b
 - yum (redhat, fedora, centos)
 - zypper (openSUSE)
 - pkg (freebsd)
-- pkgutil (solaris)
+- pkgutil (
+- ris)
 - [chocolatey](https://chocolatey.org/) (Windows)
 - [scoop](https://scoop-docs.vercel.app/) (Windows)
 - [others to come]
@@ -361,15 +362,102 @@ WARNING : using system without any OS option implies the current system the tool
 Moreover, some OSes don't have a package manager, hence don't rely on system for android cross-compilation for instance.
 
 ## Remaken packaging structure
-### Default behavior
+
 ### Package tree
+
 ```
-package_name/package_version/
-`|- package_name-package_version_remakeninfo.txt (or libname ??)
- |- bcom-lib_name.pc (should be renamed to remaken-\*.pc ?)
- |- interfaces/
- `- lib/[arch]/[mode]/[config]/
+PackageName
+|- PackageVersion (X.X.X)
+|-- interfaces
+|--- [here your header files]
+|-- lib
+|--- architecture (x86_64, arm64, ...)
+|---- mode (shared or static)
+|----- config (debug or release)
+|------ [your libraries here in release mode]
+|-- remaken-PackageName.pc
+|-- packagedependencies.txt (if your Package requires third-parties)
+|-- PackageName-PackageVersion_remakeninfo.txt
+|-- .pkginfo
+|--- [.headers and/or .lib, and/or bin folders]
+|-- [... specific dependendy files] (wizards, csharp, xml for instance)
 ```
+
+### Packaging your third parties
+
+Remaken uses a packagedependencies.txt file defining all dependencies of your project. This file is interpreted by the QMake build script tools and is based on a simpl dependency file (.pc).
+Thus, by maintaining a simple dependency file and by using the remaken package tree describing the third parties used by your project, you will be able to download the dependencies, link and build your project, and install and deploy your solution with all its dependencies in a very simple way.
+
+Let’s describe now how to package the third parties required by your project in order to be compliant with the dependency manager and the build and install the project.
+
+To create your package, you have to create the the package tree structure described above.
+
+#### remaken-DependencyName.pc
+
+This file is used by `pkg-config` to provide the necessary details for compilng and linking a program to a library.
+If this file is not already provided with your third party, you will have to create it:
+
+```
+libname=PackageName
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/interfaces
+Name: PackageName
+Description: The PackageName library
+Version: PackageVersion
+Requires:
+Libs: -L${libdir} -l${libname}
+Libs.private: ${libdir}/${pfx}${libname}.${lext}
+Cflags: -I${includedir}
+```
+
+For more information concerning the syntax of this pkg-config file, you can take a look to the [pkg-config guide](https://people.freedesktop.org/~dbn/pkg-config-guide.html).
+
+#### packagedependencies.txt
+
+Remaken and builddefs-qmake support the recursive dependency download, link, and installation. But in order to do so, your package must precise its own dependencies in the packagedependencies.txt. 
+
+#### PackageName-PackageVersion_remakeninfo.txt
+
+This file is specific to remaken and builddefs-qmake, and define the platform, the C++ version and the runtime version used to build your package. This file is similar to the conaninfo.txt used by conan.
+
+```
+platform=win-cl-14.1
+cppstd=17
+runtime=dynamicCRT
+```
+
+#### Artifact Packager
+
+When the previous files, your interfaces and you binaries are ready and well-placed in the folder structure detailed above, you can package the dependency by using the ArtifactPackager scripts.
+
+In scripts folder :
+
+	- win_artiPackager.bat
+	- unixes_artiPackager.sh
+	- mac_artiPackager.sh 
+
+Just run the ArtifactPackager script for current Os at the root folder of your package, and it will automatically create folder(s) for each version :
+
+	`architecture_mode_config`  										// 	for instance : `x86_64_shared_release` 
+
+Each folder contains a zip file with name format :
+
+	`PackageName_PackageVersion_architecture_mode_config.zip` 			// 	for instance : `xpcf_2.5.0_x86_64_shared_release.zip` 
+
+This package name format must be respected and will be used by remaken to find the dependency required for a requested development environment.
+
+#### Share your package online
+
+In order for Remaken to find the package corresponding to the requested dependency, you have to respect the following formatting rules concerning the URL to download your package: 
+
+	URL_root/PackageName/PackageVersion/platform/PackageName_PackageVersion_architecture_mode_config.zip
+
+Where:
+
+- URL_root is the URL where you host your packages (github / artifactory ...)
+- platform can be win, linux, mac, android, etc.
 
 ## Building remaken
 Install Qt Creator from https://www.qt.io/download
