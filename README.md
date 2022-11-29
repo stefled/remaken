@@ -117,6 +117,11 @@ To install the remaken, xpcf projects and classes wizards, use:
 - ```remaken init -w```
 - ```remaken init wizards```
 
+### Install Artefact Packager scripts
+
+To install the artefact packager scripts for current OS in .remaken/scripts :
+- ```remaken init artefactpkg```: initializes artefact packager script (download script on https://github.com/b-com-software-basis/remaken/releases/tag/artifactpackager)
+- ```remaken init artefactpkg [--tag tag]```: initializes artefact packager script (download script on https://github.com/b-com-software-basis/remaken/releases/tag/artifactpackager for tag [tag])
 
 ### Set remaken packages root folder
 The remaken packages folder is the location where packages are installed, searched from ...
