@@ -49,6 +49,11 @@ fs::path SystemFileRetriever::installArtefactImpl(const Dependency & dependency)
     return retrieveArtefact(dependency);
 }
 
+void SystemFileRetriever::addArtefactRemoteImpl(const Dependency & dependency)
+{
+    m_tool->addRemote(dependency.getBaseRepository());
+}
+
 fs::path SystemFileRetriever::retrieveArtefact(const Dependency & dependency)
 {
     std::string source = this->computeSourcePath(dependency);

@@ -42,9 +42,11 @@ public:
     virtual fs::path computeLocalDependencyRootDir( const Dependency &  dependency) override;
     virtual const std::vector<Dependency> & installedDependencies() const override final { return m_installedDeps; }
     virtual std::pair<std::string, fs::path> invokeGenerator(std::vector<Dependency> & deps) override;
+    virtual void addArtefactRemote(const Dependency & dependency) override;
 
 protected:
     virtual fs::path installArtefactImpl(const Dependency & dependency);
+    virtual void addArtefactRemoteImpl(const Dependency & dependency);
     void copySharedLibraries(const fs::path & sourceRootFolder);
     fs::path m_workingDirectory;
     const CmdOptions & m_options;

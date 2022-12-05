@@ -246,7 +246,7 @@ CmdOptions::CmdOptions()
     installCommand->add_option("--type,-t", m_repositoryType, "Repository type: " + getOptionString("--type")); // ,true);
     m_zipTool = ZipTool::getZipToolIdentifier();
     installCommand->add_option("--ziptool,-z", m_zipTool, "unzipper tool name : unzip, compact ..."); // ,true);
-    installCommand->add_flag("--remote-only", m_projectMode, "Only add remote/source/tap from package dependencies, dependencies are not installed");//\nProject mode is enabled automatically when the folder containing the packagedependencies file also contains a QT project file");
+    installCommand->add_flag("--remote-only", m_remoteOnly, "Only add remote/source/tap from package dependencies, dependencies are not installed"); // same as remote add command
     installCommand->add_option("--conan-build", m_conanForceBuildRefs, "conan force build reference");
 
     // LIST COMMAND

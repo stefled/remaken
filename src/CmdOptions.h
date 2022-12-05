@@ -190,6 +190,10 @@ public:
         return m_tree;
     }
 
+    bool remoteOnly() const {
+        return m_remoteOnly;
+    }
+
     bool projectModeEnabled() const;
 
     bool crossCompiling() const {
@@ -325,6 +329,7 @@ private:
     bool m_crossCompile = false;
     bool m_installWizards = false;
     bool m_debugEnabled = false;
+    bool m_remoteOnly = false;
     std::vector<std::string> m_conanForceBuildRefs;
     CLI::App m_cliApp{"remaken"};
 };

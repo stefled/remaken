@@ -52,14 +52,20 @@ int DependencyManager::retrieve()
         }
         retrieveDependencies(extradeps, DependencyFileType::EXTRA_DEPS);
         retrieveDependencies(rootPath);
+
         std::cout<<std::endl;
         std::cout<<"--------- Installation status ---------"<<std::endl;
-        for (auto & [depType,retriever] : FileHandlerFactory::instance()->getHandlers()) {
-            std::cout<<"=> '"<<depType<<"' dependencies installed:"<<std::endl;
-            for (auto & dependency : retriever->installedDependencies()) {
-                std::cout<<"===> "<<dependency.toString()<<std::endl;
+        if (!m_options.remoteOnly()) {
+
+            for (auto & [depType,retriever] : FileHandlerFactory::instance()->getHandlers()) {
+                std::cout<<"=> '"<<depType<<"' dependencies installed:"<<std::endl;
+                for (auto & dependency : retriever->installedDependencies()) {
+                    std::cout<<"===> "<<dependency.toString()<<std::endl;
+                }
+                std::cout<<std::endl;
             }
-            std::cout<<std::endl;
+        } else {
+            std::cout<<"Add remote onky done"<<std::endl;
         }
     }
     catch (const std::runtime_error & e) {
@@ -212,6 +218,12 @@ void DependencyManager::retrieveDependency(Dependency &  dependency, DependencyF
     fs::path outputDirectory = fileRetriever->computeLocalDependencyRootDir(dependency);
     fs::path libDirectory = fileRetriever->computeRootLibDir(dependency);
     fs::path binDirectory = fileRetriever->computeRootBinDir(dependency);
+
+    if (m_options.remoteOnly()) {
+        fileRetriever->addArtefactRemote(dependency);
+        return;
+    }
+
     if (installDep(dependency, source, outputDirectory, libDirectory, binDirectory) || m_options.force()) {
         try {
             std::cout<<"=> Installing "<<currentRepositoryType<<"::"<<source<<std::endl;

@@ -67,6 +67,10 @@ fs::path AbstractFileRetriever::installArtefact(const Dependency & dependency)
     return folder;
 }
 
+void AbstractFileRetriever::addArtefactRemote(const Dependency & dependency)
+{
+    addArtefactRemoteImpl(dependency);
+}
 
 std::pair<std::string, fs::path> AbstractFileRetriever::invokeGenerator(std::vector<Dependency> & deps)
 {
@@ -119,6 +123,11 @@ fs::path AbstractFileRetriever::installArtefactImpl(const Dependency & dependenc
         throw std::runtime_error("Error : dependency folder " + outputDirectory.generic_string(utf8) + " doesn't exist after package unzip");
     }
     return outputDirectory;
+}
+
+void AbstractFileRetriever::addArtefactRemoteImpl(const Dependency & dependency)
+{
+
 }
 
 void AbstractFileRetriever::copySharedLibraries(const fs::path & sourceRootFolder)
