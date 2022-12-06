@@ -268,7 +268,7 @@ public:
 
     std::string getGeneratorFilePath(const std::string & file) const;
 
-    void writeConfigurationFile(const std::string & profileName = "default") const;
+    void writeConfigurationFile() const;
     void displayConfigurationSettings() const;
 
 private:

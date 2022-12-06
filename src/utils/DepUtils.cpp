@@ -291,6 +291,7 @@ fs::path DepUtils::findPackageFolder(const CmdOptions & options, const std::stri
             }
         }
     }
+    return fs::path();
 }
 
 

@@ -270,6 +270,7 @@ fs::path OsUtils::acquireTempFolderPath()
         fs::create_directories(tmpDir);
     }
     catch (const fs::filesystem_error & e) {
+        BOOST_LOG_TRIVIAL(error)<<e.what();
         throw std::runtime_error("Unable to create working directory " + tmpDir.generic_string(utf8));
     }
     return tmpDir;
@@ -287,6 +288,7 @@ void OsUtils::releaseTempFolderPath(const fs::path & tmpDir)
         fs::remove(tmpDir);
     }
     catch (const fs::filesystem_error & e) {
+        BOOST_LOG_TRIVIAL(error)<<e.what();
         throw std::runtime_error("Unable to cleanup working directory " + tmpDir.generic_string(utf8));
     }
 }

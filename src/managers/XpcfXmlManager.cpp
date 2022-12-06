@@ -78,6 +78,7 @@ int XpcfXmlManager::updateXpcfModulesPath(const fs::path & configurationFilePath
             xmlDoc.SaveFile(configurationFilePath.string(utf8).c_str());
         }
         catch (const std::runtime_error & e) {
+            BOOST_LOG_TRIVIAL(error)<<e.what();
             return -1;
         }
     }
