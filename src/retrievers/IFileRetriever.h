@@ -47,6 +47,7 @@ public:
     virtual const std::vector<Dependency> & installedDependencies() const = 0;
     virtual std::pair<std::string, fs::path> invokeGenerator(std::vector<Dependency> & deps) = 0;
     virtual void addArtefactRemote(const Dependency & dependency) = 0;
+    virtual void write_pkg_file(std::vector<Dependency> & deps) = 0;
 };
 
 #endif // IFILERETRIEVER_H

@@ -250,3 +250,8 @@ std::vector<fs::path> BrewSystemTool::libPaths ([[maybe_unused]] const Dependenc
     paths.push_back(baseBrewPath);
     return paths;
 }
+
+void BrewSystemTool::write_pkg_file(std::vector<Dependency> & deps)
+{
+
+}

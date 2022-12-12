@@ -54,6 +54,7 @@ public:
     virtual std::pair<std::string, fs::path> invokeGenerator([[maybe_unused]] std::vector<Dependency> & deps);
     virtual void listRemotes() = 0;
     virtual void addRemote(const std::string & remoteReference) = 0;
+    virtual void write_pkg_file(std::vector<Dependency> & deps);
 
 protected:
     std::string run(const std::string & command, const std::vector<std::string> & options = {});

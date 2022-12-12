@@ -71,6 +71,11 @@ std::pair<std::string, fs::path> BaseSystemTool::invokeGenerator([[maybe_unused]
     return pkgConfig.generate(deps,Dependency::Type::SYSTEM);
 }
 
+void BaseSystemTool::write_pkg_file(std::vector<Dependency> & deps)
+{
+
+}
+
 std::vector<std::string> BaseSystemTool::split(const std::string & str, char splitChar)
 {
     std::vector<std::string> outVect;

@@ -43,6 +43,7 @@ public:
     virtual const std::vector<Dependency> & installedDependencies() const override final { return m_installedDeps; }
     virtual std::pair<std::string, fs::path> invokeGenerator(std::vector<Dependency> & deps) override;
     virtual void addArtefactRemote(const Dependency & dependency) override;
+    virtual void write_pkg_file(std::vector<Dependency> & deps) override;
 
 protected:
     virtual fs::path installArtefactImpl(const Dependency & dependency);

@@ -76,3 +76,8 @@ std::pair<std::string, fs::path> SystemFileRetriever::invokeGenerator(std::vecto
 {
     return m_tool->invokeGenerator(deps);
 }
+
+void SystemFileRetriever::write_pkg_file(std::vector<Dependency> & deps)
+{
+    // TODO
+}

@@ -273,6 +273,9 @@ fs::path ConanSystemTool::createConanFile(const std::vector<Dependency> & deps)
 {
     fs::detail::utf8_codecvt_facet utf8;
     fs::path conanFilePath = DepUtils::getProjectBuildSubFolder(m_options)/ "conanfile.txt";
+    if (!m_options.getDestinationRoot().empty()){
+        conanFilePath = m_options.getDestinationRoot()/ "conanfile.txt";
+    }
     std::ofstream fos(conanFilePath.generic_string(utf8),std::ios::out);
     fos<<"[requires]"<<'\n';
     for (auto & dependency : deps) {
@@ -396,7 +399,11 @@ std::pair<std::string, fs::path> ConanSystemTool::invokeGenerator(std::vector<De
     return {"conan_basic_setup",destination/m_options.getGeneratorFilePath("conanbuildinfo")};
 }
 
-
+void ConanSystemTool::write_pkg_file(std::vector<Dependency> & deps)
+{
+    fs::path destination = DepUtils::getProjectBuildSubFolder(m_options);
+    fs::path conanFilePath = createConanFile(deps);
+}
 
 std::vector<fs::path> ConanSystemTool::retrievePaths(const Dependency & dependency, BaseSystemTool::PathType conanNode, const fs::path & destination)
 {

@@ -60,6 +60,7 @@ public:
     std::vector<std::string> buildOptions(const Dependency & dep);
     void listRemotes() override;
     void addRemote(const std::string & remoteReference) override;
+    void write_pkg_file(std::vector<Dependency> & deps) override;
 
 private:
     void addRemoteImpl(const std::string & repositoryUrl);

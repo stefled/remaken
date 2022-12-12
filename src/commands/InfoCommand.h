@@ -33,6 +33,7 @@ public:
     static constexpr const char * NAME="info";
 
 private:
+    int write_pkg_file();
     const CmdOptions & m_options;
 };
 

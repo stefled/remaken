@@ -200,6 +200,8 @@ CmdOptions::CmdOptions()
     // INFO COMMAND
     CLI::App * infoCommand = m_cliApp.add_subcommand("info", "Read package dependencies informations");
     infoCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files"); // ,true);
+    CLI::App * pkgSystemFileCommand = infoCommand->add_subcommand("pkg_systemfile", "write the dependency file of packaging system provided corresponding to the packagedependencies.txt - restrict with [" + getOptionString("--pkgrestrict") + "]");
+    pkgSystemFileCommand->add_option("--destination,-d", m_destinationRoot, "Destination directory for save conanfile.txt")->required();
 
     // PROFILE COMMAND
     CLI::App * profileCommand = m_cliApp.add_subcommand("profile", "manage remaken profiles configuration");
@@ -456,6 +458,7 @@ CmdOptions::OptionResult CmdOptions::parseArguments(int argc, char** argv)
                 }
             }
         }
+
         if (sub->get_name() == "remote") {
             if (sub->get_subcommands().size() > 0) {
                 m_subcommand = sub->get_subcommands().at(0)->get_name();

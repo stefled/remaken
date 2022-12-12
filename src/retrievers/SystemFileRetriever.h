@@ -44,6 +44,7 @@ public:
     std::vector<fs::path> libPaths(const Dependency & dependency) override;
     std::string computeSourcePath( const Dependency &  dependency) override;
     std::pair<std::string, fs::path> invokeGenerator(std::vector<Dependency> & deps) override;
+    void write_pkg_file(std::vector<Dependency> & deps) override;
 
 
 protected:

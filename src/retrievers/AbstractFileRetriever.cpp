@@ -99,6 +99,10 @@ std::pair<std::string, fs::path> AbstractFileRetriever::invokeGenerator(std::vec
     return pkgConfig.generate(deps,Dependency::Type::REMAKEN);
 }
 
+void AbstractFileRetriever::write_pkg_file(std::vector<Dependency> & deps)
+{
+}
+
 fs::path AbstractFileRetriever::installArtefactImpl(const Dependency & dependency)
 {
     fs::detail::utf8_codecvt_facet utf8;
@@ -127,7 +131,6 @@ fs::path AbstractFileRetriever::installArtefactImpl(const Dependency & dependenc
 
 void AbstractFileRetriever::addArtefactRemoteImpl(const Dependency & dependency)
 {
-
 }
 
 void AbstractFileRetriever::copySharedLibraries(const fs::path & sourceRootFolder)

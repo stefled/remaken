@@ -117,3 +117,8 @@ std::pair<std::string, fs::path> ConanFileRetriever::invokeGenerator(std::vector
     return m_tool->invokeGenerator(deps);
 }
 
+void ConanFileRetriever::write_pkg_file(std::vector<Dependency> & deps)
+{
+    return m_tool->write_pkg_file(deps);
+}
+
