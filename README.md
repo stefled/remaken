@@ -249,6 +249,7 @@ Note: ```remaken_dependencies_description_file``` defaults to current folder ```
 
 ### Listing dependencies tree from a packagedependencies.txt file
 ```remaken info [path_to_remaken_dependencies_description_file.txt]```: displays the recursive dependency tree from the file.
+```remaken info --pkg_systemfile -d path_to_write_pkgfile [path_to_remaken_dependencies_description_file.txt]```: generates pkg system files from packagedependencies files into specified folder - currently Only conan is managed.
 
 ### Listing remaken installed packages
 The **list** command allows to :
