@@ -72,11 +72,14 @@ void ConanSystemTool::addRemoteImpl(const std::string & repositoryUrl)
     std::string repoId = repositoryUrl;
     std::vector<std::string> options;
     if (repoParts.size() < 2) {
-        BOOST_LOG_TRIVIAL(warning)<<"Unable to add conan remote. Remote format must follow remoteAlias#remoteURL[#position]. Missing one of remoteAlias or remoteURL: " + repositoryUrl;
+        BOOST_LOG_TRIVIAL(warning)<<"Unable to add conan remote. Remote format must follow repository_identifier#repository_url[#position]. Missing one of repository_identifier or repository_url: " + repositoryUrl;
         return;
     }
     if (repoParts.size() >= 2) {
         repoId = repoParts.at(0);
+        if (repoId == "conan-center") {
+            repoId = "conancenter";
+        }
         options.push_back(repoId);
         options.push_back(repoParts.at(1));
     }
@@ -494,8 +497,11 @@ std::string ConanSystemTool::computeConanRef( const Dependency &  dependency, bo
         sourceURL += "@";
     }
     // decorate url for remotes other than conan-center index
-    if ((dependency.getBaseRepository() != "conan-center")
-            && (dependency.getBaseRepository() != "conancenter")) {
+    auto repoParts = split(dependency.getBaseRepository(),'#');
+    auto repoBaseName = repoParts.at(0);
+
+    if ((repoBaseName != "conan-center")
+        && (repoBaseName != "conancenter")) {
         if (!cliMode) {
             sourceURL += "@";
         }
