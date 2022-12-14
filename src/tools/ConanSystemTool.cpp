@@ -72,7 +72,7 @@ void ConanSystemTool::addRemoteImpl(const std::string & repositoryUrl)
     std::string repoId = repositoryUrl;
     std::vector<std::string> options;
     if (repoParts.size() < 2) {
-        BOOST_LOG_TRIVIAL(warning)<<"Unable to add conan remote. Remote format must follow repository_identifier#repository_url[#position]. Missing one of repository_identifier or repository_url: " + repositoryUrl;
+        BOOST_LOG_TRIVIAL(info)<<"Use existing conan remote. Remote format can follow remoteAlias#[remoteUrl[#position]] for automatically add unexisting remote"<<std::endl;
         return;
     }
     if (repoParts.size() >= 2) {
@@ -83,15 +83,28 @@ void ConanSystemTool::addRemoteImpl(const std::string & repositoryUrl)
         options.push_back(repoId);
         options.push_back(repoParts.at(1));
     }
-    std::cout<<"Adding conan remote: "<<repoId;
     if (repoParts.size() == 3) {
-        std::cout<<" position: "<<repoParts.at(2);
+
         options.push_back("--insert");
         options.push_back(repoParts.at(2));
     }
-    std::cout<<std::endl;
-    if (remoteList.find(repoId) == std::string::npos) {
+
+    auto remotelistParts = split(remoteList, '\n');
+    std::vector<std::string> conanRemoteAliases;
+    std::vector<std::string> conanRemoteUrls;
+    for (auto remoteElem : remotelistParts) {
+        auto remoteElemParts = split(remoteElem, ' ');
+        if (remoteElemParts.size() >= 2) {
+            conanRemoteAliases.push_back(remoteElemParts.at(0));
+            conanRemoteUrls.push_back(remoteElemParts.at(1));
+        }
+    }
+
+    if ( std::find(conanRemoteAliases.begin(), conanRemoteAliases.end(), repoId+":") == conanRemoteAliases.end() &&
+         std::find(conanRemoteUrls.begin(), conanRemoteUrls.end(), repoParts.at(1)) == conanRemoteUrls.end()) {
+        std::cout<<"Adding conan remote: "<<repoId << " - url: " << repoParts.at(1) <<" - position: "<<repoParts.at(2)<<std::endl;
         std::string result = run ("remote","add",options);
+        return;
     }
 }
 
