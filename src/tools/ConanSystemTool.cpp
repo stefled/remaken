@@ -72,8 +72,10 @@ void ConanSystemTool::addRemoteImpl(const std::string & repositoryUrl)
     std::string repoId = repositoryUrl;
     std::vector<std::string> options;
     if (repoParts.size() < 2) {
-        BOOST_LOG_TRIVIAL(info)<<"Use existing conan remote. Remote format can follow remoteAlias#[remoteUrl[#position]] for automatically add unexisting remote"<<std::endl;
-        return;
+        if (m_options.getVerbose()) {
+            BOOST_LOG_TRIVIAL(info)<<"Using existing conan remote : " << repositoryUrl << ". Remote Url can be specified with remoteAlias#[remoteUrl[#position]]"<<std::endl;
+            return;
+        }
     }
     if (repoParts.size() >= 2) {
         repoId = repoParts.at(0);
@@ -102,7 +104,7 @@ void ConanSystemTool::addRemoteImpl(const std::string & repositoryUrl)
 
     if ( std::find(conanRemoteAliases.begin(), conanRemoteAliases.end(), repoId+":") == conanRemoteAliases.end() &&
          std::find(conanRemoteUrls.begin(), conanRemoteUrls.end(), repoParts.at(1)) == conanRemoteUrls.end()) {
-        std::cout<<"Adding conan remote: "<<repoId << " - url: " << repoParts.at(1) <<" - position: "<<repoParts.at(2)<<std::endl;
+        std::cout<<"Adding conan remote "<<repoId << " " << repoParts.at(1) <<" at "<<repoParts.at(2)<<std::endl;
         std::string result = run ("remote","add",options);
         return;
     }
