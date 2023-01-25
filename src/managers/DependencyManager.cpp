@@ -313,6 +313,26 @@ void DependencyManager::retrieveDependencies(const fs::path &  dependenciesFile,
     std::map<std::string,bool> conditionsMap;   
     std::shared_ptr<IGeneratorBackend> generator = BackendGeneratorFactory::getGenerator(m_options);
     generator->parseConditionsFile(dependenciesFile.parent_path(), conditionsMap);
+
+    // Manage force configure conditions by command line
+    for (auto & arg : m_options.getConfigureConditions()) {
+        std::vector<std::string> condition;
+        boost::split(condition, arg, [](char c){return c == '=';});
+        string conditionName = condition[0];
+        string conditionValue;
+        if (condition.size() >= 2) {
+            conditionValue = condition[1];
+        }
+        if (!conditionName.empty() && !conditionValue.empty()) {
+            if (boost::iequals(conditionValue, "true")) {
+                conditionsMap.insert_or_assign(conditionName, true);
+            }
+            else if (boost::iequals(conditionValue, "false")) {
+                conditionsMap.insert_or_assign(conditionName, false);
+            }
+        }
+    }
+
     std::vector<Dependency> conditionsDependencies;
     for (fs::path depsFile : dependenciesFileList) {
         if (fs::exists(depsFile)) {

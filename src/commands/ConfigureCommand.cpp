@@ -48,6 +48,26 @@ int ConfigureCommand::execute()
             // try to parse generated conditions file in build platform folder
             generator->parseConditionsFile(depFolder/DepUtils::getBuildPlatformFolder(m_options), conditionsMap);
         }
+
+        // Manage force configure conditions by command line
+        for (auto & arg : m_options.getConfigureConditions()) {
+            std::vector<std::string> condition;
+            boost::split(condition, arg, [](char c){return c == '=';});
+            string conditionName = condition[0];
+            string conditionValue;
+            if (condition.size() >= 2) {
+                conditionValue = condition[1];
+            }
+            if (!conditionName.empty() && !conditionValue.empty()) {
+                if (boost::iequals(conditionValue, "true")) {
+                    conditionsMap.insert_or_assign(conditionName, true);
+                }
+                else if (boost::iequals(conditionValue, "false")) {
+                    conditionsMap.insert_or_assign(conditionName, false);
+                }
+            }
+        }
+
         if (m_options.projectModeEnabled()) {
             m_options.setProjectRootPath(depFolder);
         }
