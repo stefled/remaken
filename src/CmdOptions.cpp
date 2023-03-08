@@ -196,6 +196,7 @@ CmdOptions::CmdOptions()
     // CONFIGURE COMMAND
     CLI::App * configureCommand = m_cliApp.add_subcommand("configure", "configure project dependencies");
     configureCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files - must be located in project root"); // ,true);
+    configureCommand->add_option("--condition", m_configureConditions, "set condition to value");
 
     // INFO COMMAND
     CLI::App * infoCommand = m_cliApp.add_subcommand("info", "Read package dependencies informations");
@@ -250,6 +251,7 @@ CmdOptions::CmdOptions()
     installCommand->add_option("--ziptool,-z", m_zipTool, "unzipper tool name : unzip, compact ..."); // ,true);
     installCommand->add_flag("--remote-only", m_remoteOnly, "Only add remote/source/tap from package dependencies, dependencies are not installed"); // same as remote add command
     installCommand->add_option("--conan-build", m_conanForceBuildRefs, "conan force build reference");
+    installCommand->add_option("--condition", m_configureConditions, "set condition to value");
 
     // LIST COMMAND
     CLI::App * listCommand = m_cliApp.add_subcommand("list", "list remaken installed dependencies. If package is provided, list the package available version. If package and version are provided, list the package files");

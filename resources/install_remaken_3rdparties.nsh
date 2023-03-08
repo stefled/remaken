@@ -152,7 +152,8 @@ SectionGroup /e "Chocolatey" CHOCO_TOOLS
 		
 		;always install/update conan
 		;IfFileExists $1\Python3\Scripts\conan.exe conan_exists
-			ExecWait '$python_install_dir\Scripts\pip install --upgrade conan'
+			# 2023/03/08 set conan 1.x version
+			ExecWait '$python_install_dir\Scripts\pip install --upgrade conan==1.59.0'
 			# remove old conan-commnunity remote
 			ExecWait '$python_install_dir\Scripts\conan remote remove conan-community'
 			# remove binCrafters and conan-center remote url

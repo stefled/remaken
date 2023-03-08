@@ -91,8 +91,7 @@ Download and install the latest [setup file](https://github.com/b-com-software-b
 - yum (redhat, fedora, centos)
 - zypper (openSUSE)
 - pkg (freebsd)
-- pkgutil (
-- ris)
+- pkgutil (solaris)
 - [chocolatey](https://chocolatey.org/) (Windows)
 - [scoop](https://scoop-docs.vercel.app/) (Windows)
 - [others to come]
@@ -184,9 +183,9 @@ To get a sample how to declare an additional remote/bucket/ppa ... see the repos
 
 
 ### Installing/Configure dependencies
-```remaken install [--conan_profile conan_profile_name] [-r  path_to_remaken_root] -i [-o linux] -t github [-l nexus -u http://url_to_root_nexus_repo] [--cpp-std 17] [-c debug|release] [--project_mode,-p] [path_to_remaken_dependencies_description_file.txt] ```
+```remaken install [--conan_profile conan_profile_name] [-r  path_to_remaken_root] -i [-o linux] -t github [-l nexus -u http://url_to_root_nexus_repo] [--cpp-std 17] [-c debug|release] [--project_mode,-p] [path_to_remaken_dependencies_description_file.txt] [--condition name=value]* [--conan-build dependency]* ```
 
-```remaken configure [--conan_profile conan_profile_name] [-r  path_to_remaken_root] -i [-o linux] -t github [-l nexus -u http://url_to_root_nexus_repo] [--cpp-std 17] [-c debug|release] [--project_mode,-p] [path_to_remaken_dependencies_description_file.txt] ```
+```remaken configure [--conan_profile conan_profile_name] [-r  path_to_remaken_root] -i [-o linux] -t github [-l nexus -u http://url_to_root_nexus_repo] [--cpp-std 17] [-c debug|release] [--project_mode,-p] [path_to_remaken_dependencies_description_file.txt] [--condition name=value]* ```
 
 **Notes:**
  
@@ -201,9 +200,12 @@ To get a sample how to declare an additional remote/bucket/ppa ... see the repos
   -  for native compilation: the ```default``` conan profile is used
   -  for cross compilation: remaken expects a ```[os]-[build-toolchain]-[architecture]``` profile to be available - for instance for android build, expects a ```android-clang-armv8``` profile
 
+- ```[--conan_build dependency] ``` is a repeatable option, allows to specify to force rebuild of a conan dependency. Ex : ```--conan-build boost```.
+- ```[--condition name=value] ``` is a repeatable option, allows to force a condition without application prompt (useful in CI). Ex : ```--condition USE_GRPC=true```. 
+
 #### Configure Conditions
 
-By default, remaken (install or configure) prompt users for enabled or disabled configure conditions 
+By default, ```remaken install``` and ```remaken configure``` prompt users for enabled or disabled configure conditions.
 
 **Note:**
 	A condition is defined just after library name.
@@ -212,6 +214,8 @@ a ```configure_conditions.pri``` file can be added into the project root folder 
 
 	DEFINES+=CONDITION1
 	DEFINES-=CONDITION2
+
+of
 
 After `remaken install` or `configure`, a `configure_conditions.pri` file is generated in ```.build-rules/[os]-[build-toolchain]-[architecture]``` folder with specified (by file or by user_prompt) enabled conditions.
 
