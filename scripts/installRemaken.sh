@@ -3,7 +3,7 @@
 brew tap b-com/sft
 
 # install conan 1.59.0
-export HOMEBREW_NO_INSTALL_UPGRADE=TRUE
+export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=TRUE
 wget https://raw.githubusercontent.com/Homebrew/homebrew-core/1fc9e09956a2aa5ee2f2f4f6c81e359c232dee0f/Formula/conan.rb
 brew install -f ./conan.rb
 rm -rf ./conan.rb
