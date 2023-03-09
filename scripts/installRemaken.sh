@@ -22,5 +22,7 @@ else
    brew install --ignore-dependencies remaken
 fi
 
+sudo apt install pkg-config
+
 remaken init
 
