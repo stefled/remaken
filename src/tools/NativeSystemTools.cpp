@@ -33,8 +33,6 @@ void AptSystemTool::update()
 
 void AptSystemTool::listRemotes()
 {
-    boost::asio::io_context ios;
-    std::future<std::string> listOutputFut;
     fs::detail::utf8_codecvt_facet utf8;
     std::vector<std::string> remoteList;
     std::cout<<"Apt sources:"<<std::endl;
@@ -50,8 +48,10 @@ void AptSystemTool::listRemotes()
             }
         }
     }
-  //  bp::system("/bin/grep", "-Erh","^deb", "/etc/apt/sources.list.d/*", bp::std_out > listOutputFut, ios);
-    /*std::vector<std::string> remoteList = split( SystemTools::runShellCommand("grep", {"-Erh","^deb"}, "/etc/apt/sources.list*", {0,1}));
+    /*boost::asio::io_context ios;
+    std::future<std::string> listOutputFut;
+    bp::system("/bin/grep", "-Erh","^deb", "/etc/apt/sources.list.d/*", bp::std_out > listOutputFut, ios);
+    std::vector<std::string> remoteList = split( SystemTools::runShellCommand("grep", {"-Erh","^deb"}, "/etc/apt/sources.list*", {0,1}));
     for (const auto & remote: remoteList) {
          std::cout<<"=> "<<remote<<std::endl;
     }*/
