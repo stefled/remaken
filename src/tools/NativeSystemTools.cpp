@@ -377,7 +377,9 @@ void ScoopSystemTool::search(const std::string & pkgName, const std::string & ve
             boost::erase_all(dep, "(");
             boost::erase_all(dep, ")");
             std::vector<std::string> depDetails = split(dep,' ');
-            std::cout<<depDetails.at(0)<<"\t"<<depDetails.at(1)<<"\t\t"<<depDetails.at(0)<<"|"<<depDetails.at(1)<<"|scoop|"<<std::endl;
+            if (depDetails.size() > 2) {
+                std::cout<<depDetails.at(0)<<"\t"<<depDetails.at(1)<<"\t\t"<<depDetails.at(0)<<"|"<<depDetails.at(1)<<"|scoop|"<<std::endl;
+            }
         }
     }
 }
