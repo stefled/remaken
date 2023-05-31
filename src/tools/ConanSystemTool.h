@@ -44,7 +44,9 @@ public:
         deploy = 0x400
     } GeneratorType;*/
 
-    ConanSystemTool(const CmdOptions & options):BaseSystemTool(options, "conan") {}
+    ConanSystemTool(const CmdOptions & options):BaseSystemTool(options, "conan") {
+        m_conanVersion = conanVersion();
+    }
     ~ConanSystemTool() override = default;
     void update() override;
     void bundle(const Dependency & dependency) override;
@@ -69,7 +71,11 @@ private:
     std::string computeConanRef( const Dependency &  dependency, bool cliMode = false);
     void translateJsonToRemakenDep(std::vector<Dependency> & deps, const fs::path & conanJsonBuildInfo);
     std::vector<std::string> buildOptions(const Dependency & dep);
+    int conanVersion();
 
+// Members
+private:
+    int m_conanVersion;
 };
 
 #endif
