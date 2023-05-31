@@ -165,12 +165,7 @@ macx {
 
 win32 {
     # windows libs
-    contains(QMAKE_TARGET.arch, x86_64) {
-        LIBS += -L$$(VCINSTALLDIR)lib/amd64 -L$$(VCINSTALLDIR)atlmfc/lib/amd64 -L$$(WINDOWSSDKDIR)lib/winv6.3/um/x64
-    }
-    else {
-        LIBS += -L$$(VCINSTALLDIR)lib -L$$(VCINSTALLDIR)atlmfc/lib -L$$(WINDOWSSDKDIR)lib/winv6.3/um/x86
-    }
+    LIBS += -L$$(WINDOWSSDKDIR)lib/winv6.3/um/x64
     LIBS += -lshell32 -lgdi32 -lComdlg32
     # openssl libs dependencies
     LIBS += -luser32 -ladvapi32 -lCrypt32
