@@ -67,7 +67,7 @@ static const std::map<const std::string_view,const  std::string_view> os2staticS
 
 static const std::map<const std::string_view,const  std::string_view> os2sharedPathEnv = {
     {"mac","DYLD_LIBRARY_PATH"},
-    {"win","PATH"},
+    {"win","Path"},
     {"unix","LD_LIBRARY_PATH"},
     {"android","LD_LIBRARY_PATH"},
     {"ios","DYLD_LIBRARY_PATH"},
