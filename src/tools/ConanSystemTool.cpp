@@ -149,6 +149,8 @@ void ConanSystemTool::listRemotes()
 
 void ConanSystemTool::install(const Dependency & dependency)
 {
+    fs::detail::utf8_codecvt_facet utf8;
+
     std::string source = computeToolRef(dependency);
     addRemote(dependency.getBaseRepository());
     std::string buildType = "build_type=Debug";
@@ -201,7 +203,7 @@ void ConanSystemTool::install(const Dependency & dependency)
     if (dependency.getMode() == "na") {
         if (m_options.getVerbose())
         {
-            std::cout << m_systemInstallerPath << " install " << boost::algorithm::join(settingsArgs, " ") << " -s " << buildType.c_str() << " -s " << cppStd.c_str() << " -pr " << profileName.c_str() << " " << buildForceDep.c_str() << " " << boost::algorithm::join(optionsArgs, " ") << " " << source.c_str();
+            std::cout << m_systemInstallerPath.generic_string(utf8) << " install " << boost::algorithm::join(settingsArgs, " ") << " -s " << buildType.c_str() << " -s " << cppStd.c_str() << " -pr " << profileName.c_str() << " " << buildForceDep.c_str() << " " << boost::algorithm::join(optionsArgs, " ") << " " << source.c_str() << std::endl;
         }
         result = bp::system(m_systemInstallerPath, "install", bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-pr", profileName.c_str(), buildForceDep.c_str(), bp::args(optionsArgs), source.c_str());
     }
@@ -213,7 +215,7 @@ void ConanSystemTool::install(const Dependency & dependency)
 
         if (m_options.getVerbose())
         {
-            std::cout << m_systemInstallerPath << " install " << "-o " << buildMode.c_str() << " " << boost::algorithm::join(settingsArgs, " ") << " -s " << buildType.c_str() << " -s " << cppStd.c_str() << " -pr " << profileName.c_str() << " " << buildForceDep.c_str() << " " << boost::algorithm::join(optionsArgs, " ") << " " << source.c_str();
+            std::cout << m_systemInstallerPath.generic_string(utf8) << " install " << "-o " << buildMode.c_str() << " " << boost::algorithm::join(settingsArgs, " ") << " -s " << buildType.c_str() << " -s " << cppStd.c_str() << " -pr " << profileName.c_str() << " " << buildForceDep.c_str() << " " << boost::algorithm::join(optionsArgs, " ") << " " << source.c_str() << std::endl;
         }
         result = bp::system(m_systemInstallerPath, "install", "-o", buildMode.c_str(), bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-pr", profileName.c_str(), buildForceDep.c_str(), bp::args(optionsArgs), source.c_str());
     }
@@ -515,7 +517,7 @@ std::pair<std::string, fs::path> ConanSystemTool::invokeGenerator(std::vector<De
     }
 
     if (m_options.getVerbose()) {
-        std::cout << m_systemInstallerPath << " install " << " " << boost::algorithm::join(settingsArgs, " ") << " -s " << buildType.c_str() << " -s " << cppStd.c_str() << " -pr " << profileName.c_str() << " " << dest_param.c_str() << " " << destination << " -g " << generator << " " << conanFilePath;
+        std::cout << m_systemInstallerPath.generic_string(utf8) << " install " << " " << boost::algorithm::join(settingsArgs, " ") << " -s " << buildType.c_str() << " -s " << cppStd.c_str() << " -pr " << profileName.c_str() << " " << dest_param.c_str() << " " << destination.generic_string(utf8) << " -g " << generator.c_str() << " " << conanFilePath.generic_string(utf8) << std::endl;
     }
     result = bp::system(m_systemInstallerPath, "install", bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-pr", profileName.c_str(),  dest_param.c_str(), destination, "-g", generator, conanFilePath);
 
@@ -580,7 +582,7 @@ std::vector<fs::path> ConanSystemTool::retrievePaths(const Dependency & dependen
     if (m_conanVersion < 2) {       // conan V1
         if (dependency.getMode() == "na") {
             if (m_options.getVerbose()) {
-                std::cout << m_systemInstallerPath << " install " << boost::algorithm::join(settingsArgs, " ") << " -s " << buildType.c_str() << " -s " << cppStd.c_str() << " -pr " << profileName.c_str() << " " << dest_param.c_str() << " " << destination << " " << boost::algorithm::join(optionsArgs, " ") << " " << generator_param.c_str() << " json " << source.c_str();
+                std::cout << m_systemInstallerPath.generic_string(utf8) << " install " << boost::algorithm::join(settingsArgs, " ") << " -s " << buildType.c_str() << " -s " << cppStd.c_str() << " -pr " << profileName.c_str() << " " << dest_param.c_str() << " " << destination << " " << boost::algorithm::join(optionsArgs, " ") << " " << generator_param.c_str() << " json " << source.c_str() << std::endl;
                 result = bp::system(m_systemInstallerPath, "install", bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-pr", profileName.c_str(), dest_param.c_str(), destination, bp::args(optionsArgs), generator_param.c_str(), "json", source.c_str());
             } else {
                 result = bp::system(m_systemInstallerPath, "install", bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-pr", profileName.c_str(), dest_param.c_str(), destination, bp::args(optionsArgs), generator_param.c_str(), "json", source.c_str(), bp::std_out > bp::null);
@@ -595,7 +597,7 @@ std::vector<fs::path> ConanSystemTool::retrievePaths(const Dependency & dependen
                 buildMode += "shared=True";
             }
             if (m_options.getVerbose()) {
-                std::cout << m_systemInstallerPath << " install " << "-o " << buildMode.c_str() << " " << boost::algorithm::join(settingsArgs, " ") << " -s " << buildType.c_str() << " -s " << cppStd.c_str() << " -pr " << profileName.c_str() << " " << dest_param.c_str() << " " << destination << " " << boost::algorithm::join(optionsArgs, " ") << " " << generator_param.c_str() << " json " << source.c_str();
+                std::cout << m_systemInstallerPath.generic_string(utf8) << " install " << "-o " << buildMode.c_str() << " " << boost::algorithm::join(settingsArgs, " ") << " -s " << buildType.c_str() << " -s " << cppStd.c_str() << " -pr " << profileName.c_str() << " " << dest_param.c_str() << " " << destination << " " << boost::algorithm::join(optionsArgs, " ") << " " << generator_param.c_str() << " json " << source.c_str() << std::endl;
                 result = bp::system(m_systemInstallerPath, "install", "-o", buildMode.c_str(), bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-pr", profileName.c_str(), dest_param.c_str(), destination, bp::args(optionsArgs), generator_param.c_str(), "json", source.c_str());
             } else {
                 result = bp::system(m_systemInstallerPath, "install", "-o", buildMode.c_str(), bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-pr", profileName.c_str(), dest_param.c_str(), destination, bp::args(optionsArgs), generator_param.c_str(), "json", source.c_str(), bp::std_out > bp::null);
@@ -632,7 +634,7 @@ std::vector<fs::path> ConanSystemTool::retrievePaths(const Dependency & dependen
             std::string command = m_systemInstallerPath.generic_string(utf8) + " install " + boost::algorithm::join(settingsArgs, " ") + " -s " + buildType +
                                   " -s " + cppStd + " -pr " + profileName + " " + dest_param + " " + workingDirectory.generic_string(utf8) + " " + boost::algorithm::join(optionsArgs, " ") + " " + generator_param + " json " + source + " > " + conanBuildInfoJson.generic_string(utf8);
             if (m_options.getVerbose()) {
-                //std::cout << m_systemInstallerPath << " install " << boost::algorithm::join(settingsArgs, " ") << " -s " << buildType.c_str() << " -s " << cppStd.c_str() << " -pr " << profileName.c_str() << " " << dest_param.c_str() << workingDirectory.generic_string(utf8).c_str() << boost::algorithm::join(optionsArgs, " ") << " " << source.c_str() ;
+                //std::cout << m_systemInstallerPath << " install " << boost::algorithm::join(settingsArgs, " ") << " -s " << buildType.c_str() << " -s " << cppStd.c_str() << " -pr " << profileName.c_str() << " " << dest_param.c_str() << workingDirectory.generic_string(utf8).c_str() << boost::algorithm::join(optionsArgs, " ") << " " << source.c_str() << std::endl;
                 //result = bp::system(m_systemInstallerPath, "install", bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-pr", profileName.c_str(), dest_param.c_str(), workingDirectory, bp::args(optionsArgs), source.c_str());
 
                 std::cout << command.c_str() << std::endl;
@@ -777,10 +779,11 @@ std::vector<fs::path> ConanSystemTool::libPaths(const Dependency & dependency)
 
 int ConanSystemTool::conanVersion()
 {
+    fs::detail::utf8_codecvt_facet utf8;
     boost::asio::io_context ios;
     std::future<std::string> listOutputFut;
     if (m_options.getVerbose()) {
-        std::cout << m_systemInstallerPath << " --version";
+        std::cout << m_systemInstallerPath.generic_string(utf8) << " --version" << std::endl;
     }
     int result = bp::system(m_systemInstallerPath, "--version", bp::std_out > listOutputFut, ios);
     if (result != 0) {
