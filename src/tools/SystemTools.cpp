@@ -50,6 +50,11 @@ std::vector<fs::path> BaseSystemTool::libPaths([[maybe_unused]] const Dependency
     return std::vector<fs::path>();
 }
 
+std::vector<fs::path> BaseSystemTool::includePaths([[maybe_unused]] const Dependency & dependency)
+{
+    return std::vector<fs::path>();
+}
+
 std::pair<std::string, fs::path> BaseSystemTool::invokeGenerator([[maybe_unused]] std::vector<Dependency> & deps)
 {
     PkgConfigTool pkgConfig(m_options);

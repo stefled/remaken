@@ -24,13 +24,15 @@ static const std::map<std::string,std::string> conanArchTranslationMap ={{"x86_6
                                                                         };
 
 
-static const std::map<BaseSystemTool::PathType,std::string> conanNodeMap ={{BaseSystemTool::PathType::BIN_PATHS, "bin_paths"},                                                                            
-                                                                           {BaseSystemTool::PathType::LIB_PATHS, "lib_paths"}
+static const std::map<BaseSystemTool::PathType,std::string> conanNodeMap ={{BaseSystemTool::PathType::BIN_PATHS, "bin_paths"},
+                                                                           {BaseSystemTool::PathType::LIB_PATHS, "lib_paths"},
+                                                                           {BaseSystemTool::PathType::INCLUDE_PATHS, "include_paths"}
                                                                           };
 
 
 static const std::map<BaseSystemTool::PathType,std::string> conanV2NodeMap ={{BaseSystemTool::PathType::BIN_PATHS, "bindirs"},
-                                                                             {BaseSystemTool::PathType::LIB_PATHS, "libdirs"}
+                                                                             {BaseSystemTool::PathType::LIB_PATHS, "libdirs"},
+                                                                             {BaseSystemTool::PathType::INCLUDE_PATHS, "includedirs"}
                                                                             };
 
 static const std::map<GeneratorType, std::string> generatorConanV1TranslationMap = {{GeneratorType::qmake,"qmake"},
@@ -365,7 +367,7 @@ std::vector<std::string> ConanSystemTool::buildOptions(const Dependency & dep)
         if (dep.getMode() == "shared") {
             modeValue = "True";
         }
-        results.push_back(dep.getPackageName() + separator + ":" + dep.getMode() + "=" + modeValue);
+        results.push_back(dep.getPackageName() + separator + ":shared=" + modeValue);
     }
     if (dep.hasOptions()) {
         boost::split(options, dep.getToolOptions(), [](char c){return c == '#';});
@@ -479,7 +481,7 @@ void ConanSystemTool::translateJsonToRemakenDep(std::vector<Dependency> & deps, 
         }
     }
     else {
-        std::cout << "Remaken \"ConanSystemTool::translateJsonToRemakenDep\" method not implemented - Please contact developper" << std::endl;
+        std::cout << "Remaken \"ConanSystemTool::translateJsonToRemakenDep\" method for conan v2 not implemented - Please contact developper" << std::endl;
     }
 }
 
@@ -758,12 +760,15 @@ std::vector<fs::path> ConanSystemTool::binPaths(const Dependency & dependency)
     return binPaths;
 }
 
+// SLETODO : soit on fait une nouvelle methode staticlibpath, soit parametre de fonction, soit on regarde le mode de la lib 'shared/static' pour determiner le chemin...
+
 std::vector<fs::path> ConanSystemTool::libPaths(const Dependency & dependency)
 {
     fs::path workingDirectory = OsUtils::acquireTempFolderPath();
     BaseSystemTool::PathType libPathNode = BaseSystemTool::PathType::LIB_PATHS;
 #ifdef BOOST_OS_WINDOWS_AVAILABLE
-    if (m_options.crossCompiling() && m_options.getOS() != "win") {
+    if ((m_options.crossCompiling() && m_options.getOS() != "win") ||
+        (dependency.getMode()=="static" && m_options.getOS() == "win")) {
         libPathNode = BaseSystemTool::PathType::LIB_PATHS;
 
     }
@@ -776,6 +781,16 @@ std::vector<fs::path> ConanSystemTool::libPaths(const Dependency & dependency)
     OsUtils::releaseTempFolderPath(workingDirectory);
     return libPaths;
 }
+
+std::vector<fs::path> ConanSystemTool::includePaths(const Dependency & dependency)
+{
+    fs::path workingDirectory = OsUtils::acquireTempFolderPath();
+    BaseSystemTool::PathType includePathNode = BaseSystemTool::PathType::INCLUDE_PATHS;
+    std::vector<fs::path> includePaths = retrievePaths(dependency, includePathNode, workingDirectory);
+    OsUtils::releaseTempFolderPath(workingDirectory);
+    return includePaths;
+}
+
 
 int ConanSystemTool::conanVersion()
 {

@@ -196,7 +196,12 @@ void DepUtils::parseRecurse(const fs::path &  dependenciesPath, const CmdOptions
                 fs::detail::utf8_codecvt_facet utf8;
                 shared_ptr<IFileRetriever> fileRetriever = FileHandlerFactory::instance()->getFileHandler(dep, options);
                 fs::path outputDirectory = fileRetriever->computeLocalDependencyRootDir(dep);
-                parseRecurse(outputDirectory/"packagedependencies.txt", options,deps);
+                if (dep.getMode()== "shared") {
+                    parseRecurse(outputDirectory/"packagedependencies.txt", options,deps);
+                }
+                else {
+                    parseRecurse(outputDirectory/"packagedependencies-static.txt", options,deps);
+                }
             }
         }
     }

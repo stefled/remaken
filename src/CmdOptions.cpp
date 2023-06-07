@@ -197,12 +197,17 @@ CmdOptions::CmdOptions()
     CLI::App * configureCommand = m_cliApp.add_subcommand("configure", "configure project dependencies");
     configureCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files - must be located in project root"); // ,true);
     configureCommand->add_option("--condition", m_configureConditions, "set condition to value");
+    m_mode = "shared";
+    configureCommand->add_option("--mode,-m", m_mode, "Mode: " + getOptionString("--mode")); // ,true);
 
     // INFO COMMAND
     CLI::App * infoCommand = m_cliApp.add_subcommand("info", "Read package dependencies informations");
     infoCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files"); // ,true);
     CLI::App * pkgSystemFileCommand = infoCommand->add_subcommand("pkg_systemfile", "write the dependency file of packaging system provided corresponding to the packagedependencies.txt - restrict with [" + getOptionString("--pkgrestrict") + "]");
     pkgSystemFileCommand->add_option("--destination,-d", m_destinationRoot, "Destination directory for save conanfile.txt")->required();
+    infoCommand->add_flag("--paths,-p", m_infoDisplayPathsOption, "display all lib and bin paths of dependencies");
+    m_mode = "shared";
+    infoCommand->add_option("--mode,-m", m_mode, "Mode: " + getOptionString("--mode")); // ,true);
 
     // PROFILE COMMAND
     CLI::App * profileCommand = m_cliApp.add_subcommand("profile", "manage remaken profiles configuration");
@@ -490,6 +495,18 @@ CmdOptions::OptionResult CmdOptions::parseArguments(int argc, char** argv)
                 return OptionResult::RESULT_ERROR;
             }
         }
+        if (sub->get_name() == "info") {
+            if (sub->get_subcommands().size() > 0) {
+                m_subcommand = sub->get_subcommands().at(0)->get_name();
+                if (!m_subcommand.empty()) {
+                    if (m_subcommand != "pkg_systemfile") {
+                        cout << "Error : info subcommand must be [pkg_systemfile]. "<<m_subcommand<<" is an invalid subcommand !"<<endl;
+                        return OptionResult::RESULT_ERROR;
+                    }
+                }
+            }
+        }
+
         if (m_cliApp.get_subcommands().size() == 1) {
             m_action = m_cliApp.get_subcommands().at(0)->get_name();
         }

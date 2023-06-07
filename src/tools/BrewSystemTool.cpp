@@ -251,6 +251,16 @@ std::vector<fs::path> BrewSystemTool::libPaths ([[maybe_unused]] const Dependenc
     return paths;
 }
 
+std::vector<fs::path> BrewSystemTool::includePaths ([[maybe_unused]] const Dependency & dependency)
+{
+    std::vector<fs::path> paths;
+    fs::detail::utf8_codecvt_facet utf8;
+    fs::path baseBrewPath = m_systemInstallerPath.parent_path().parent_path();
+    baseBrewPath /= "include";
+    paths.push_back(baseBrewPath);
+    return paths;
+}
+
 void BrewSystemTool::write_pkg_file(std::vector<Dependency> & deps)
 {
 

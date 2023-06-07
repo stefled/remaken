@@ -59,6 +59,13 @@ fs::path AbstractFileRetriever::computeRootBinDir( const Dependency & dependency
     return binPath;
 }
 
+fs::path AbstractFileRetriever::computeRootIncludeDir( const Dependency & dependency)
+{
+    fs::detail::utf8_codecvt_facet utf8;
+    fs::path includePath = computeLocalDependencyRootDir(dependency);
+    includePath = includePath / "interfaces";
+    return includePath;
+}
 
 fs::path AbstractFileRetriever::installArtefact(const Dependency & dependency)
 {
@@ -190,6 +197,13 @@ std::vector<fs::path> AbstractFileRetriever::libPaths(const Dependency & depende
     return paths;
 }
 
+std::vector<fs::path> AbstractFileRetriever::includePaths(const Dependency & dependency)
+{
+    std::vector<fs::path> paths;
+    fs::detail::utf8_codecvt_facet utf8;
+    paths.push_back(computeRootIncludeDir(dependency));
+    return paths;
+}
 
 fs::path AbstractFileRetriever::computeLocalDependencyRootDir( const Dependency &  dependency) // not the root output dir
 {

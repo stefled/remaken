@@ -56,6 +56,7 @@ public:
     void search (const std::string & pkgName, const std::string & version) override;
     std::vector<fs::path> binPaths(const Dependency & dependency) override;
     std::vector<fs::path> libPaths(const Dependency & dependency) override;
+    std::vector<fs::path> includePaths(const Dependency & dependency) override;
     std::string computeSourcePath( const Dependency &  dependency) override;
     std::pair<std::string, fs::path> invokeGenerator(std::vector<Dependency> & deps) override;
     void listRemotes() override;

@@ -200,3 +200,8 @@ std::vector<fs::path> VCPKGSystemTool::libPaths(const Dependency & dependency)
     return libPaths;
 }
 
+std::vector<fs::path> VCPKGSystemTool::includePaths(const Dependency & dependency)
+{
+    std::vector<fs::path> includePaths = retrievePaths(dependency, BaseSystemTool::PathType::INCLUDE_PATHS);
+    return includePaths;
+}
