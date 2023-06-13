@@ -444,11 +444,12 @@ void ConanSystemTool::translateJsonToRemakenDep(std::vector<Dependency> & deps, 
     }
 #endif
 
-    if (m_conanVersion < 2) {   // conan v1 - used only with bazel generator
-        fs::detail::utf8_codecvt_facet utf8;
-        if (fs::exists(conanJsonBuildInfo)) {
-            std::ifstream ifs1{ conanJsonBuildInfo.generic_string(utf8) };
-            nj::json conanBuildData = nj::json::parse(ifs1);
+    fs::detail::utf8_codecvt_facet utf8;
+    if (fs::exists(conanJsonBuildInfo)) {
+        std::ifstream ifs1{ conanJsonBuildInfo.generic_string(utf8) };
+        nj::json conanBuildData = nj::json::parse(ifs1);
+
+        if (m_conanVersion < 2) {   // conan v1 - used only with bazel generator
             for (auto dep : conanBuildData["dependencies"]) {
                 std::string name = dep["name"];
                 std::string version = dep["version"];
@@ -457,6 +458,8 @@ void ConanSystemTool::translateJsonToRemakenDep(std::vector<Dependency> & deps, 
                 std::vector<std::string> conan_lib_paths = dep["lib_paths"];
                 std::vector<std::string> conan_include_paths = dep["include_paths"];
                 std::vector<std::string> conan_libs = dep["libs"];
+                std::vector<std::string> conan_systemlibs = dep["system_libs"];
+                std::vector<std::string> conan_defines = dep["defines"];
                 if (!mapContains(depsMap,name)) {
                     Dependency d(m_options, name, version, Dependency::Type::CONAN);
                     depsMap.insert({name,d});
@@ -464,7 +467,7 @@ void ConanSystemTool::translateJsonToRemakenDep(std::vector<Dependency> & deps, 
                 }
                 auto & rDep = depsMap.at(name);
                 rDep.prefix() = root;
-                fs::path rootPath(root,utf8);
+                //fs::path rootPath(root,utf8);
                 for (auto & libPath: conan_bin_paths) {
                     rDep.libdirs().push_back(libPath);
                 }
@@ -477,11 +480,72 @@ void ConanSystemTool::translateJsonToRemakenDep(std::vector<Dependency> & deps, 
                 for (auto & lib : conan_libs) {
                     rDep.libs().push_back("-l" + lib);
                 }
+                for (auto & lib : conan_systemlibs) {
+                    rDep.libs().push_back("-l" + lib);
+                }
+                for (auto & define : conan_defines) {
+                    rDep.defines().push_back(define);
+                }
+            }
+        } else {    // conan v2 - used for conan dependencies - parse data from json in order to generates for specified generator
+            for (const auto& nodeItem : conanBuildData["graph"]["nodes"])
+            {
+                if (nodeItem.find("binary") != nodeItem.end() && (nodeItem["binary"] == "Download" || nodeItem["binary"] == "Cache")) // SLETODO or Build? need to be tested
+                {
+                    std::string name = nodeItem["name"];
+                    std::string version = nodeItem["version"];
+                    std::string root = nodeItem["package_folder"];
+
+                    if (!mapContains(depsMap,name)) {
+                        Dependency d(m_options, name, version, Dependency::Type::CONAN);
+                        depsMap.insert({name,d});
+                        deps.push_back(d);
+                    }
+                    auto & rDep = depsMap.at(name);
+                    rDep.prefix() = root;
+
+                    if (nodeItem.find("cpp_info") != nodeItem.end() &&
+                        nodeItem["cpp_info"].find("root")!= nodeItem["cpp_info"].end())
+                    {
+                        auto rootItem = nodeItem["cpp_info"]["root"];
+                        if (rootItem.find("bindirs") != rootItem.end()) {
+                            for (auto & binDir : rootItem["bindirs"]) {
+                                rDep.libdirs().push_back(std::string(binDir));
+                            }
+                        }
+                        if (rootItem.find("libdirs") != rootItem.end()) {
+                            for (auto & libDir : rootItem["libdirs"]) {
+                                rDep.libdirs().push_back(std::string(libDir));
+                            }
+                        }
+                        if (rootItem.find("includedirs") != rootItem.end()) {
+                            for (auto & includeDir : rootItem["includedirs"]) {
+                                rDep.cflags().push_back("-I" + std::string(includeDir));
+                            }
+                        }
+                        auto cppInfoItem = nodeItem["cpp_info"];
+                        for (const auto& item : cppInfoItem)
+                        {
+                            if (item.find("libs") != item.end()) {
+                                for (auto & lib : item["libs"]) {
+                                    rDep.libs().push_back("-l" + std::string(lib));
+                                }
+                            }
+                            if (item.find("system_libs") != item.end()) {
+                                for (auto & systemLib : item["system_libs"]) {
+                                    rDep.libs().push_back("-l" + std::string(systemLib));
+                                }
+                            }
+                            if (item.find("defines") != item.end()) {
+                                for (auto & define : item["defines"]) {
+                                    rDep.defines().push_back(std::string(define));
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
-    }
-    else {
-        std::cout << "Remaken \"ConanSystemTool::translateJsonToRemakenDep\" method for conan v2 not implemented - Please contact developper" << std::endl;
     }
 }
 
@@ -511,27 +575,48 @@ std::pair<std::string, fs::path> ConanSystemTool::invokeGenerator(std::vector<De
     cppStd += m_options.getCppVersion();
     int result = -1;
 
-    std::string dest_param = "-if";
-    std::string generator = generatorConanV1TranslationMap.at(m_options.getGenerator());
-    if (m_conanVersion >= 2) {
-        dest_param = "-of";
-        generator = generatorConanV2TranslationMap.at(m_options.getGenerator());
-    }
+    if (m_conanVersion < 2) {
+        std::string dest_param = "-if";
+        std::string generator = generatorConanV1TranslationMap.at(m_options.getGenerator());
 
-    if (m_options.getVerbose()) {
-        std::cout << m_systemInstallerPath.generic_string(utf8) << " install " << " " << boost::algorithm::join(settingsArgs, " ") << " -s " << buildType.c_str() << " -s " << cppStd.c_str() << " -pr " << profileName.c_str() << " " << dest_param.c_str() << " " << destination.generic_string(utf8) << " -g " << generator.c_str() << " " << conanFilePath.generic_string(utf8) << std::endl;
+        if (m_options.getVerbose()) {
+            std::cout << m_systemInstallerPath.generic_string(utf8) << " install " << " " << boost::algorithm::join(settingsArgs, " ") << " -s " << buildType.c_str() << " -s " << cppStd.c_str() << " -pr " << profileName.c_str() << " " << dest_param.c_str() << " " << destination.generic_string(utf8) << " -g " << generator.c_str() << " " << conanFilePath.generic_string(utf8) << std::endl;
+        }
+        result = bp::system(m_systemInstallerPath, "install", bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-pr", profileName.c_str(),  dest_param.c_str(), destination, "-g", generator, conanFilePath);
+    } else {
+        std::string dest_param = "-of";
+        //generator = generatorConanV2TranslationMap.at(m_options.getGenerator());
+
+        fs::path workingDirectory = OsUtils::acquireTempFolderPath();
+
+        std::string redirectNull = " 2>/dev/null";
+    #ifdef BOOST_OS_WINDOWS_AVAILABLE
+        redirectNull = " 2>nul";
+    #endif
+        std::string fileName = "conanbuildinfo.json";
+        fs::path conanBuildInfoJson = destination/fileName;
+        std::string command = m_systemInstallerPath.generic_string(utf8) + " install " + " " + boost::algorithm::join(settingsArgs, " ") + " -s " + buildType + " -s " + cppStd + " -pr " + profileName + " " + dest_param + " " + workingDirectory.generic_string(utf8) + " -f json " + conanFilePath.generic_string(utf8) + " > " + conanBuildInfoJson.generic_string(utf8) + redirectNull;
+
+        if (m_options.getVerbose()) {
+            std::cout << command.c_str() << std::endl;
+            result = std::system(command.c_str());
+        }
+        else {
+            result = std::system(command.c_str());
+        }
     }
-    result = bp::system(m_systemInstallerPath, "install", bp::args(settingsArgs), "-s", buildType.c_str(), "-s", cppStd.c_str(), "-pr", profileName.c_str(),  dest_param.c_str(), destination, "-g", generator, conanFilePath);
 
     if (result != 0) {
         throw std::runtime_error("Error installing conan dependencies");
     }
 
-    if (m_options.getGenerator() == GeneratorType::bazel) {
+    if (m_options.getGenerator() == GeneratorType::bazel ||
+        (m_conanVersion >= 2 && m_options.getGenerator() == GeneratorType::qmake)) {
          translateJsonToRemakenDep(deps,destination/"conanbuildinfo.json");
          PkgConfigTool pkgConfig(m_options);
          return pkgConfig.generate(deps, Dependency::Type::CONAN);
     }
+
     return {"conan_basic_setup",destination/m_options.getGeneratorFilePath("conanbuildinfo")};
 }
 
@@ -701,7 +786,6 @@ std::vector<fs::path> ConanSystemTool::retrievePaths(const Dependency & dependen
                             }
                         }
                     }
-
                 }
             }
         }

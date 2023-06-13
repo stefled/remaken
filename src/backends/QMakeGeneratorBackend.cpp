@@ -69,6 +69,9 @@ std::pair<std::string, fs::path> QMakeGeneratorBackend::generate(const std::vect
                 }
             }
         }
+        for (auto & define : dep.defines()) {
+            defines += " " + define;
+        }
         fos<<prefix<<"_DEFINES += "<<defines<<std::endl;
 
         for (auto & libInfos : dep.libs()) {
@@ -89,6 +92,9 @@ std::pair<std::string, fs::path> QMakeGeneratorBackend::generate(const std::vect
                     libsStr += " -" + option;
                 }
             }
+        }
+        for (auto & libdir : dep.libdirs()) {
+            libdirs += " -L\"" + libdir + "\"";
         }
     }
     fos<<prefix<<"_LIBS +="<<libsStr<<std::endl;
