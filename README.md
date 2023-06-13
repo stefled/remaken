@@ -183,9 +183,9 @@ To get a sample how to declare an additional remote/bucket/ppa ... see the repos
 
 
 ### Installing/Configure dependencies
-```remaken install [--conan_profile conan_profile_name] [-r  path_to_remaken_root] -i [-o linux] -t github [-l nexus -u http://url_to_root_nexus_repo] [--cpp-std 17] [-c debug|release] [--project_mode,-p] [path_to_remaken_dependencies_description_file.txt] [--condition name=value]* [--conan-build dependency]* ```
+```remaken install [--conan_profile conan_profile_name] [-r  path_to_remaken_root] -i [-o linux] -t github [-l nexus -u http://url_to_root_nexus_repo] [--cpp-std 17] [-c debug|release] [-m static|shared] [--project_mode,-p] [path_to_remaken_dependencies_description_file.txt] [--condition name=value]* [--conan-build dependency]* ```
 
-```remaken configure [--conan_profile conan_profile_name] [-r  path_to_remaken_root] -i [-o linux] -t github [-l nexus -u http://url_to_root_nexus_repo] [--cpp-std 17] [-c debug|release] [--project_mode,-p] [path_to_remaken_dependencies_description_file.txt] [--condition name=value]* ```
+```remaken configure [--conan_profile conan_profile_name] [-r  path_to_remaken_root] -i [-o linux] -t github [-l nexus -u http://url_to_root_nexus_repo] [--cpp-std 17] [-c debug|release] [-m static|shared] [--project_mode,-p] [path_to_remaken_dependencies_description_file.txt] [--condition name=value]* ```
 
 **Notes:**
  
@@ -253,7 +253,8 @@ Note: ```remaken_dependencies_description_file``` defaults to current folder ```
 
 ### Listing dependencies tree from a packagedependencies.txt file
 ```remaken info [path_to_remaken_dependencies_description_file.txt]```: displays the recursive dependency tree from the file.
-```remaken info --pkg_systemfile -d path_to_write_pkgfile [path_to_remaken_dependencies_description_file.txt]```: generates pkg system files from packagedependencies files into specified folder - currently Only conan is managed.
+```remaken info pkg_systemfile -d path_to_write_pkgfile [path_to_remaken_dependencies_description_file.txt]```: generates pkg system files from packagedependencies files into specified folder - currently Only conan is managed.
+```remaken info [path_to_remaken_dependencies_description_file.txt] [-p [-m static|shared]]```: displays include, lib, and bin paths of all dependencies. can take an optionnal ```mode``` option (static or release) for defined default use mode.
 
 ### Listing remaken installed packages
 The **list** command allows to :
