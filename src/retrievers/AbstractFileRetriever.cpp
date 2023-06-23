@@ -106,8 +106,9 @@ std::pair<std::string, fs::path> AbstractFileRetriever::invokeGenerator(std::vec
     return pkgConfig.generate(deps,Dependency::Type::REMAKEN);
 }
 
-void AbstractFileRetriever::write_pkg_file(std::vector<Dependency> & deps)
+void AbstractFileRetriever::write_pkg_file([[maybe_unused]] std::vector<Dependency> & deps)
 {
+    //TODO
 }
 
 fs::path AbstractFileRetriever::installArtefactImpl(const Dependency & dependency)
@@ -136,8 +137,9 @@ fs::path AbstractFileRetriever::installArtefactImpl(const Dependency & dependenc
     return outputDirectory;
 }
 
-void AbstractFileRetriever::addArtefactRemoteImpl(const Dependency & dependency)
+void AbstractFileRetriever::addArtefactRemoteImpl([[maybe_unused]] const Dependency & dependency)
 {
+    //TODO
 }
 
 void AbstractFileRetriever::copySharedLibraries(const fs::path & sourceRootFolder)

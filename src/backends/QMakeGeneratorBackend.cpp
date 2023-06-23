@@ -184,7 +184,7 @@ void QMakeGeneratorBackend::parseConditionsFile(const fs::path &  rootFolderPath
         std::vector<std::string> results;
         std::string curStr;
         getline(configureFile,curStr);
-        std::string formatRegexStr = "^[\t\s]*DEFINES[\t\s]*+=[\t\s]*[a-zA-Z0-9_-]*";
+        //std::string formatRegexStr = "^[\t\s]*DEFINES[\t\s]*+=[\t\s]*[a-zA-Z0-9_-]*";
         //std::regex formatRegexr(formatRegexStr, std::regex_constants::extended);
         std::smatch sm;
         //check string format is ^[\t\s]*DEFINES[\t\s]*+=[\t\s]*[a-zA-Z0-9_-]*

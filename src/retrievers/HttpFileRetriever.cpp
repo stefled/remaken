@@ -71,7 +71,7 @@ http::status HttpFileRetriever::downloadArtefact (const std::string & source,con
     return std::move(res.get().result());
 }
 #else
-http::status HttpFileRetriever::downloadArtefact (const std::string & source,const fs::path & dest, std::string & newLocation)
+http::status HttpFileRetriever::downloadArtefact (const std::string & source,const fs::path & dest, [[maybe_unused]] std::string & newLocation)
 {
     boost::filesystem::path tool = bp::search_path("curl");
     if (!tool.empty()) {

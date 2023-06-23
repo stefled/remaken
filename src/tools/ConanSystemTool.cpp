@@ -308,7 +308,7 @@ void ConanSystemTool::search(const std::string & pkgName, const std::string & ve
     }
 }
 
-std::string ConanSystemTool::retrieveInstallCommand(const Dependency & dependency)
+std::string ConanSystemTool::retrieveInstallCommand([[maybe_unused]] const Dependency & dependency)
 {
     // SLETODO : not used : need to refactor with conan v1/v2 management!
     /*
@@ -795,7 +795,7 @@ std::vector<fs::path> ConanSystemTool::retrievePaths(const Dependency & dependen
     return conanPaths;
 }
 
-bool ConanSystemTool::installed(const Dependency & dependency)
+bool ConanSystemTool::installed([[maybe_unused]] const Dependency & dependency)
 {
     return false;
 }
@@ -904,7 +904,7 @@ int ConanSystemTool::conanVersion()
     try {
       majorVersion = boost::lexical_cast<int>(outVect.front()); // double could be anything with >> operator.
     }
-    catch (std::exception& e) {
+    catch (std::exception&) {
         throw std::runtime_error("Unable to get conan version");
     }
     return majorVersion;

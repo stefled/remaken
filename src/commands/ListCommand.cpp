@@ -1,11 +1,7 @@
 #include "ListCommand.h"
-#include "managers/DependencyManager.h"
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
-#include "utils/PathBuilder.h"
-#include "retrievers/HttpFileRetriever.h"
 #include "utils/DepUtils.h"
 #include "utils/OsUtils.h"
-#include "tools/GitTool.h"
 #include <boost/log/trivial.hpp>
 #include <boost/process.hpp>
 #include <regex>

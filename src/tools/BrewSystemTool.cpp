@@ -261,7 +261,7 @@ std::vector<fs::path> BrewSystemTool::includePaths ([[maybe_unused]] const Depen
     return paths;
 }
 
-void BrewSystemTool::write_pkg_file(std::vector<Dependency> & deps)
+void BrewSystemTool::write_pkg_file([[maybe_unused]] std::vector<Dependency> & deps)
 {
 
 }

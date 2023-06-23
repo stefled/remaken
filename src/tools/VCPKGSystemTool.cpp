@@ -43,7 +43,7 @@ void VCPKGSystemTool::bundle (const Dependency & dependency)
     std::string source = computeToolRef (dependency);
     std::future<std::string> depsOutputFut;
     boost::asio::io_context ios;
-    int result = bp::system(m_systemInstallerPath, "depend-info", source.c_str(), bp::std_out > depsOutputFut, ios);
+    /*int result =*/ bp::system(m_systemInstallerPath, "depend-info", source.c_str(), bp::std_out > depsOutputFut, ios);
     auto depsString  = depsOutputFut.get();
     std::vector<std::string> deps;
     boost::split(deps, depsString, [](char c){return c == '\n';});
@@ -60,7 +60,7 @@ void VCPKGSystemTool::bundleLib(const std::string & libPath)
     fs::detail::utf8_codecvt_facet utf8;
     boost::asio::io_context ios;
     std::future<std::string> listOutputFut;
-    int result = bp::system(m_systemInstallerPath, "list", libPath.c_str(), bp::std_out > listOutputFut, ios);
+    /*int result =*/ bp::system(m_systemInstallerPath, "list", libPath.c_str(), bp::std_out > listOutputFut, ios);
     auto libsString = listOutputFut.get();
     std::vector<std::string> libsPath;
     boost::split(libsPath, libsString, [](char c){return c == '\n';});
@@ -81,12 +81,12 @@ void VCPKGSystemTool::install(const Dependency & dependency)
     }
 }
 
-bool VCPKGSystemTool::installed(const Dependency & dependency)
+bool VCPKGSystemTool::installed([[maybe_unused]] const Dependency & dependency)
 {
     return false;
 }
 
-void VCPKGSystemTool::search(const std::string & pkgName, const std::string & version)
+void VCPKGSystemTool::search(const std::string & pkgName, [[maybe_unused]] const std::string & version)
 {
     std::string package = pkgName;
     std::cout<<"Vcpkg::search results:"<<std::endl;

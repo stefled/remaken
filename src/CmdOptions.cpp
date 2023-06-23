@@ -191,7 +191,7 @@ CmdOptions::CmdOptions()
     bundleXpcfCommand->add_option("xpcf_file", m_xpcfConfigurationFile, "XPCF xml module declaration file")->required();
     bundleXpcfCommand->add_flag("--ignore-errors", m_ignoreErrors, "force command execution : ignore error when a remaken dependency doesn't contains shared library");
 
-    CLI::App * cleanCommand = m_cliApp.add_subcommand("clean", "WARNING : remove every remaken installed packages");
+    /*CLI::App * cleanCommand =*/ m_cliApp.add_subcommand("clean", "WARNING : remove every remaken installed packages");
 
     // CONFIGURE COMMAND
     CLI::App * configureCommand = m_cliApp.add_subcommand("configure", "configure project dependencies");
@@ -228,14 +228,14 @@ CmdOptions::CmdOptions()
     initVcpkgCommand->add_option("--tag", m_vcpkgTag, "the vcpkg tag version to install");
     CLI::App * initArtifactPackagerCommand = initCommand->add_subcommand("artifactpkg", "setup artifact packager script");
     initArtifactPackagerCommand->add_option("--tag", m_artifactPackagerTag, "the artifact packager tag version to install");
-    CLI::App * initWizardsCommand = initCommand->add_subcommand("wizards", "installs qtcreator wizards for remaken/Xpcf projects");
+    /*CLI::App * initWizardsCommand =*/ initCommand->add_subcommand("wizards", "installs qtcreator wizards for remaken/Xpcf projects");
 
 #if defined(BOOST_OS_MACOS_AVAILABLE) || defined(BOOST_OS_LINUX_AVAILABLE)
     CLI::App * initBrewCommand = initCommand->add_subcommand("brew", "setup brew repository");
 #endif
 
     // VERSION COMMAND
-    CLI::App * versionCommand = m_cliApp.add_subcommand("version", "display remaken version");
+    /*CLI::App * versionCommand =*/ m_cliApp.add_subcommand("version", "display remaken version");
 
     // INSTALL COMMAND
     CLI::App * installCommand = m_cliApp.add_subcommand("install", "install dependencies for a package from its packagedependencies file(s)");
@@ -276,7 +276,7 @@ CmdOptions::CmdOptions()
 
     // REMOTE COMMAND
     CLI::App * remoteCommand = m_cliApp.add_subcommand("remote", "Remote/sources/repositories/tap management");
-    CLI::App * remoteListCommand = remoteCommand->add_subcommand("list", "list all remotes/sources/tap from installed packaging systems");
+    /*CLI::App * remoteListCommand =*/ remoteCommand->add_subcommand("list", "list all remotes/sources/tap from installed packaging systems");
     CLI::App * remoteListFileCommand = remoteCommand->add_subcommand("listfile", "list remotes/sources/tap declared from packagedependencies file");
     remoteListFileCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files"); // ,true);
     CLI::App * remoteAddCommand = remoteCommand->add_subcommand("add", "add remotes/sources/tap declared from packagedependencies file");

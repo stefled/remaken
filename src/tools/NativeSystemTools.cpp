@@ -1,5 +1,5 @@
 #include "NativeSystemTools.h"
-#include "utils/OsUtils.h"
+//#include "utils/OsUtils.h"
 
 #include <boost/process.hpp>
 #include <boost/predef.h>
@@ -114,7 +114,7 @@ std::string AptSystemTool::retrieveInstallCommand(const Dependency & dependency)
     return installCmd;
 }
 
-void AptSystemTool::search(const std::string & pkgName, const std::string & version)
+void AptSystemTool::search(const std::string & pkgName, [[maybe_unused]] const std::string & version)
 {
     std::string package = pkgName;
     std::vector<std::string> foundDeps = split( SystemTools::runShellCommand ("apt-cache", "search", {}, package) );
@@ -177,7 +177,7 @@ void PacManSystemTool::install(const Dependency & dependency)
     }
 }
 
-bool PacManSystemTool::installed(const Dependency & dependency)
+bool PacManSystemTool::installed([[maybe_unused]] const Dependency & dependency)
 {
     return false;
 }
@@ -243,7 +243,7 @@ void PkgUtilSystemTool::install(const Dependency & dependency)
     }
 }
 
-bool PkgUtilSystemTool::installed(const Dependency & dependency)
+bool PkgUtilSystemTool::installed([[maybe_unused]] const Dependency & dependency)
 {
     return false;
 }
@@ -275,7 +275,7 @@ void ChocoSystemTool::install(const Dependency & dependency)
     }
 }
 
-bool ChocoSystemTool::installed(const Dependency & dependency)
+bool ChocoSystemTool::installed([[maybe_unused]] const Dependency & dependency)
 {
     return false;
 }
@@ -289,7 +289,7 @@ std::string ChocoSystemTool::retrieveInstallCommand(const Dependency & dependenc
     return installCmd;
 }
 
-void ChocoSystemTool::search(const std::string & pkgName, const std::string & version)
+void ChocoSystemTool::search(const std::string & pkgName, [[maybe_unused]] const std::string & version)
 {
     std::string package = pkgName;
     std::vector<std::string> foundDeps = split( run ("search", {"--by-id-only"}, package) );
@@ -353,7 +353,7 @@ void ScoopSystemTool::install(const Dependency & dependency)
     }
 }
 
-bool ScoopSystemTool::installed(const Dependency & dependency)
+bool ScoopSystemTool::installed([[maybe_unused]] const Dependency & dependency)
 {
     return false;
 }
@@ -367,7 +367,7 @@ std::string ScoopSystemTool::retrieveInstallCommand(const Dependency & dependenc
     return installCmd;
 }
 
-void ScoopSystemTool::search(const std::string & pkgName, const std::string & version)
+void ScoopSystemTool::search(const std::string & pkgName, [[maybe_unused]] const std::string & version)
 {
     std::string package = pkgName;
     std::vector<std::string> foundDeps = split( run ("search", {}, package) );
