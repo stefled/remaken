@@ -112,7 +112,6 @@ void XpcfXmlManager::declareModule(tinyxml2::XMLElement * xmlModuleElt)
 
 const std::map<std::string, fs::path> & XpcfXmlManager::parseXpcfModulesConfiguration(const fs::path & configurationFilePath)
 {
-    int result = -1;
     tinyxml2::XMLDocument doc;
     m_modulesPathMap.clear();
     enum tinyxml2::XMLError loadOkay = doc.LoadFile(configurationFilePath.string().c_str());
@@ -126,8 +125,6 @@ const std::map<std::string, fs::path> & XpcfXmlManager::parseXpcfModulesConfigur
             if (rootName != "xpcf-registry" && rootName != "xpcf-configuration") {
                 throw std::runtime_error("Error parsing xpcf configuration file : root node is neither <xpcf-registry> nor <xpcf-configuration> : invalid format ");
             }
-            result = 0;
-
             processXmlNode(rootElt, "module", std::bind(&XpcfXmlManager::declareModule, this, _1));
         }
         catch (const std::runtime_error & e) {

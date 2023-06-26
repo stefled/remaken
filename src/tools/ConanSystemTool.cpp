@@ -430,20 +430,7 @@ void ConanSystemTool::translateJsonToRemakenDep(std::vector<Dependency> & deps, 
     for (auto & dep : deps) {
         depsMap.insert({dep.getPackageName(),dep});
     }
-    std::vector<fs::path> conanPaths;
-    BaseSystemTool::PathType libPathNode = BaseSystemTool::PathType::LIB_PATHS;
-
-#ifdef BOOST_OS_WINDOWS_AVAILABLE
-    if (m_options.crossCompiling() && m_options.getOS() != "win") {
-        libPathNode = BaseSystemTool::PathType::LIB_PATHS;
-
-    }
-    else {
-        libPathNode = BaseSystemTool::PathType::BIN_PATHS;
-
-    }
-#endif
-
+    
     fs::detail::utf8_codecvt_facet utf8;
     if (fs::exists(conanJsonBuildInfo)) {
         std::ifstream ifs1{ conanJsonBuildInfo.generic_string(utf8) };

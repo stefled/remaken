@@ -30,7 +30,7 @@ std::pair<std::string, fs::path> CMakeGeneratorBackend::generate([[maybe_unused]
     return {"",fs::path()};
 }
 
-void CMakeGeneratorBackend::generateIndex(std::map<std::string,fs::path> setupInfos)
+void CMakeGeneratorBackend::generateIndex([[maybe_unused]] std::map<std::string,fs::path> setupInfos)
 {
     BOOST_LOG_TRIVIAL(warning)<<"CMakeGeneratorBackend::generateIndex NOT IMPLEMENTED";
 }

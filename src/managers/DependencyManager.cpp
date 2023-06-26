@@ -78,7 +78,9 @@ int DependencyManager::retrieve()
 int DependencyManager::parse()
 {
     bool bValid = true;
+#ifdef BOOST_OS_WINDOWS_AVAILABLE
     bool bNeedElevation = false;
+#endif
     fs::path depPath = buildDependencyPath();
     std::vector<Dependency> dependencies = DepUtils::parse(depPath, m_options.getMode());
     for (auto dep : dependencies) {
@@ -164,13 +166,13 @@ bool DependencyManager::installDep(Dependency &  dependency, const std::string &
     }
 
     if (m_options.useCache()) {
-        if (dependency.getMode() == "na" || (withHeaders && !withBinDir && !withLibDir)) {
+        if ((dependency.getMode() == "na") || (withHeaders && !withBinDir && !withLibDir)) {
             if (!fs::exists(outputDirectory)) {
                 return true;
             }
             return false;
         }
-        if (withLibDir && !fs::exists(libDirectory) || withBinDir && !fs::exists(binDirectory)) {
+        if ((withLibDir && !fs::exists(libDirectory)) || (withBinDir && !fs::exists(binDirectory))) {
             return true;
         }
         else {
@@ -183,7 +185,7 @@ bool DependencyManager::installDep(Dependency &  dependency, const std::string &
     }
 
     if (dependency.getMode() != "na") {
-        if (withLibDir && !fs::exists(libDirectory) || withBinDir && !fs::exists(binDirectory)) {
+        if ((withLibDir && !fs::exists(libDirectory)) || (withBinDir && !fs::exists(binDirectory))) {
             return true;
         }
         return false;

@@ -7,7 +7,7 @@ PackageCommand::PackageCommand(const CmdOptions & options):AbstractCommand(Packa
 {
 }
 
-void PackageCommand::compressFolder(fs::path folderPath)
+void PackageCommand::compressFolder([[maybe_unused]] fs::path folderPath)
 {
     auto zipTool = ZipTool::createZipTool(m_options);
 

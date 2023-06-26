@@ -30,7 +30,7 @@ std::pair<std::string, fs::path> JSONGeneratorBackend::generate([[maybe_unused]]
 }
 
 
-void JSONGeneratorBackend::generateIndex(std::map<std::string,fs::path> setupInfos)
+void JSONGeneratorBackend::generateIndex([[maybe_unused]] std::map<std::string,fs::path> setupInfos)
 {
     BOOST_LOG_TRIVIAL(warning)<<"JSONGeneratorBackend::generateIndex NOT IMPLEMENTED";
 }

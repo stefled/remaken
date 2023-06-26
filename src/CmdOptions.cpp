@@ -231,7 +231,7 @@ CmdOptions::CmdOptions()
     /*CLI::App * initWizardsCommand =*/ initCommand->add_subcommand("wizards", "installs qtcreator wizards for remaken/Xpcf projects");
 
 #if defined(BOOST_OS_MACOS_AVAILABLE) || defined(BOOST_OS_LINUX_AVAILABLE)
-    CLI::App * initBrewCommand = initCommand->add_subcommand("brew", "setup brew repository");
+    /*CLI::App * initBrewCommand =*/ initCommand->add_subcommand("brew", "setup brew repository");
 #endif
 
     // VERSION COMMAND
