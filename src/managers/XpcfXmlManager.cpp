@@ -1,17 +1,12 @@
 #include "XpcfXmlManager.h"
 #include "Constants.h"
-#include "FileHandlerFactory.h"
 #include <list>
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 #include <boost/dll.hpp>
 #include <boost/algorithm/string.hpp>
-//#include <zipper/unzipper.h>
 #include <future>
-#include "tools/SystemTools.h"
-#include "utils/OsUtils.h"
 #include <boost/log/trivial.hpp>
 #include "utils/PathBuilder.h"
-#include "DependencyManager.h"
 #include <regex>
 
 using namespace std;
@@ -25,7 +20,7 @@ XpcfXmlManager::XpcfXmlManager(const CmdOptions & options):m_options(options)
 fs::path XpcfXmlManager::findPackageRoot(const fs::path & moduleLibPath, bool verbose)
 {
     fs::detail::utf8_codecvt_facet utf8;
-    std::string versionRegex = "[0-9]+\.[0-9]+\.[0-9]+";
+    std::string versionRegex = "[0-9]+\\.[0-9]+\\.[0-9]+";
     fs::path currentFilename = moduleLibPath.filename();
     fs::path currentModulePath = moduleLibPath;
     bool bFoundVersion = false;

@@ -21,7 +21,7 @@ int ListCommand::listPackages()
     }
     for (fs::directory_entry& x : fs::recursive_directory_iterator(remakenRootPackagesPath)) {
         if (fs::is_directory(x.path())) {
-            std::string versionRegexStr = "[0-9]+\.[0-9]+\.[0-9]+";
+            std::string versionRegexStr = "[0-9]+\\.[0-9]+\\.[0-9]+";
 
             std::regex versionRegex(versionRegexStr, std::regex_constants::extended);
             fs::path leafFolder = x.path().filename();
@@ -50,7 +50,7 @@ int ListCommand::listPackageVersions(const std::string & pkgName)
     }
     for (fs::directory_entry& x : fs::recursive_directory_iterator(remakenRootPackagesPath)) {
         if (fs::is_directory(x.path())) {
-            std::string versionRegexStr = "[0-9]+\.[0-9]+\.[0-9]+";
+            std::string versionRegexStr = "[0-9]+\\.[0-9]+\\.[0-9]+";
 
             std::regex versionRegex(versionRegexStr, std::regex_constants::extended);
 
