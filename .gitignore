@@ -30,3 +30,10 @@
 *.exe
 *.out
 *.app
+
+# Output directories
+.build-rules/*
+scripts/*/build-*
+
+# Qmake temporary files
+*.pro.user
