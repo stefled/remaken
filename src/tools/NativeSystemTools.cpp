@@ -48,13 +48,6 @@ void AptSystemTool::listRemotes()
             }
         }
     }
-    /*boost::asio::io_context ios;
-    std::future<std::string> listOutputFut;
-    bp::system("/bin/grep", "-Erh","^deb", "/etc/apt/sources.list.d/*", bp::std_out > listOutputFut, ios);
-    std::vector<std::string> remoteList = split( SystemTools::runShellCommand("grep", {"-Erh","^deb"}, "/etc/apt/sources.list*", {0,1}));
-    for (const auto & remote: remoteList) {
-         std::cout<<"=> "<<remote<<std::endl;
-    }*/
 }
 
 
@@ -285,7 +278,7 @@ std::string ChocoSystemTool::retrieveInstallCommand(const Dependency & dependenc
     fs::detail::utf8_codecvt_facet utf8;
     std::string source = computeToolRef(dependency);
     std::string installCmd = m_systemInstallerPath.generic_string(utf8);
-    installCmd += " install","--yes " + source;
+    installCmd += " install --yes " + source;
     return installCmd;
 }
 
@@ -363,7 +356,7 @@ std::string ScoopSystemTool::retrieveInstallCommand(const Dependency & dependenc
     fs::detail::utf8_codecvt_facet utf8;
     std::string source = computeToolRef(dependency);
     std::string installCmd = m_systemInstallerPath.generic_string(utf8);
-    installCmd += " install","--yes " + source;
+    installCmd += " install " + source;
     return installCmd;
 }
 
