@@ -118,16 +118,26 @@ void ConanSystemTool::addRemoteImpl(const std::string & repositoryUrl)
     for (auto remoteElem : remotelistParts) {
         auto remoteElemParts = split(remoteElem, ' ');
         if (remoteElemParts.size() >= 2) {
-            conanRemoteAliases.push_back(remoteElemParts.at(0));
+            std::string remoteAlias = remoteElemParts.at(0);
+            remoteAlias.pop_back(); // remove ':'
+            conanRemoteAliases.push_back(remoteAlias);
             conanRemoteUrls.push_back(remoteElemParts.at(1));
         }
     }
 
-    if ( std::find(conanRemoteAliases.begin(), conanRemoteAliases.end(), repoId) == conanRemoteAliases.end() &&
-         std::find(conanRemoteUrls.begin(), conanRemoteUrls.end(), repoParts.at(1)) == conanRemoteUrls.end()) {
-        std::cout<<"Adding conan remote "<<repoId << " " << repoParts.at(1) <<" at "<<repoParts.at(2)<<std::endl;
-        std::string result = run ("remote","add",options);
-        return;
+    if (std::find(conanRemoteAliases.begin(), conanRemoteAliases.end(), repoId) == conanRemoteAliases.end()) {
+        if (std::find(conanRemoteUrls.begin(), conanRemoteUrls.end(), repoParts.at(1)) == conanRemoteUrls.end()) {
+            std::cout<<"conan remote named "<<repoId << " and url " << repoParts.at(1) <<" were not found! "<<std::endl;
+            std::cout<<"Adding conan remote "<<repoId << " " << repoParts.at(1) <<" at "<<repoParts.at(2)<<std::endl;
+            std::string result = run ("remote","add",options);
+            return;
+        }
+        else {
+            std::cout<<"conan remote url " << repoId << " already exists - Do nothing" << std::endl;
+        }
+    }
+    else {
+        std::cout<<"conan remote named " << repoId << " already exists - Do nothing" << std::endl;
     }
 }
 
