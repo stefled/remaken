@@ -153,7 +153,7 @@ bool DependencyManager::installDep(Dependency &  dependency, const std::string &
         withHeaders = fs::exists(outputDirectory/Constants::PKGINFO_FOLDER/".headers");
     }
 
-    if (dependency.getType() != Dependency::Type::REMAKEN) {
+    if (dependency.getType() != Dependency::Type::REMAKEN && dependency.getType() != Dependency::Type::CONAN) {
         if (m_options.useCache()) {
             if (!m_cache.contains(source)) {
                 return true;
@@ -256,8 +256,10 @@ void DependencyManager::retrieveDependency(Dependency &  dependency, DependencyF
                 }
             }
             std::cout<<"===> "<<dependency.getName()<<" installed in "<<outputDirectory<<std::endl;
-            if (m_options.useCache()) {
-                m_cache.add(source);
+            if (dependency.getType() != Dependency::Type::CONAN) {
+                if (m_options.useCache()) {
+                    m_cache.add(source);
+                }
             }
         }
         catch (const std::runtime_error & e) {
