@@ -1,0 +1,101 @@
+name: Remaken CI
+run-name: ${{ github.actor }} - run Remaken CI
+on: [push]
+jobs:
+  windows-ci:
+    runs-on: windows-2022
+    steps:
+      # Remaken
+      - name: Remaken git checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+
+      # Pkgconfig
+      - name: Pkgconfig
+        run: choco install -yr --acceptlicense --no-progress --allow-empty-checksums pkgconfiglite
+
+      # Visual Studio 2019 Community
+      - name: Visual Studio 2019
+        run: choco install --allow-empty-checksums visualstudio2019community
+      - name: Visual C++ 2019
+        run: choco install visualstudio2019-workload-nativedesktop
+      - working-directory: 'C:\Program Files (x86)\Microsoft Visual Studio\Installer'
+        run: .\vswhere.exe
+      - working-directory: 'C:\Program Files (x86)\Microsoft Visual Studio\Installer'
+        run: .\vswhere.exe -requires Microsoft.Component.MSBuild -property installationPath
+
+      # Conan v1.59
+      # - Install
+      - run: pip install --upgrade conan==1.59.0
+      - run: echo "C:\Program Files\Conan\conan" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
+      # - run: conan --version
+      # - Configuration
+      - run: conan profile new default --detect
+      - run: conan profile update settings.compiler.cppstd=17 default
+      - run: conan profile update settings.compiler.version=16 default
+      - run: conan profile update settings.compiler.toolset=v142 default
+      
+      # Qt tools: qmake and jom
+      - run: mkdir ${{ github.workspace }}/example/
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: '5.15.2'
+          host: 'windows'
+          target: 'desktop'
+          arch: 'win64_msvc2019_64'
+          dir: '${{ github.workspace }}/tools'
+          install-deps: 'true'
+          modules: 'qtcharts qtwebengine'
+          archives: 'qtbase qtsvg'
+          cache: 'false'
+          cache-key-prefix: 'install-qt-action'
+          setup-python: 'true'
+          tools: 'tools_ifw tools_qtcreator,qt.tools.qtcreator'
+          set-env: 'true'
+          tools-only: 'false'
+          aqtversion: '==2.1.*'
+          py7zrversion: '==0.19.*'
+          extra: '--external 7z'
+      - run: echo "${{ github.workspace }}/tools/Qt/Tools/QtCreator/bin/jom" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
+      - run: echo "${{ github.workspace }}/tools/Qt/5.15.2/msvc2019_64/bin" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
+
+      # Build solution
+      - run: dir "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
+      - working-directory: ./scripts/win
+        run: .\build_remaken_project.bat remaken shared ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
+
+  linux-ci:
+    runs-on: ubuntu-22.04
+    steps:
+      # Remaken
+      - name: Remaken git checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+
+      # Pkgconfig
+      - name: Pkgconfig
+        run: pip install pkgconfig
+      # - run: pkg-config --version
+      
+      # Qt tools: qmake and jom
+      - run: sudo apt-get install qtbase5-dev
+      
+      # Conan
+      - name: Conan
+        run: pip install --upgrade conan==1.59.0
+      - run: conan --version
+
+      # Conan v1.59
+      # - Configuration
+      # - run: conan remote list
+      - run: conan profile new default --detect
+      - run: conan profile update settings.compiler.libcxx=libstdc++11 default
+      - run: conan profile update settings.compiler.cppstd=17 default
+      - run: conan profile update settings.compiler.version=11 default
+      
+      # Build solution
+      - working-directory: ./scripts/unixes
+        run: ./build_remaken_project.sh remaken shared ../.. 5.15.2 /usr/bin
