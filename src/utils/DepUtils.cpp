@@ -157,6 +157,10 @@ std::vector<Dependency> DepUtils::parse(const fs::path &  dependenciesPath, cons
                         // Dependency line is not commented: parsing the dependency
                         Dependency dep(curStr, linkMode);
 
+                        if (!dep.validate()) {
+                            throw std::runtime_error("Error parsing dependency file : invalid format ");
+                        }
+
                         if (dep.isGenericSystemDependency()
                                 ||dep.isSpecificSystemToolDependency()
                                 ||!dep.isSystemDependency()) {
@@ -174,6 +178,9 @@ std::vector<Dependency> DepUtils::parse(const fs::path &  dependenciesPath, cons
                                 libraries.insert(std::make_pair(dep.getName(), std::move(dep)));
                             }
                         }
+                    }
+                    else {
+                        std::cout<<"[IGNORED]: Dependency line '"<<curStr<<"' with invalid format !"<<std::endl;
                     }
                 }
                 else {
