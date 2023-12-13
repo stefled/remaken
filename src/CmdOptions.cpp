@@ -538,6 +538,9 @@ void CmdOptions::writeConfigurationFile() const
     fs::detail::utf8_codecvt_facet utf8;
     fs::path remakenRootPath = PathBuilder::getHomePath() / Constants::REMAKEN_FOLDER;
     fs::path remakenProfilesPath = remakenRootPath / Constants::REMAKEN_PROFILES_FOLDER;
+    if (!fs::exists(remakenProfilesPath)) {
+        fs::create_directories(remakenProfilesPath);
+    }
     fs::path remakenProfilePath = remakenProfilesPath/m_profileName;
     ofstream fos;
     fos.open(remakenProfilePath.generic_string(utf8),ios::out|ios::trunc);
