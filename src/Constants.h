@@ -70,6 +70,8 @@ namespace fs = boost::filesystem;
 #include <sys/types.h>
 #endif
 
+#include <map>
+
 
 template < typename Key, typename T> bool mapContains(const std::map<Key,T> & mapContainer, Key k)
 {
