@@ -12,6 +12,7 @@ for %%A in ("--help" "-h") do if "%1"==%%A (call:display_usage %1 & exit /b 0)
 REM default win walues
 if NOT [%1]==[] set PROJECTROOT=%1
 if NOT [%2]==[] set QTVERSION=%2
+set QMAKEPATH=C:\Qt\%QTVERSION%\msvc2019_64\bin
 if NOT [%3]==[] set QMAKEPATH=%3
 
 if not exist %PROJECTROOT% (echo "Remaken project root path '%PROJECTROOT%' doesn't exist" & exit /b 2)

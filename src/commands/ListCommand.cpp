@@ -1,11 +1,7 @@
 #include "ListCommand.h"
-#include "managers/DependencyManager.h"
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
-#include "utils/PathBuilder.h"
-#include "retrievers/HttpFileRetriever.h"
 #include "utils/DepUtils.h"
 #include "utils/OsUtils.h"
-#include "tools/GitTool.h"
 #include <boost/log/trivial.hpp>
 #include <boost/process.hpp>
 #include <regex>
@@ -25,7 +21,7 @@ int ListCommand::listPackages()
     }
     for (fs::directory_entry& x : fs::recursive_directory_iterator(remakenRootPackagesPath)) {
         if (fs::is_directory(x.path())) {
-            std::string versionRegexStr = "[0-9]+\.[0-9]+\.[0-9]+";
+            std::string versionRegexStr = "[0-9]+\\.[0-9]+\\.[0-9]+";
 
             std::regex versionRegex(versionRegexStr, std::regex_constants::extended);
             fs::path leafFolder = x.path().filename();
@@ -54,7 +50,7 @@ int ListCommand::listPackageVersions(const std::string & pkgName)
     }
     for (fs::directory_entry& x : fs::recursive_directory_iterator(remakenRootPackagesPath)) {
         if (fs::is_directory(x.path())) {
-            std::string versionRegexStr = "[0-9]+\.[0-9]+\.[0-9]+";
+            std::string versionRegexStr = "[0-9]+\\.[0-9]+\\.[0-9]+";
 
             std::regex versionRegex(versionRegexStr, std::regex_constants::extended);
 

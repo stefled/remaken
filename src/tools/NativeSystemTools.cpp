@@ -1,5 +1,5 @@
 #include "NativeSystemTools.h"
-#include "utils/OsUtils.h"
+//#include "utils/OsUtils.h"
 
 #include <boost/process.hpp>
 #include <boost/predef.h>
@@ -33,8 +33,6 @@ void AptSystemTool::update()
 
 void AptSystemTool::listRemotes()
 {
-    boost::asio::io_context ios;
-    std::future<std::string> listOutputFut;
     fs::detail::utf8_codecvt_facet utf8;
     std::vector<std::string> remoteList;
     std::cout<<"Apt sources:"<<std::endl;
@@ -50,11 +48,6 @@ void AptSystemTool::listRemotes()
             }
         }
     }
-  //  bp::system("/bin/grep", "-Erh","^deb", "/etc/apt/sources.list.d/*", bp::std_out > listOutputFut, ios);
-    /*std::vector<std::string> remoteList = split( SystemTools::runShellCommand("grep", {"-Erh","^deb"}, "/etc/apt/sources.list*", {0,1}));
-    for (const auto & remote: remoteList) {
-         std::cout<<"=> "<<remote<<std::endl;
-    }*/
 }
 
 
@@ -114,7 +107,7 @@ std::string AptSystemTool::retrieveInstallCommand(const Dependency & dependency)
     return installCmd;
 }
 
-void AptSystemTool::search(const std::string & pkgName, const std::string & version)
+void AptSystemTool::search(const std::string & pkgName, [[maybe_unused]] const std::string & version)
 {
     std::string package = pkgName;
     std::vector<std::string> foundDeps = split( SystemTools::runShellCommand ("apt-cache", "search", {}, package) );
@@ -177,7 +170,7 @@ void PacManSystemTool::install(const Dependency & dependency)
     }
 }
 
-bool PacManSystemTool::installed(const Dependency & dependency)
+bool PacManSystemTool::installed([[maybe_unused]] const Dependency & dependency)
 {
     return false;
 }
@@ -243,7 +236,7 @@ void PkgUtilSystemTool::install(const Dependency & dependency)
     }
 }
 
-bool PkgUtilSystemTool::installed(const Dependency & dependency)
+bool PkgUtilSystemTool::installed([[maybe_unused]] const Dependency & dependency)
 {
     return false;
 }
@@ -275,7 +268,7 @@ void ChocoSystemTool::install(const Dependency & dependency)
     }
 }
 
-bool ChocoSystemTool::installed(const Dependency & dependency)
+bool ChocoSystemTool::installed([[maybe_unused]] const Dependency & dependency)
 {
     return false;
 }
@@ -285,11 +278,11 @@ std::string ChocoSystemTool::retrieveInstallCommand(const Dependency & dependenc
     fs::detail::utf8_codecvt_facet utf8;
     std::string source = computeToolRef(dependency);
     std::string installCmd = m_systemInstallerPath.generic_string(utf8);
-    installCmd += " install","--yes " + source;
+    installCmd += " install --yes " + source;
     return installCmd;
 }
 
-void ChocoSystemTool::search(const std::string & pkgName, const std::string & version)
+void ChocoSystemTool::search(const std::string & pkgName, [[maybe_unused]] const std::string & version)
 {
     std::string package = pkgName;
     std::vector<std::string> foundDeps = split( run ("search", {"--by-id-only"}, package) );
@@ -353,7 +346,7 @@ void ScoopSystemTool::install(const Dependency & dependency)
     }
 }
 
-bool ScoopSystemTool::installed(const Dependency & dependency)
+bool ScoopSystemTool::installed([[maybe_unused]] const Dependency & dependency)
 {
     return false;
 }
@@ -363,11 +356,11 @@ std::string ScoopSystemTool::retrieveInstallCommand(const Dependency & dependenc
     fs::detail::utf8_codecvt_facet utf8;
     std::string source = computeToolRef(dependency);
     std::string installCmd = m_systemInstallerPath.generic_string(utf8);
-    installCmd += " install","--yes " + source;
+    installCmd += " install " + source;
     return installCmd;
 }
 
-void ScoopSystemTool::search(const std::string & pkgName, const std::string & version)
+void ScoopSystemTool::search(const std::string & pkgName, [[maybe_unused]] const std::string & version)
 {
     std::string package = pkgName;
     std::vector<std::string> foundDeps = split( run ("search", {}, package) );
@@ -377,7 +370,9 @@ void ScoopSystemTool::search(const std::string & pkgName, const std::string & ve
             boost::erase_all(dep, "(");
             boost::erase_all(dep, ")");
             std::vector<std::string> depDetails = split(dep,' ');
-            std::cout<<depDetails.at(0)<<"\t"<<depDetails.at(1)<<"\t\t"<<depDetails.at(0)<<"|"<<depDetails.at(1)<<"|scoop|"<<std::endl;
+            if (depDetails.size() > 2) {
+                std::cout<<depDetails.at(0)<<"\t"<<depDetails.at(1)<<"\t\t"<<depDetails.at(0)<<"|"<<depDetails.at(1)<<"|scoop|"<<std::endl;
+            }
         }
     }
 }

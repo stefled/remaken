@@ -2,7 +2,6 @@
 QTVERSION=5.15.2
 PROJECTROOT=../..
 
-# default linux values
 QMAKEPATH=$HOME/Qt/${QTVERSION}/gcc_64/bin
 if [[ "$OSTYPE" == "darwin"* ]]; then
 	# overload for mac values
@@ -27,8 +26,15 @@ if [ $# -ge 1 ]; then
 fi
 if [ $# -ge 2 ]; then
 	QTVERSION=$2
+
+	QMAKEPATH=$HOME/Qt/${QTVERSION}/gcc_64/bin
+	if [[ "$OSTYPE" == "darwin"* ]]; then
+		# overload for mac values
+		QMAKE_PATH=/Application/Qt/${QTVERSION}/clang_64/bin
+	fi
 fi
 if [ $# -eq 3 ]; then
+	# default linux values
 	QMAKEPATH=$3
 fi
 

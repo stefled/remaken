@@ -12,7 +12,7 @@ public:
     unzipTool(bool quiet,bool override):ZipTool("unzip", quiet, override) {}
     ~unzipTool() override = default;
     int uncompressArtefact(const fs::path & compressedDependency, const fs::path & destinationRootFolder) override;
-    int compressArtefact(const fs::path & folderToCompress) override { return -1; };
+    int compressArtefact([[maybe_unused]] const fs::path & folderToCompress) override { return -1; };
 };
 
 int unzipTool::uncompressArtefact(const fs::path & compressedDependency, const fs::path & destinationRootFolder)

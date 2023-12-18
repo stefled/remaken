@@ -121,6 +121,10 @@ public:
         return m_libs;
     }
 
+    const std::vector<std::string> & defines() const {
+        return m_defines;
+    }
+
     std::vector<std::string> & cflags() {
         return m_cflags;
     }
@@ -141,10 +145,14 @@ public:
         return m_libdirs;
     }
 
-
     std::vector<std::string> & libs() {
         return m_libs;
     }
+
+    std::vector<std::string> & defines() {
+        return m_defines;
+    }
+
 
     bool isSystemDependency() const;
     bool isSpecificSystemToolDependency() const;
@@ -174,6 +182,7 @@ private:
     std::vector<std::string> m_libs;
     std::string m_prefix;
     std::vector<std::string> m_libdirs;
+    std::vector<std::string> m_defines;
     Type m_type;
     bool m_bHasOptions = false;
     bool m_bHasConditions = false;
