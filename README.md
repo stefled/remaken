@@ -10,22 +10,18 @@
 
 ## Overview
 
-The need to use a tool such as **Remaken** comes from  :
-
+The need to use a tool such as **Remaken** comes from :   
 - diversity of C++ package managers
 - need to speed up development bootstrap
 - need to shorten delays
 
-Indeed, whatever the dependency your project needs, there is a chance the dependency already exists in binary format on one of the existing C++ packaging systems.
-
-If it doesn't already exist in an existing C++ packaging systems, you can build your own binary version and share it as a **remaken dependency** across your team or organization, ensuring build options are the same.
-
+Indeed, whatever the dependency your project needs, there is a chance the dependency already exists in binary format on one of the existing C++ packaging systems.   
+If it doesn't already exist in an existing C++ packaging systems, you can build your own binary version and share it as a **remaken dependency** across your team or organization, ensuring build options are the same.   
 It also avoids other developers to build locally the same dependency.
 
 ### Issues in native development without **remaken** and common development rules:
 
-To setup a native C/C++ project that uses thirdparty dependencies, a developer must for each dependency (whatever the build system is in either [make](https://www.gnu.org/software/make/manual/make.html), [cmake](https://cmake.org/), [conan](https://conan.io/), [vcpkg](https://github.com/microsoft/vcpkg), [MSVC](https://visualstudio.microsoft.com/) …)  :
-
+To setup a native C/C++ project that uses thirdparty dependencies, a developer must for each dependency (whatever the build system is in either [make](https://www.gnu.org/software/make/manual/make.html), [cmake](https://cmake.org/), [conan](https://conan.io/), [vcpkg](https://github.com/microsoft/vcpkg), [MSVC](https://visualstudio.microsoft.com/) …):   
 1. build each dependency with homogeneous build rules and flags (for instance c++ std version, for each target [*debug*, *release* | *os* | *cpu* | *shared*, *static*])
 2. install each dependency in an accessible path in the system (and eventually, pollute the development environment system for instance using `make install`, or set a different *sysroot* - make install by default will need sudo access for unix(e)s.)
 3. add include paths, libraries paths and libraries link flags for each dependency and sub dependency in its development project
@@ -37,8 +33,7 @@ NOTE: for most build systems ([make](https://www.gnu.org/software/make/manual/ma
 Shared library or application project heterogeneity across a team can lead to integration issues as the build rules can slightly differ on each developer station.
 
 ### Development workflow using **remaken** / **builddefs-qmake** rules
-**Remaken** :
-
+**Remaken** :   
 - provide the same set of build rules across packaging systems (certified for packaging systems that perform a local build such as [conan](https://conan.io/), [vcpkg](https://github.com/microsoft/vcpkg), [brew](https://brew.sh/index_fr))
 - install dependencies from any packaging system (including **remaken** own packaging and flag finding system) 
 - there is no need to call manually each packaging system, to write a script … all is done at once from the **packagedependencies** description 
@@ -52,15 +47,11 @@ Shared library or application project heterogeneity across a team can lead to in
 - binaries installation don't occur in system path. It avoids the pollution of the environment. It also avoids the need for sudo access.
 - provide vcpkg installation and bootstrap
 - provide [builddefs-qmake](https://github.com/b-com-software-basis/builddefs-qmake/releases/tag/builddefs-qmake-latest) rules installation and update
- 
-3/ with standardized build rules (currently qmake supported, future other system rules support can be implemented)
-homogeneous builds ..
- 
-4/ Detailed design
 
 ## Installing **remaken**
-### Linux Ubuntu 18.04 or mac OS X
+### Linux Ubuntu 18.04/22.04 or mac OS X
 
+#### Install with brew
 First install [brew](https://brew.sh/index_fr) on your system:
 
 ```
@@ -74,9 +65,16 @@ brew tap b-com/sft
 brew install remaken
 ``` 
 
+#### install with sh script - Ubuntu 22.04
+
+```
+wget https://github.com/b-com-software-basis/remaken/releases/download/install/install_remaken.sh
+./install_remaken.sh
+```
+
 ### Windows
 
-Download and install the latest [setup file](https://github.com/b-com-software-basis/remaken/releases/) version.
+Download and install the latest [setup file](https://github.com/b-com-software-basis/remaken/releases/) version.   
 
 ## Package formats supported
 ### Cross platforms packaging systems :
@@ -98,20 +96,21 @@ Download and install the latest [setup file](https://github.com/b-com-software-b
 
 ## Command line usage samples
 ### Initialize remaken default folder
-- ```remaken init```: creates the default .remaken folder
+- ```remaken init```: creates the default .remaken folder.
+
+It also initializes ```.remaken/rules/qmake``` with the [builddefs-qmake](https://github.com/b-com-software-basis/builddefs-qmake/releases/tag/builddefs-qmake-latest) release associated with the current remaken version. To get another version, use  ```remaken init --tag x.y.z```.  
+You can also retrieve the latest qmake rules (latest rules reflects the current develop branch status) with ```remaken init --tag latest```.  
+All qmake rules are retrieved from [builddefs-qmake](https://github.com/b-com-software-basis/builddefs-qmake/releases/tag/builddefs-qmake-latest).   
+The ```remaken init``` command also supports the ```--force``` (alias ```-f```) to force reinstalling qmake rules and/or ```--override```  (alias ```-e```) to override existing files.   
+
+**Note:** ```remaken init``` need to be called with elevation rights (admin/sudo mode) 
+
+### Install vcpkg
 - ```remaken init vcpkg```: initializes vcpkg (clone the vcpkg repository and bootstrap vcpkg)
 - ```remaken init vcpkg [--tag tag]```: initializes vcpkg (clone the vcpkg repository for tag [tag] and bootstrap vcpkg)
 
-It also initializes .remaken/rules/qmake with the builddefs-qmake release associated with the current remaken version. To get another version, use  ```remaken init --tag x.y.z```. 
-
-You can also retrieve the latest qmake rules (latest rules reflects the current develop branch status) with ```remaken init --tag latest```.
-
-All qmake rules are retrieved from [builddefs-qmake](https://github.com/b-com-software-basis/builddefs-qmake/releases/tag/builddefs-qmake-latest)
-
-The ```remaken init``` command also supports the ```--force``` (alias ```-f```) to force reinstalling qmake rules and/or ```--override```  (alias ```-e```) to override existing files.
-
 ### Install IDE wizards
-For now, only QtCreator wizards are provided.
+For now, only QtCreator wizards are provided.   
 To install the remaken, xpcf projects and classes wizards, use: 
 - ```remaken init -w```
 - ```remaken init wizards```
@@ -126,41 +125,41 @@ To install the artefact packager scripts for current OS in .remaken/scripts :
 The remaken packages folder is the location where packages are installed, searched from ...
 This folder defaults to ```$(HOME)/.remaken/packages```.
 It can be changed in various ways:
-- define the ```REMAKEN_PKG_ROOT``` environment variable to another location
-- create a ```.packagespath``` file in remaken root folder  ```$(HOME)/.remaken```. In this file, provide the path to your packages folder in the first line
-- provide the package path with the ```--remaken-root``` parameter from remaken command line invocation
-- put the ```remaken-root``` parameter and its value in the remaken ```config``` file in located in ```$(HOME)/.remaken```
+- define the ```REMAKEN_PKG_ROOT``` environment variable to another location.
+- create a ```.packagespath``` file in remaken root folder  ```$(HOME)/.remaken```. In this file, provide the path to your packages folder in the first line.
+- provide the package path with the ```--remaken-root``` parameter from remaken command line invocation.
+- put the ```remaken-root``` parameter and its value in the remaken ```config``` file in located in ```$(HOME)/.remaken```.
 
 ### Managing remaken profiles
 
-Remaken has profile support to set several options once for all for every projects (for instance, the os, the architecture, the C++ standard ...).
-
+Remaken has profile support to set several options once for all for every projects (for instance, the os, the architecture, the C++ standard ...).  
 It also supports the creation of named profiles - it can be used for cross-platform builds (to target android systems for instance).
 
-To initialize the default profile, use:
-```remaken profile init```
+To initialize the default profile, use:   
+- ```remaken profile init```
 
 You can also specify any value you want to set in the profile:
-```remaken profile init --cpp-std 17```
+- ```remaken profile init --cpp-std 17```
+- ```remaken profile init --apiKey XXX``` # artifactory apiKey can be set in the profile
 
 To create a named profile, use:
-```remaken profile init [profile_name or path]```
+- ```remaken profile init [profile_name or path]```
 
 To use a named profile for any command, run:
-```remaken --profile [profile_name or path] ...```
+- ```remaken --profile [profile_name or path] ...```
 
 To display the default profile configuration:
-```remaken profile display```
+- ```remaken profile display```
 
 To display a named profile configuration:
-```remaken --profile [profile_name or path] profile display```
+- ```remaken --profile [profile_name or path] profile display```
 
 To display options from the profile file and from default remaken values:
-```remaken profile display -w```
+- ```remaken profile display -w```
 
 
 ### Searching dependencies
-```remaken search [--restrict packaging_system_name] package_name [package_version] ```
+- ```remaken search [--restrict packaging_system_name] package_name [package_version] ```
 
 ```packaging_system_name``` is the name of the packaging system to search for this dependency. Its value depends on the operating system where remaken is used. 
 
@@ -171,35 +170,36 @@ On windows, its value is one of ```[choco, conan, scoop, system or vcpkg]```.
 ### Managing remotes/repositories/ppa/taps/buckets ...
 
 To get the list of installed remotes for every packaging system installed on the environment run:
-```remaken remote list```
+- ```remaken remote list```
 
 To get the list of remotes declared in a packagedependencies.txt, run (using ```--recurse``` will list recursively every remote declared in every packagedependencies file in the dependency tree):
-```remaken remote listfile [--recurse] [path_to_remaken_dependencies_description_file.txt]```
+- ```remaken remote listfile [--recurse] [path_to_remaken_dependencies_description_file.txt]```
 
 To add the remotes declared in a packagedependencies.txt, run (using ```--recurse``` will add recursively every remote declared in every packagedependencies file in the dependency tree):
-```remaken remote add [--recurse] [path_to_remaken_dependencies_description_file.txt]```
+- ```remaken remote add [--recurse] [path_to_remaken_dependencies_description_file.txt]```
 
-To get a sample how to declare an additional remote/bucket/ppa ... see the repository_url section in chapter [Dependency file syntax](#dependency-file-syntax)
+To get a sample how to declare an additional remote/bucket/ppa ... see the ```repository_url``` section in chapter [Dependency file syntax](#dependency-file-syntax)
 
 
 ### Installing/Configure dependencies
-```remaken install [--conan_profile conan_profile_name] [-r  path_to_remaken_root] -i [-o linux] -t github [-l nexus -u http://url_to_root_nexus_repo] [--cpp-std 17] [-c debug|release] [-m static|shared] [--project_mode,-p] [path_to_remaken_dependencies_description_file.txt] [--condition name=value]* [--conan-build dependency]* ```
+- ```remaken install [--conan_profile conan_profile_name] [-r  path_to_remaken_root] -i [-o linux] -t github [-l nexus -u http://url_to_root_nexus_repo] [--cpp-std 17] [-c debug|release] [-m static|shared] [--project_mode,-p] [path_to_remaken_dependencies_description_file.txt] [--condition name=value]* [--conan-build dependency]* ```
 
-```remaken configure [--conan_profile conan_profile_name] [-r  path_to_remaken_root] -i [-o linux] -t github [-l nexus -u http://url_to_root_nexus_repo] [--cpp-std 17] [-c debug|release] [-m static|shared] [--project_mode,-p] [path_to_remaken_dependencies_description_file.txt] [--condition name=value]* ```
+- ```remaken configure [--conan_profile conan_profile_name] [-r  path_to_remaken_root] -i [-o linux] -t github [-l nexus -u http://url_to_root_nexus_repo] [--cpp-std 17] [-c debug|release] [-m static|shared] [--project_mode,-p] [path_to_remaken_dependencies_description_file.txt] [--condition name=value]* ```
 
 **Notes:**
  
-- remaken_root defaults to ```$(HOME)/.remaken/packages``` or if ```REMAKEN_PKG_ROOT``` environment variable is defined, it defaults  to ```${REMAKEN_PKG_ROOT}```.
-- ```remaken_dependencies_description_file``` defaults to current folder ```packagedependencies.txt```file
-- ```[--project_mode,-p]```: enable project mode to generate project build files from packaging tools (conanbuildinfo.xxx, conanfile.txt ...).
-   
+- remaken_root defaults to ```$(HOME)/.remaken/packages``` or if ```REMAKEN_PKG_ROOT``` environment variable is defined, it defaults  to ```${REMAKEN_PKG_ROOT}```.   
+   ```[-r  path_to_remaken_root]``` allows to specify a specific Remaken packages root directory.
+- ```path_to_remaken_dependencies_description_file``` defaults to current folder ```packagedependencies.txt```file
+- ```[--project_mode,-p]```: enable project mode to generate project build files from packaging tools (conanbuildinfo.xxx, conanfile.txt ...).      
    Project mode is enabled automatically when the folder containing the packagedependencies file also contains a QT project file
-- ```[--conan_profile conan_profile_name] ``` allows to specify a specific conan profile
-
+- ```[--conan_profile conan_profile_name] ``` allows to specify a specific conan profile   
    When ```--conan_profile ``` is not specified:
   -  for native compilation: the ```default``` conan profile is used
-  -  for cross compilation: remaken expects a ```[os]-[build-toolchain]-[architecture]``` profile to be available - for instance for android build, expects a ```android-clang-armv8``` profile
-
+  -  for cross compilation: remaken expects a ```[os]-[build-toolchain]-[architecture]``` profile to be available - for instance for android build, expects a ```android-clang-armv8``` profile   
+- ```-i``` for ignore cache, then dependencies update is forced   
+- ```[-l nexus -u http://url_to_root_nexus_repo]``` allow s to specify alternate remote type, and alternate remote url   
+   ```[--invert-remote-order]``` allows to invert alernate remote type and url with default remote type and usrl used in packagedependencies file
 - ```[--conan_build dependency] ``` is a repeatable option, allows to specify to force rebuild of a conan dependency. Ex : ```--conan-build boost```.
 - ```[--condition name=value] ``` is a repeatable option, allows to force a condition without application prompt (useful in CI). Ex : ```--condition USE_GRPC=true```. 
 
@@ -208,7 +208,7 @@ To get a sample how to declare an additional remote/bucket/ppa ... see the repos
 By default, ```remaken install``` and ```remaken configure``` prompt users for enabled or disabled configure conditions.
 
 **Note:**
-	A condition is defined just after library name.
+	A condition is defined just after library name with ```library name%[condition]``` in ```packagedependencies.txt``` file
 
 a ```configure_conditions.pri``` file can be added into the project root folder to avoid user prompt :
 
@@ -217,11 +217,12 @@ a ```configure_conditions.pri``` file can be added into the project root folder 
 
 of
 
-After `remaken install` or `configure`, a `configure_conditions.pri` file is generated in ```.build-rules/[os]-[build-toolchain]-[architecture]``` folder with specified (by file or by user_prompt) enabled conditions.
+After `remaken install` or `remaken configure`, a `configure_conditions.pri` file is generated in ```.build-rules/[os]-[build-toolchain]-[architecture]``` folder with specified (by file or by user_prompt) enabled conditions.
 
-The generated file is used when run remaken configure of qmake (on current project) for enable/disable dependencies automatically.
- 
-Then as only dependencies used are in the generated packagedependencies.txt, only enabled condtions are generated in this file.
+The generated file is used when run ```remaken install``` or ```remaken configure``` or ```qmake``` (on current project) for enable/disable dependencies automatically.    
+Then as only dependencies used are in the generated  ```.build-rules/[os]-[build-toolchain]-[architecture]/packagedependencies.txt```, only enabled condtions are generated in this file.   
+
+**Note:** ```[--condition name=value] ``` allows to force a condition without application prompt (useful in CI). Ex : ```--condition USE_GRPC=true```.   
 
 #### Specific to Configure  - Currently not used in projects
 
@@ -233,8 +234,6 @@ Also generates build flags in remaken build rules folder (```.build-rules/[os]-[
 
 This file can be used automatically in qmake projects by using ```use_remaken_parser``` value in ```DEPENDENCIESCONFIG```, ```CONFIG``` or ```REMAKENCONFIG``` value.
 It disables package dependencies parsing made by **builddefs-qmake** rules.
-
-###
  
 ### Bundling dependencies together
 ```remaken bundle [--recurse] [-d path_to_bundle_destination] [--cpp-std 11|14|17|20] [-c debug|release] [path_to_remaken_dependencies_description_file.txt]```
@@ -285,26 +284,41 @@ The ```--ref``` option can be used with other options, especially to overwrite t
 **Note** : options in **[executable arguments list]** starting with a dash (-) must be surrounded with quotes and prefixed with \ for instance **"\\-f"** to forward **-f** option to the application (this is due to CLI11 interpretation of options).
 
 ## Dependency file types
-### packagedependencies dependency file
+### packagedependencies.txt dependency file
 
-For each project, a packagedependencies.txt file can be created in the root project folder.
+For each project, a ```packagedependencies.txt``` file can be created in the root project folder.
 
-For dependencies specific to a particular os, a packagedependencies-[os].txt can also be created in the root project folder (os is a value in {android, linux, mac, win } ).
+For dependencies specific to a particular os, a ```packagedependencies-[os].txt``` can also be created in the root project folder (os is a value in ```{android, linux, mac, win }``` ).
 
-### extra-packages dependency file
-An extra-packages.txt file can also be created along the packagedependencies.txt file.
+### extra-packages.txt dependency file
+An ```extra-packages.txt``` file can also be created along the ```packagedependencies.txt``` file.
 
-The extra-packages.txt file can be used to add dependencies to install and bundle steps. Dependencies listed in the extra-packages file will not be used
-by configure steps, or by the project build rules. 
+The ```extra-packages.txt``` file can be used to add dependencies to install and bundle steps. Dependencies listed in the ```extra-packages.txt``` file will not be used by configure steps, or by the project build rules. 
 
-The extra-packages purpose is to:
+The ```extra-packages.txt``` purpose is to:
 
 - install and bundle sub-dependencies needed by a project direct dependency when the direct dependency doesn't install its sub-dependency. (for instance, the conan opencv recipe doesn't install gtk+ on linux, but gtk+ is needed when a project uses opencv::imgui, hence the opencv conan recipe is "incomplete" as the imgui functionality is disabled when the gtk+ package is missing)
 - install non-dependency packages : for instance install data needed by an application, configuration files ...
 
-For packages specific to a particular os, an extra-packages-[os].txt can also be created in the root project folder (os is a value in {android, linux, mac, win } ).
+For packages specific to a particular os, an ```extra-packages-[os].txt``` can also be created in the root project folder (os is a value in ```{android, linux, mac, win }``` ).
 
-## packagedependencies/extra-packages file syntax
+### packagignoreinstall.txt dependency file
+
+An ```packagignoreinstall.txt``` file can also be created along the ```packagedependencies.txt``` file.
+
+The ```packagignoreinstall.txt``` can be used to ignore dependencies to install at bundle steps.   
+Dependencies listed in the ```packagignoreinstall.txt``` file will not be used by configure steps, or by the project build rules.
+
+Each ```framework_name``` are ignored (as defined in ```packagedependencies.txt``` file) with the pattern
+
+	framework1 framework2
+
+or
+
+	framework1 
+	framework2
+
+## packagedependencies.txt/extra-packages.txt file syntax
 
 The project build rules (builddefs-qmake for instance) will generate a packagedependencies.txt containing the build informations and will gather the dependencies in the original packagedependencies.txt and packagedependencies-[os].txt for the target os the build is run for.
 
@@ -387,16 +401,16 @@ PackageName
 |----- config (debug or release)
 |------ [your libraries here in release mode]
 |-- remaken-PackageName.pc
-|-- packagedependencies.txt (if your Package requires third-parties)
+|-- packagedependencies.txt (if your Package requires third-parties) or packagedependencies-static.txt (if your package is in static build mode)
 |-- PackageName-PackageVersion_remakeninfo.txt
 |-- .pkginfo
-|--- [.headers and/or .lib, and/or bin folders]
+|--- [.headers and/or .lib, and/or .bin folders]
 |-- [... specific dependendy files] (wizards, csharp, xml for instance)
 ```
 
 ### Packaging your third parties
 
-Remaken uses a packagedependencies.txt file defining all dependencies of your project. This file is interpreted by the QMake build script tools and is based on a simpl dependency file (.pc).
+Remaken uses a ```packagedependencies.txt``` file defining all dependencies of your project. This file is interpreted by the QMake build script tools and is based on a simple dependency file (.pc).
 Thus, by maintaining a simple dependency file and by using the remaken package tree describing the third parties used by your project, you will be able to download the dependencies, link and build your project, and install and deploy your solution with all its dependencies in a very simple way.
 
 Let’s describe now how to package the third parties required by your project in order to be compliant with the dependency manager and the build and install the project.
@@ -427,11 +441,11 @@ For more information concerning the syntax of this pkg-config file, you can take
 
 #### packagedependencies.txt
 
-Remaken and builddefs-qmake support the recursive dependency download, link, and installation. But in order to do so, your package must precise its own dependencies in the packagedependencies.txt. 
+```Remaken``` and [builddefs-qmake](https://github.com/b-com-software-basis/builddefs-qmake) support the recursive dependency download, link, and installation. But in order to do so, your package must precise its own dependencies in the packagedependencies.txt. 
 
 #### PackageName-PackageVersion_remakeninfo.txt
 
-This file is specific to remaken and builddefs-qmake, and define the platform, the C++ version and the runtime version used to build your package. This file is similar to the conaninfo.txt used by conan.
+This file is specific to remaken and https://github.com/b-com-software-basis/builddefs-qmake, and define the platform, the C++ version and the runtime version used to build your package. This file is similar to the ```conaninfo.txt``` used by conan.
 
 ```
 platform=win-cl-14.1
@@ -441,7 +455,7 @@ runtime=dynamicCRT
 
 #### Artifact Packager
 
-When the previous files, your interfaces and you binaries are ready and well-placed in the folder structure detailed above, you can package the dependency by using the ArtifactPackager scripts.
+When the previous files, your interfaces, your libraries and/or your binaries are ready and well-placed in the folder structure detailed above, you can package the dependency by using the ArtifactPackager scripts.
 
 In scripts folder :
 
@@ -471,13 +485,14 @@ Where:
 - platform can be win, linux, mac, android, etc.
 
 ## Building remaken
-Install Qt Creator from https://www.qt.io/download
+- Install pkg-config, cmake, conan
+- Install msvc2019 community for build native desktop (Windows only) 
+- install a msvc2019 Qt kit for use qmake/jom (Windows only) or a gcc Qt kit (unixes)
 
 ### Linux build
-from the scripts folder, run ./packages.sh
-It performs the needed thirdparties installations.
+from the ```scripts/unixes``` folder, run ```./build_remaken.sh```
 
 ### Windows build
-
+from the ```scripts/win``` folder, run ```./build_remaken.bat```
 
 ### Mac OS build
