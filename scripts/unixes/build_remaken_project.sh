@@ -76,6 +76,8 @@ if [[ ! ${PROJECTROOT:0:1} = / ]]; then
 	PROJECTROOT=../../../${PROJECTROOT}
 fi
 echo "Project path used is : ${PROJECTROOT}/${PROJECTNAME}.pro"
+source set_brew_env.sh
+
 
 BUILDROOTFOLDER=build-${PROJECTNAME}
 
@@ -86,10 +88,10 @@ mkdir -p ${BUILDROOTFOLDER}/${MODE}/debug
 mkdir -p ${BUILDROOTFOLDER}/${MODE}/release
 echo "===========> building ${PROJECTNAME} project <==========="
 pushd ${BUILDROOTFOLDER}/${MODE}/debug
-`${QMAKE_PATH}/qmake ${PROJECTROOT}/${PROJECTNAME}.pro -spec ${QMAKE_SPEC} ${QMAKE_MODE} CONFIG+=debug CONFIG+=x86_64`
+`${QMAKE_PATH}/qmake ${PROJECTROOT}/${PROJECTNAME}.pro -spec ${QMAKE_SPEC} ${QMAKE_MODE} CONFIG+=debug CONFIG+=x86_64 CONFIG+=qml_debug && /usr/bin/make qmake_all`
 RESULT=$?
 if [[ ! ${RESULT} -eq 127 ]]; then
-	exit ${RESULT}
+ 	exit ${RESULT}
 fi
 echo "===> qmake done"
 make
@@ -106,9 +108,10 @@ fi
 echo "===> make install done"
 popd
 pushd ${BUILDROOTFOLDER}/${MODE}/release
-`${QMAKE_PATH}/qmake ${PROJECTROOT}/${PROJECTNAME}.pro -spec ${QMAKE_SPEC} ${QMAKE_MODE} CONFIG+=x86_64`
+`${QMAKE_PATH}/qmake ${PROJECTROOT}/${PROJECTNAME}.pro -spec ${QMAKE_SPEC} ${QMAKE_MODE} CONFIG+=x86_64 CONFIG+=qml_debug && /usr/bin/make qmake_all`
+RESULT=$?
 if [[ ! ${RESULT} -eq 127 ]]; then
-	exit ${RESULT}
+ 	exit ${RESULT}
 fi
 echo "===> qmake done"
 make
