@@ -37,29 +37,37 @@ jobs:
       - run: conan profile update settings.compiler.toolset=v142 default
       
       # Qt tools: qmake and jom
-      - run: mkdir ${{ github.workspace }}/example/
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v3
-        with:
-          version: '5.15.2'
-          host: 'windows'
-          target: 'desktop'
-          arch: 'win64_msvc2019_64'
-          dir: '${{ github.workspace }}/tools'
-          install-deps: 'true'
-          modules: 'qtcharts qtwebengine'
-          archives: 'qtbase qtsvg'
-          cache: 'false'
-          cache-key-prefix: 'install-qt-action'
-          setup-python: 'true'
-          tools: 'tools_ifw tools_qtcreator,qt.tools.qtcreator'
-          set-env: 'true'
-          tools-only: 'false'
-          aqtversion: '==2.1.*'
-          py7zrversion: '==0.19.*'
-          extra: '--external 7z'
+      - name: Install aqt
+        run: choco install aqt
+      - name: Install Qt kit 5.15.2 msvc2019 64b
+        run: aqt install-qt windows desktop 5.15.2 win64_msvc2019_64 -O ${{ github.workspace }}/tools/Qt
+      - name: Install QtCreator
+        run: aqt install-tool windows desktop tools_qtcreator -O ${{ github.workspace }}/tools/Qt
       - run: echo "${{ github.workspace }}/tools/Qt/Tools/QtCreator/bin/jom" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
       - run: echo "${{ github.workspace }}/tools/Qt/5.15.2/msvc2019_64/bin" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
+
+      # - name: Install Qt
+      #   uses: jurplel/install-qt-action@v3
+      #   with:
+      #     version: '5.15.2'
+      #     host: 'windows'
+      #     target: 'desktop'
+      #     arch: 'win64_msvc2019_64'
+      #     dir: '${{ github.workspace }}/tools'
+      #     install-deps: 'true'
+      #     modules: 'qtcharts qtwebengine'
+      #     archives: 'qtbase qtsvg'
+      #     cache: 'false'
+      #     cache-key-prefix: 'install-qt-action'
+      #     setup-python: 'true'
+      #     tools: 'tools_ifw tools_qtcreator,qt.tools.qtcreator'
+      #     set-env: 'true'
+      #     tools-only: 'false'
+      #     aqtversion: '==2.1.*'
+      #     py7zrversion: '==0.19.*'
+      #     extra: '--external 7z'
+      # - run: echo "${{ github.workspace }}/tools/Qt/Tools/QtCreator/bin/jom" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
+      # - run: echo "${{ github.workspace }}/tools/Qt/5.15.2/msvc2019_64/bin" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
 
       # Build solution
       - run: dir "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
