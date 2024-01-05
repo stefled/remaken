@@ -238,7 +238,7 @@ void DependencyManager::retrieveDependency(Dependency &  dependency, DependencyF
                     fileRetriever = FileHandlerFactory::instance()->getFileHandler(dependency, m_options);
                 }
                 if (!fileRetriever) { // no alternate repository found
-                    BOOST_LOG_TRIVIAL(error)<<"==> Unable to find '"<<dependency.getPackageName()<<":"<<dependency.getVersion()<<"' on "<<currentRepositoryType<<"('"<<dependency.getBaseRepository()<<"')";
+                    BOOST_LOG_TRIVIAL(error)<<"==> Unable to find '"<<dependency.getPackageName()<<":"<<dependency.getVersion()<< "' in '"<< dependency.getMode() <<"' mode on "<<currentRepositoryType<<"('"<<dependency.getBaseRepository()<<"')";
                     throw std::runtime_error(e.what());
                 }
                 else {

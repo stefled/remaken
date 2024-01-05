@@ -150,25 +150,37 @@ std::vector<Dependency> DepUtils::parse(const fs::path &  dependenciesPath, cons
                 std::smatch sm;
                 // parsing finds commented lines
                 if (!std::regex_search(curStr, sm, commentRegex, std::regex_constants::match_any)) {
-                    // Dependency line is not commented: parsing the dependency
-                    Dependency dep(curStr, linkMode);
+                    // checks that the dependency respects the format
+                    std::vector<std::string> results;
+                    boost::split(results, curStr, [](char c){return c == '|';});
+                    if (results.size() >=4) {
+                        // Dependency line is not commented: parsing the dependency
+                        Dependency dep(curStr, linkMode);
 
-                    if (dep.isGenericSystemDependency()
-                            ||dep.isSpecificSystemToolDependency()
-                            ||!dep.isSystemDependency()) {
-                        // only add "generic" system or tool@system or other deps
-                        bool bFoundSame = false;
-                        if (libraries.find(dep.getName()) != libraries.end()) {
-                            auto range =  libraries.equal_range(dep.getName());
-                            for (auto i = range.first; i != range.second; ++i) {
-                                if (i->second == dep) {
-                                    bFoundSame = true;
+                        if (!dep.validate()) {
+                            throw std::runtime_error("Error parsing dependency file : invalid format ");
+                        }
+
+                        if (dep.isGenericSystemDependency()
+                                ||dep.isSpecificSystemToolDependency()
+                                ||!dep.isSystemDependency()) {
+                            // only add "generic" system or tool@system or other deps
+                            bool bFoundSame = false;
+                            if (libraries.find(dep.getName()) != libraries.end()) {
+                                auto range =  libraries.equal_range(dep.getName());
+                                for (auto i = range.first; i != range.second; ++i) {
+                                    if (i->second == dep) {
+                                        bFoundSame = true;
+                                    }
                                 }
                             }
+                            if (!bFoundSame) {
+                                libraries.insert(std::make_pair(dep.getName(), std::move(dep)));
+                            }
                         }
-                        if (!bFoundSame) {
-                            libraries.insert(std::make_pair(dep.getName(), std::move(dep)));
-                        }
+                    }
+                    else {
+                        std::cout<<"[IGNORED]: Dependency line '"<<curStr<<"' with invalid format !"<<std::endl;
                     }
                 }
                 else {

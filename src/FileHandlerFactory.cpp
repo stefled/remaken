@@ -70,8 +70,9 @@ std::shared_ptr<IFileRetriever> FileHandlerFactory::getAlternateHandler(Dependen
         retriever = getHandler(depType, options, repoType);
     }
     if (!retriever) {
-        // This should never happen, as command line options are validated in CmdOptions after parsing
-        throw std::runtime_error("Unknown repository type " + repoType);
+        if (options.getVerbose()) {
+            BOOST_LOG_TRIVIAL(warning)<<"No alternate repository found";
+        }
     }
     return retriever;
 }

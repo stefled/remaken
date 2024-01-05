@@ -173,6 +173,7 @@ CmdOptions::CmdOptions()
     m_cliApp.add_flag("--recurse", m_recurse, "recursive mode : parse dependencies recursively");
     m_cliApp.add_option("--conan_profile", m_conanProfile, "force conan profile name to use (overrides detected profile)"); // ,true);
     m_cliApp.add_option("--generator,-g", m_generator, "generator to use in [" + getOptionString("--generator") + "] (default: qmake) "); // ,true);
+    m_cliApp.add_option("--apiKey,-k", m_apiKey, "Artifactory api key");
     m_dependenciesFile = "packagedependencies.txt";
 
     // BUNDLE COMMAND
@@ -242,7 +243,6 @@ CmdOptions::CmdOptions()
     installCommand->add_option("--alternate-remote-type,-l", m_altRepoType, "alternate remote type: " + getOptionString("--alternate-remote-type"));
     installCommand->add_option("--alternate-remote-url,-u", m_altRepoUrl, "alternate remote url to use when the declared remote fails to provide a dependency");
     installCommand->add_flag("--invert-remote-order", m_invertRepositoryOrder, "invert alternate and base remote search order : alternate remote is searched before packagedependencies declared remote");
-    installCommand->add_option("--apiKey,-k", m_apiKey, "Artifactory api key");
     installCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files : can be a local file or an url to the file"); // ,true);
     installCommand->add_flag("--project_mode,-p", m_projectMode, "enable project mode to generate project build files from packaging tools (conanbuildinfo ...).");//\nProject mode is enabled automatically when the folder containing the packagedependencies file also contains a QT project file");
 
@@ -418,7 +418,7 @@ CmdOptions::OptionResult CmdOptions::parseArguments(int argc, char** argv)
     try {
         fs::detail::utf8_codecvt_facet utf8;
         m_cliApp.parse(argc, argv);
-        validateOptions();
+         validateOptions();
         auto sub = m_cliApp.get_subcommands().at(0);
         if (sub->get_name() == "profile") {
             if (sub->get_subcommands().size() > 0) {
@@ -538,6 +538,9 @@ void CmdOptions::writeConfigurationFile() const
     fs::detail::utf8_codecvt_facet utf8;
     fs::path remakenRootPath = PathBuilder::getHomePath() / Constants::REMAKEN_FOLDER;
     fs::path remakenProfilesPath = remakenRootPath / Constants::REMAKEN_PROFILES_FOLDER;
+    if (!fs::exists(remakenProfilesPath)) {
+        fs::create_directories(remakenProfilesPath);
+    }
     fs::path remakenProfilePath = remakenProfilesPath/m_profileName;
     ofstream fos;
     fos.open(remakenProfilePath.generic_string(utf8),ios::out|ios::trunc);

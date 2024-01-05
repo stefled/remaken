@@ -166,7 +166,9 @@ fs::path AbstractFileRetriever::bundleArtefact(const Dependency & dependency)
             }
 
             if (dependency.getMode() == "na" || (withHeaders && !withLibDir)) {
-                BOOST_LOG_TRIVIAL(info)<<"Ignoring "<<dependency.getName()<<" dependency: header only library";
+                if (m_options.getVerbose()) {
+                    BOOST_LOG_TRIVIAL(info)<<"Ignoring "<<dependency.getName()<<" dependency: header only library";
+                }
             }
             else if (withLibDir) {
                 throw std::runtime_error("Error : " + dependency.getName() + " dependency: no shared library found from " + rootLibDir.generic_string(utf8));

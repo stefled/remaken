@@ -45,7 +45,7 @@ std::pair<std::string, fs::path> QMakeGeneratorBackend::generate(const std::vect
     std::string filename = boost::to_lower_copy(prefix) + getGeneratorFileName("buildinfo");
     fs::path filePath = DepUtils::getProjectBuildSubFolder(m_options)/filename;
     std::ofstream fos(filePath.generic_string(utf8),std::ios::out);
-    std::string libdirs, libsStr, defines;
+    std::string libdirs, libsStr, defines, cflags;
     for (auto & dep : deps ) {
         for (auto & cflagInfos : dep.cflags()) {
             std::vector<std::string> cflagsVect;
@@ -59,7 +59,7 @@ std::pair<std::string, fs::path> QMakeGeneratorBackend::generate(const std::vect
                     // remove -I
                     cflag.erase(0,1);
                     boost::trim(cflag);
-                    fos<<prefix<<"_INCLUDEPATH += \""<<cflag<<"\""<<std::endl;
+                    cflags += " \"" + cflag + "\"";
                 }
                 else if (cflagPrefix == "D") {
                     // remove -D
@@ -72,7 +72,6 @@ std::pair<std::string, fs::path> QMakeGeneratorBackend::generate(const std::vect
         for (auto & define : dep.defines()) {
             defines += " " + define;
         }
-        fos<<prefix<<"_DEFINES += "<<defines<<std::endl;
 
         for (auto & libInfos : dep.libs()) {
             std::vector<std::string> optionsVect;
@@ -97,6 +96,7 @@ std::pair<std::string, fs::path> QMakeGeneratorBackend::generate(const std::vect
             libdirs += " -L\"" + libdir + "\"";
         }
     }
+    fos<<prefix<<"_INCLUDEPATH +="<<cflags<<std::endl;
     fos<<prefix<<"_LIBS +="<<libsStr<<std::endl;
     fos<<prefix<<"_SYSTEMLIBS += "<<std::endl;
     fos<<prefix<<"_FRAMEWORKS += "<<std::endl;
@@ -104,7 +104,7 @@ std::pair<std::string, fs::path> QMakeGeneratorBackend::generate(const std::vect
     fos<<prefix<<"_LIBDIRS +="<<libdirs<<std::endl;
     fos<<prefix<<"_BINDIRS +="<<std::endl;
 
-    fos<<prefix<<"_DEFINES +="<<std::endl;
+    fos<<prefix<<"_DEFINES += "<<defines<<std::endl;
     fos<<prefix<<"_QMAKE_CXXFLAGS +="<<std::endl;
     fos<<prefix<<"_QMAKE_CFLAGS +="<<std::endl;
     fos<<prefix<<"_QMAKE_LFLAGS +="<<std::endl;
