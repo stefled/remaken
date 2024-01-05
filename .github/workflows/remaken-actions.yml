@@ -37,7 +37,7 @@ jobs:
          conan profile new default --detect
          conan profile update settings.compiler.cppstd=17 default
          conan profile update settings.compiler.version=16 default
-         conan profile update settings.compiler.toolset=v142 default
+        #conan profile update settings.compiler.toolset=v142 default
 
       - name: conan remote
         run: conan remote add -i 0 gitlab_remaken_deps https://gitlab.com/api/v4/projects/53589240/packages/conan
