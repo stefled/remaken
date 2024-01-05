@@ -5,7 +5,7 @@ jobs:
   windows-ci:
     runs-on: windows-2022
     steps:
-      # Remaken
+      # Remaken git checkout
       - name: Remaken git checkout
         uses: actions/checkout@v3
         with:
@@ -25,12 +25,13 @@ jobs:
       #- working-directory: 'C:\Program Files (x86)\Microsoft Visual Studio\Installer'
       #  run: .\vswhere.exe -requires Microsoft.Component.MSBuild -property installationPath
 
-      # Conan v1.59
-      # - Install
+      # Conan
       - name: Install conan 1.59.0
         run: pip install --upgrade conan==1.59.0
       #- run: echo "C:\Program Files\Conan\conan" | Out-File -Append -FilePath $Env:GITHUB_PATH -Encoding utf8
       # - run: conan --version
+
+      # Conan configuration
       - name: conan profile configuration
         run: |
          conan profile new default --detect
@@ -38,7 +39,7 @@ jobs:
          conan profile update settings.compiler.version=16 default
          conan profile update settings.compiler.toolset=v142 default
       
-      # Qt tools: qmake and jom
+      # Install Qt
       - name: Install aqt
         run: choco install aqt
       - name: Install Qt kit 5.15.2 msvc2019 64b
@@ -50,13 +51,14 @@ jobs:
 
       # Build solution
       #- run: dir "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
-      - working-directory: ./scripts/win
+      - name: Build remaken
+        working-directory: ./scripts/win
         run: .\build_remaken_project.bat remaken shared ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
 
   linux-ci:
     runs-on: ubuntu-22.04
     steps:
-      # Remaken
+      # Remaken git checkout
       - name: Remaken git checkout
         uses: actions/checkout@v3
         with:
@@ -65,24 +67,24 @@ jobs:
       # Pkgconfig
       - name: Pkgconfig
         run: pip install pkgconfig
-      # - run: pkg-config --version
       
-      # Qt tools: qmake and jom
-      - run: sudo apt-get install qtbase5-dev
+      # Install Qt
+      - name: Install Qt
+        run: sudo apt-get install qtbase5-dev
       
       # Conan
       - name: Conan
         run: pip install --upgrade conan==1.59.0
-      #- run: conan --version
-
-      # Conan v1.59
-      # - Configuration
-      # - run: conan remote list
-      - run: conan profile new default --detect
-      - run: conan profile update settings.compiler.libcxx=libstdc++11 default
-      - run: conan profile update settings.compiler.cppstd=17 default
-      - run: conan profile update settings.compiler.version=11 default
+      
+      # Conan configuration
+      - name: conan profile configuration
+        run: |
+         conan profile new default --detect
+         conan profile update settings.compiler.libcxx=libstdc++11 default
+         conan profile update settings.compiler.cppstd=17 default
+         conan profile update settings.compiler.version=11 default
       
       # Build solution
-      - working-directory: ./scripts/unixes
+      - name: Build remaken
+        working-directory: ./scripts/unixes
         run: ./build_remaken_project.sh remaken shared ../.. 5.15.2 /usr/bin
