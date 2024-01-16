@@ -14,7 +14,7 @@ env:
   
 jobs:
   windows-ci:
-    runs-on: windows-2022
+    runs-on: windows-2019
     steps:
       # Remaken git checkout
       - name: Remaken git checkout
@@ -40,12 +40,15 @@ jobs:
           target: ./
       # nsis plugin install
       - run: 7z x EnVar_plugin.zip -y -o"C:\Program Files (x86)\NSIS"
+      
+      - name: vswhere
+        run: vswhere
 
       # Visual Studio 2019 Community
-      - name: Visual Studio 2019
-        run: choco install visualstudio2019community
-      - name: Visual C++ 2019
-        run: choco install visualstudio2019-workload-nativedesktop
+      # - name: Visual Studio 2019
+        # run: choco install visualstudio2019community
+      # - name: Visual C++ 2019
+        # run: choco install visualstudio2019-workload-nativedesktop
       
       # Conan
       - name: Install conan 1.59.0
@@ -138,7 +141,7 @@ jobs:
         run: ./build_remaken_project.sh remaken shared ../.. 5.15.2 /usr/bin
         
       - name: move setup
-        run: mv scripts\unixes\build-remaken\shared\release\remaken .\remaken-ubuntu22.04
+        run: mv scripts/unixes/build-remaken/shared/release/remaken ./remaken-ubuntu22.04
         
       # Delete previous latest version 
       - name: delete previous latest version
