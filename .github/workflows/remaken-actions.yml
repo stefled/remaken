@@ -44,6 +44,7 @@ jobs:
       - name: vswhere
         run: vswhere
 
+      # if use runs-on: windows-2022
       # Visual Studio 2019 Community
       # - name: Visual Studio 2019
         # run: choco install visualstudio2019community
@@ -71,9 +72,19 @@ jobs:
         run: choco install aqt
       - name: Install Qt kit 5.15.2 msvc2019 64b
         run: aqt install-qt windows desktop 5.15.2 win64_msvc2019_64 -O ${{ github.workspace }}/tools/Qt
-      - name: Install QtCreator
-        run: aqt install-tool windows desktop tools_qtcreator -O ${{ github.workspace }}/tools/Qt
+      #- name: Install QtCreator
+      #  run: aqt install-tool windows desktop tools_qtcreator -O ${{ github.workspace }}/tools/Qt
       # see for change with direct download of jom
+      
+      - name: install Jom
+        uses: suisei-cn/actions-download-file@v1.3.0
+        id: downloadJom
+        name: Download jom
+        with:
+          url: "http://download.qt.io/official_releases/jom/jom.zip"
+          target: ./
+      # nsis plugin install
+      - run: 7z x jom.zip -y -o"${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
       
       # Build solution
       - name: Build remaken
