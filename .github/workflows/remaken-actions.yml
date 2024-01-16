@@ -24,7 +24,7 @@ jobs:
 
       # Pkgconfig
       - name: Pkgconfig
-        run: choco install -yr --acceptlicense --no-progress --allow-empty-checksums pkgconfiglite
+        run: choco install -yr --acceptlicense --no-progress pkgconfiglite
       
       # nsis
       - name: Nsis
@@ -41,8 +41,8 @@ jobs:
       - run: 7z x EnVar_plugin.zip -y -o"C:\Program Files (x86)\NSIS"
 
       # Visual Studio 2019 Community
-      #- name: Visual Studio 2019
-      #  run: choco install --allow-empty-checksums visualstudio2019community
+      - name: Visual Studio 2019
+        run: choco install visualstudio2019community
       - name: Visual C++ 2019
         run: choco install visualstudio2019-workload-nativedesktop
       
