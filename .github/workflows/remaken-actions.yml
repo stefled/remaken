@@ -75,6 +75,9 @@ jobs:
       - name: Build remaken
         working-directory: ./scripts/win
         run: .\build_remaken_project.bat remaken shared ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
+      
+      - name: move setup
+        run: mv scripts\win\build-remaken\shared\release\Setup_Remaken.exe .\Setup_Remaken.exe
         
       # Delete previous latest version 
       - name: delete previous latest version
@@ -88,7 +91,6 @@ jobs:
       
       # Tag current version
       - uses: "marvinpinto/action-automatic-releases@latest"
-        working-directory: ./scripts/win/build-remaken/shared/release
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           automatic_release_tag: ${{ env.tag_version }}/win
