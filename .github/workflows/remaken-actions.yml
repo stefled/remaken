@@ -88,13 +88,14 @@ jobs:
       
       # Tag current version
       - uses: "marvinpinto/action-automatic-releases@latest"
+        working-directory: ./scripts/win/build-remaken/shared/release
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           automatic_release_tag: ${{ env.tag_version }}/win
           prerelease: true
           title: ${{ env.tag_version }}/win
           files: |
-            scripts\win\build-remaken\shared\release\Setup_Remaken.exe
+            Setup_Remaken.exe
 
   linux-ci:
     runs-on: ubuntu-22.04
