@@ -72,9 +72,9 @@ echo "====> qmake ok"
 %JOM_PATH%\jom.exe
 if not %errorlevel%==0 ( exit /b %errorlevel% )
 echo "====> jom ok"
-%JOM_PATH%\jom.exe install
+%JOM_PATH%\jom.exe create_setup
 if not %errorlevel%==0 ( exit /b %errorlevel% )
-echo "====> jom install ok"
+echo "====> jom create_setup ok"
 popd
 echo "===========> building %PROJECTNAME% %MODE% release <==========="
 pushd %BUILDROOTFOLDER%\\%MODE%\release
@@ -84,9 +84,9 @@ echo "====> qmake ok"
 %JOM_PATH%\jom.exe
 if not %errorlevel%==0 ( exit /b %errorlevel% )
 echo "====> jom ok"
-%JOM_PATH%\jom.exe install
+%JOM_PATH%\jom.exe create_setup
 if not %errorlevel%==0 ( exit /b %errorlevel% )
-echo "====> jom install ok"
+echo "====> jom create_setup ok"
 popd
 
 endlocal
