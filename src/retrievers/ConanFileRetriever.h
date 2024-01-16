@@ -31,13 +31,8 @@ public:
     ConanFileRetriever(const CmdOptions & options);
     ~ConanFileRetriever() override = default;
     fs::path bundleArtefact(const Dependency & dependency) override;
-    fs::path createConanFile(const fs::path & projectFolderPath);
     std::pair<std::string, fs::path> invokeGenerator(std::vector<Dependency> & deps) override;
-    void write_pkg_file(std::vector<Dependency> & deps) override;
-
-protected:
-    std::vector<std::string> buildOptions(const Dependency & dep);
-
+    void write_pkg_file(std::vector<Dependency> & deps) override;    
 };
 
 #endif // CONANFILERETRIEVER_H

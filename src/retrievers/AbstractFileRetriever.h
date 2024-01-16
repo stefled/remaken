@@ -36,9 +36,11 @@ public:
     virtual fs::path bundleArtefact(const Dependency & dependency) override;
     virtual std::vector<fs::path> binPaths(const Dependency & dependency) override;
     virtual std::vector<fs::path> libPaths(const Dependency & dependency) override;
+    virtual std::vector<fs::path> includePaths(const Dependency & dependency) override;
     virtual std::string computeSourcePath( const Dependency &  dependency) override;
     virtual fs::path computeRootBinDir( const Dependency & dependency) override;
     virtual fs::path computeRootLibDir( const Dependency & dependency) override;
+    virtual fs::path computeRootIncludeDir( const Dependency & dependency) override;
     virtual fs::path computeLocalDependencyRootDir( const Dependency &  dependency) override;
     virtual const std::vector<Dependency> & installedDependencies() const override final { return m_installedDeps; }
     virtual std::pair<std::string, fs::path> invokeGenerator(std::vector<Dependency> & deps) override;

@@ -38,11 +38,13 @@ public:
     virtual fs::path retrieveArtefact(const Dependency & dependency) = 0;
     virtual std::vector<fs::path> binPaths(const Dependency & dependency) = 0;
     virtual std::vector<fs::path> libPaths(const Dependency & dependency) = 0;
+    virtual std::vector<fs::path> includePaths(const Dependency & dependency) = 0;
 //    virtual std::vector<fs::path> libs(const Dependency & dependency) = 0;
 //    virtual std::vector<fs::path> cflags(const Dependency & dependency) = 0;
     virtual std::string computeSourcePath( const Dependency &  dependency) = 0;
     virtual fs::path computeRootBinDir( const Dependency & dependency) = 0;
     virtual fs::path computeRootLibDir( const Dependency & dependency) = 0;
+    virtual fs::path computeRootIncludeDir( const Dependency & dependency) = 0;
     virtual fs::path computeLocalDependencyRootDir( const Dependency & dependency) = 0;
     virtual const std::vector<Dependency> & installedDependencies() const = 0;
     virtual std::pair<std::string, fs::path> invokeGenerator(std::vector<Dependency> & deps) = 0;

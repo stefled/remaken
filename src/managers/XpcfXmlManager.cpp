@@ -1,17 +1,12 @@
 #include "XpcfXmlManager.h"
 #include "Constants.h"
-#include "FileHandlerFactory.h"
 #include <list>
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 #include <boost/dll.hpp>
 #include <boost/algorithm/string.hpp>
-//#include <zipper/unzipper.h>
 #include <future>
-#include "tools/SystemTools.h"
-#include "utils/OsUtils.h"
 #include <boost/log/trivial.hpp>
 #include "utils/PathBuilder.h"
-#include "DependencyManager.h"
 #include <regex>
 
 using namespace std;
@@ -25,7 +20,7 @@ XpcfXmlManager::XpcfXmlManager(const CmdOptions & options):m_options(options)
 fs::path XpcfXmlManager::findPackageRoot(const fs::path & moduleLibPath, bool verbose)
 {
     fs::detail::utf8_codecvt_facet utf8;
-    std::string versionRegex = "[0-9]+\.[0-9]+\.[0-9]+";
+    std::string versionRegex = "[0-9]+\\.[0-9]+\\.[0-9]+";
     fs::path currentFilename = moduleLibPath.filename();
     fs::path currentModulePath = moduleLibPath;
     bool bFoundVersion = false;
@@ -112,7 +107,6 @@ void XpcfXmlManager::declareModule(tinyxml2::XMLElement * xmlModuleElt)
 
 const std::map<std::string, fs::path> & XpcfXmlManager::parseXpcfModulesConfiguration(const fs::path & configurationFilePath)
 {
-    int result = -1;
     tinyxml2::XMLDocument doc;
     m_modulesPathMap.clear();
     enum tinyxml2::XMLError loadOkay = doc.LoadFile(configurationFilePath.string().c_str());
@@ -126,8 +120,6 @@ const std::map<std::string, fs::path> & XpcfXmlManager::parseXpcfModulesConfigur
             if (rootName != "xpcf-registry" && rootName != "xpcf-configuration") {
                 throw std::runtime_error("Error parsing xpcf configuration file : root node is neither <xpcf-registry> nor <xpcf-configuration> : invalid format ");
             }
-            result = 0;
-
             processXmlNode(rootElt, "module", std::bind(&XpcfXmlManager::declareModule, this, _1));
         }
         catch (const std::runtime_error & e) {

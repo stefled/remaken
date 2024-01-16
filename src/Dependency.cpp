@@ -222,7 +222,8 @@ Dependency::Dependency(const std::string & rawFormat, const std::string & mainMo
         m_mode = stripEndlineChar(results[5]);
         boost::trim(m_mode);
         if ((m_mode!= "static" && m_mode!= "shared" && m_mode!= "na") ||  (m_mode == "default")){
-             m_mode = mainMode;
+            std::cout << "[WARNING]: Current mode '" << m_mode << "' is unsupported for '"<< m_name << "' dependency, then apply '" << mainMode << "'default mode" << std::endl;
+            m_mode = mainMode;
         }
     }
     else {

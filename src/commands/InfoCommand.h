@@ -34,6 +34,7 @@ public:
 
 private:
     int write_pkg_file();
+    void displayInfoPaths();
     const CmdOptions & m_options;
 };
 

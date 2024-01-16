@@ -36,7 +36,8 @@ class BaseSystemTool
 public:
     typedef enum {
        LIB_PATHS,
-       BIN_PATHS
+       BIN_PATHS,
+       INCLUDE_PATHS
     } PathType;
     BaseSystemTool(const CmdOptions & options, const std::string & installer);
     virtual ~BaseSystemTool() = default;
@@ -48,6 +49,7 @@ public:
     virtual bool installed (const Dependency & dependency) = 0;
     virtual std::vector<fs::path> binPaths ([[maybe_unused]] const Dependency & dependency);
     virtual std::vector<fs::path> libPaths ([[maybe_unused]] const Dependency & dependency);
+    virtual std::vector<fs::path> includePaths ([[maybe_unused]] const Dependency & dependency);
     virtual std::string computeSourcePath (const Dependency &  dependency);
     virtual fs::path sudo () { return m_sudoCmd; }
     bool bundleScripted() { return m_bundleScripted; }
