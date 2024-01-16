@@ -79,7 +79,6 @@ jobs:
       - name: install Jom
         uses: suisei-cn/actions-download-file@v1.3.0
         id: downloadJom
-        name: Download jom
         with:
           url: "http://download.qt.io/official_releases/jom/jom.zip"
           target: ./
