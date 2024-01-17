@@ -1,0 +1,171 @@
+name: Remaken CI
+run-name: ${{ github.actor }} - run Remaken CI
+on:
+  push:
+    branches:
+      - master
+      - develop
+      - '/releases/**'
+    tags:
+      - '[0-9]+\.[0-9]+\.[0-9]+'
+      
+env: 
+  tag_version: ${{ github.ref_name == 'develop' && '1.10.0' || github.ref_name }} 
+  
+jobs:
+  windows-ci:
+    runs-on: windows-2019
+    steps:
+      # Remaken git checkout
+      - name: Remaken git checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+
+      # Pkgconfig
+      - name: Pkgconfig
+        #run: choco install -yr --acceptlicense --no-progress pkgconfiglite
+        run: pip install pkgconfig
+      
+      # nsis // already installed
+      #- name: Nsis
+      #  run: choco install -yr --acceptlicense --no-progress nsis
+
+      # nsis plugin download
+      - name: Download nsis envar plugin
+        uses: suisei-cn/actions-download-file@v1.3.0
+        id: downloadfile  # Remember to give an ID if you need the output filename
+        with:
+          url: "https://nsis.sourceforge.io/mediawiki/images/7/7f/EnVar_plugin.zip"
+          target: ./
+      # nsis plugin install
+      - name: unzip nsis envar plugin
+        run: 7z x EnVar_plugin.zip -y -o"C:\Program Files (x86)\NSIS"
+      
+      # if use runs-on: windows-2022
+      # Visual Studio 2019 Community
+      # - name: Visual Studio 2019
+        # run: choco install visualstudio2019community
+      # - name: Visual C++ 2019
+        # run: choco install visualstudio2019-workload-nativedesktop
+      
+      # Conan
+      - name: Install conan 1.59.0
+        run: pip install --upgrade conan==1.59.0
+      
+      # Conan configuration
+      - name: conan profile configuration
+        run: |
+         conan profile new default --detect
+         conan profile update settings.compiler.cppstd=17 default
+         conan profile update settings.compiler.version=16 default
+         conan profile update settings.compiler.toolset=v142 default
+
+      # Conan configuration remote
+      - name: conan remote
+        run: conan remote add -i 0 gitlab_remaken_deps https://gitlab.com/api/v4/projects/53589240/packages/conan
+      
+      # Install Qt
+      - name: Install aqt
+        run: choco install aqt
+      - name: Install Qt kit 5.15.2 msvc2019 64b
+        run: aqt install-qt windows desktop 5.15.2 win64_msvc2019_64 -O ${{ github.workspace }}/tools/Qt
+      #- name: Install QtCreator
+      #  run: aqt install-tool windows desktop tools_qtcreator -O ${{ github.workspace }}/tools/Qt
+      # see for change with direct download of jom
+      
+      # Install Jom
+      - name: Install Jom
+        uses: suisei-cn/actions-download-file@v1.3.0
+        id: downloadJom
+        with:
+          url: "http://download.qt.io/official_releases/jom/jom.zip"
+          target: ./
+      - name : unzip jom
+        run: 7z x jom.zip -y -o"${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
+      
+      # Build solution
+      - name: Build remaken
+        working-directory: ./scripts/win
+        run: .\build_remaken_project.bat remaken shared ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
+      
+      # Move file at root for Tag release
+      - name: move setup
+        run: mv scripts\win\build-remaken\shared\release\Setup_Remaken.exe .\Setup_Remaken.exe
+        
+      # Delete previous latest version 
+      - name: delete previous latest version
+        uses: dev-drprasad/delete-tag-and-release@v1.0
+        with:
+          tag_name: ${{ env.tag_version }}/win
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          delete_release: true
+          
+      # Tag current version
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          automatic_release_tag: ${{ env.tag_version }}/win
+          prerelease: true
+          title: ${{ env.tag_version }}/win
+          files: |
+            Setup_Remaken.exe
+
+  linux-ci:
+    runs-on: ubuntu-22.04
+    steps:
+      # Remaken git checkout
+      - name: Remaken git checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+
+      # Pkgconfig
+      - name: Pkgconfig
+        run: pip install pkgconfig
+      
+      # Install Qt
+      - name: Install Qt
+        run: sudo apt-get install qtbase5-dev
+      
+      # Conan
+      - name: Conan
+        run: pip install --upgrade conan==1.59.0
+      
+      # Conan configuration
+      - name: conan profile configuration
+        run: |
+         conan profile new default --detect
+         conan profile update settings.compiler.libcxx=libstdc++11 default
+         conan profile update settings.compiler.cppstd=17 default
+         conan profile update settings.compiler.version=11 default
+
+      # Conan configuration remote
+      - name: conan remote
+        run: conan remote add -i 0 gitlab_remaken_deps https://gitlab.com/api/v4/projects/53589240/packages/conan
+      
+      # Build solution
+      - name: Build remaken
+        working-directory: ./scripts/unixes
+        run: ./build_remaken_project.sh remaken shared ../.. 5.15.2 /usr/bin
+        
+      - name: move setup
+        run: mv scripts/unixes/build-remaken/shared/release/remaken ./remaken-ubuntu22.04
+        
+      # Delete previous latest version 
+      - name: delete previous latest version
+        uses: dev-drprasad/delete-tag-and-release@v1.0
+        with:
+          tag_name: ${{ env.tag_version }}/unixes
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          delete_release: true
+          
+      # Tag current version
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          automatic_release_tag: ${{ env.tag_version }}/unixes
+          prerelease: true
+          title: ${{ env.tag_version }}/unixes
+          files: |
+            remaken-ubuntu22.04
