@@ -32,18 +32,16 @@ jobs:
       #  run: choco install -yr --acceptlicense --no-progress nsis
 
       # nsis plugin download
-      - uses: suisei-cn/actions-download-file@v1.3.0
+      - name: Download nsis envar plugin
+        uses: suisei-cn/actions-download-file@v1.3.0
         id: downloadfile  # Remember to give an ID if you need the output filename
-        name: Download the file
         with:
           url: "https://nsis.sourceforge.io/mediawiki/images/7/7f/EnVar_plugin.zip"
           target: ./
       # nsis plugin install
-      - run: 7z x EnVar_plugin.zip -y -o"C:\Program Files (x86)\NSIS"
+      - name: unzip nsis envar plugin
+        run: 7z x EnVar_plugin.zip -y -o"C:\Program Files (x86)\NSIS"
       
-      - name: vswhere
-        run: vswhere
-
       # if use runs-on: windows-2022
       # Visual Studio 2019 Community
       # - name: Visual Studio 2019
@@ -76,14 +74,15 @@ jobs:
       #  run: aqt install-tool windows desktop tools_qtcreator -O ${{ github.workspace }}/tools/Qt
       # see for change with direct download of jom
       
-      - name: install Jom
+      # Install Jom
+      - name: Install Jom
         uses: suisei-cn/actions-download-file@v1.3.0
         id: downloadJom
         with:
           url: "http://download.qt.io/official_releases/jom/jom.zip"
           target: ./
-      # nsis plugin install
-      - run: 7z x jom.zip -y -o"${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
+      - name : unzip jom
+        run: 7z x jom.zip -y -o"${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
       
       # Build solution
       - name: Build remaken
