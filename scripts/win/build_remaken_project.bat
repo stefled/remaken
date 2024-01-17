@@ -21,9 +21,8 @@ set PROJECTNAME=%1
 if NOT [%2]==[] set MODE=%2
 if NOT [%3]==[] set PROJECTROOT=%3
 if NOT [%4]==[] set QTVERSION=%4
-
-set JOM_PATH=c:\Qt\Tools\QtCreator\bin\jom
-set QMAKE_PATH=C:\Qt\%QTVERSION%\msvc2019_64\bin
+if NOT [%5]==[] ( set QMAKE_PATH=%5) else ( set QMAKE_PATH=C:\Qt\%QTVERSION%\msvc2019_64\bin)
+if NOT [%6]==[] ( set JOM_PATH=%6) else ( set JOM_PATH=c:\Qt\Tools\QtCreator\bin\jom)
 
 if not %MODE%==shared (if not %MODE%==static (echo "mode must be either shared or static - %MODE% is an unsupported value" & exit /b 2) )
 if %MODE%==static (
@@ -47,10 +46,14 @@ echo "Project root path used is : %PROJECTROOT%"
 echo "Project path used is : %PROJECTROOT%/%PROJECTNAME%.pro"
 
 REM call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\VC\Auxiliary\Build\vcvars64.bat"
-REM call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"
 @REM setup Visual Studio environment
 set output=setup_script.txt
 call init_compiler_env_script.bat --year 2019 --output %output%
+if not exist %output% call init_compiler_env_script.bat --year 2022 --output %output%
+if not exist %output% (
+    echo "None available Visual Studion version (2019, 2022)"
+    goto:end
+)
 set /p setup_script=<"%output%"
 call "%setup_script%"
 del %output%
@@ -61,7 +64,7 @@ if exist %BUILDROOTFOLDER%\%MODE% rmdir /S /Q %BUILDROOTFOLDER%\%MODE%
 if not exist %BUILDROOTFOLDER%\%MODE%\debug mkdir %BUILDROOTFOLDER%\%MODE%\debug
 if not exist %BUILDROOTFOLDER%\%MODE%\release mkdir %BUILDROOTFOLDER%\%MODE%\release
 
-echo "===========> building %PROJECTNAME% static <==========="
+echo "===========> building %PROJECTNAME% %MODE% debug <==========="
 pushd %BUILDROOTFOLDER%\%MODE%\debug
 %QMAKE_PATH%\qmake.exe %PROJECTROOT%/%PROJECTNAME%.pro -spec win32-msvc CONFIG+=debug %QMAKEMODE%
 if not %errorlevel%==0 ( exit /b %errorlevel% )
@@ -73,8 +76,7 @@ echo "====> jom ok"
 if not %errorlevel%==0 ( exit /b %errorlevel% )
 echo "====> jom create_setup ok"
 popd
-
-popd
+echo "===========> building %PROJECTNAME% %MODE% release <==========="
 pushd %BUILDROOTFOLDER%\\%MODE%\release
 %QMAKE_PATH%\qmake.exe %PROJECTROOT%/%PROJECTNAME%.pro -spec win32-msvc %QMAKEMODE%
 if not %errorlevel%==0 ( exit /b %errorlevel% )
@@ -99,7 +101,7 @@ goto:eof
 echo This script builds a remaken project.
 echo It takes the project name as first argument and can receive threes optional arguments.
 echo.
-echo "Usage: [project name] [ build mode {shared|static} | default='%MODE%' ] [path to  project root - default='%PROJECTROOT%'] [Qt kit version to use - default='%QTVERSION%']"
+echo "Usage: [project name] [ build mode {shared|static} | default='%MODE%' ] [path to  project root - default='%PROJECTROOT%'] [Qt kit version to use - default='%QTVERSION%'] [path to qmake.exe - default='%QMAKEPATH%'] [path to jom.exe - default='%JOM_PATH%']" 
 exit /b 0
 
 :end
