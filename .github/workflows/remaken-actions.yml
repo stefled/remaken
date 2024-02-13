@@ -91,7 +91,9 @@ jobs:
       
       # Move file at root for Tag release
       - name: move setup
-        run: mv scripts\win\build-remaken\shared\release\Setup_Remaken.exe .\Setup_Remaken.exe
+        run: |
+          mv scripts\win\build-remaken\shared\release\Setup_Remaken.exe .\Setup_Remaken.exe
+          mv scripts\win\build-remaken\shared\release\remaken.exe .\remaken.exe
         
       # Delete previous latest version 
       - name: delete previous latest version
@@ -110,6 +112,7 @@ jobs:
           title: ${{ env.tag_version }}/win
           files: |
             Setup_Remaken.exe
+            remaken.exe
 
   linux-ci:
     runs-on: ubuntu-22.04
