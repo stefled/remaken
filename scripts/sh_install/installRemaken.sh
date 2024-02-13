@@ -6,7 +6,7 @@ sudo chmod +x remaken-ubuntu22.04
 sudo mv remaken-ubuntu22.04 /usr/local/bin/remaken
 
 # install cmake
-sudo apt-get -y install cmake
+sudo apt-get -y install cmake unzip
 # install pkg-config
 sudo apt install pkg-config
 
