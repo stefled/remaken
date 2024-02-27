@@ -63,7 +63,7 @@ static const map<std::string,std::vector<std::string>> validationMap ={{"action"
                                                                        {"--config",{"release","debug"}},
                                                                        {"--mode",{"shared","static"}},
                                                                        {"--type",{"github","artifactory","nexus","path","http"}},
-                                                                       {"--alternate-remote-type",{"github","artifactory","nexus","path","http"}},
+                                                                       {"--alternate-remote-type",{"","github","artifactory","nexus","path","http"}},
                                                                        {"--operating-system",{"mac","win","unix","android","ios","linux"}},
                                                                        {"--cpp-std",{"11","14","17","20"}},
                                                                        {"--generator",{"qmake","cmake","pkgconfig","make","json","bazel"}},
@@ -174,6 +174,10 @@ CmdOptions::CmdOptions()
     m_cliApp.add_option("--conan_profile", m_conanProfile, "force conan profile name to use (overrides detected profile)"); // ,true);
     m_cliApp.add_option("--generator,-g", m_generator, "generator to use in [" + getOptionString("--generator") + "] (default: qmake) "); // ,true);
     m_cliApp.add_option("--apiKey,-k", m_apiKey, "Artifactory api key");
+    m_cliApp.add_option("--alternate-remote-type,-l", m_altRepoType, "[install command] alternate remote type: " + getOptionString("--alternate-remote-type"));
+    m_cliApp.add_option("--alternate-remote-url,-u", m_altRepoUrl, "[install command] alternate remote url to use when the declared remote fails to provide a dependency");
+    m_cliApp.add_flag("--invert-remote-order", m_invertRepositoryOrder, "[install command] invert alternate and base remote search order : alternate remote is searched before packagedependencies declared remote");
+
     m_dependenciesFile = "packagedependencies.txt";
 
     // BUNDLE COMMAND
@@ -240,9 +244,6 @@ CmdOptions::CmdOptions()
 
     // INSTALL COMMAND
     CLI::App * installCommand = m_cliApp.add_subcommand("install", "install dependencies for a package from its packagedependencies file(s)");
-    installCommand->add_option("--alternate-remote-type,-l", m_altRepoType, "alternate remote type: " + getOptionString("--alternate-remote-type"));
-    installCommand->add_option("--alternate-remote-url,-u", m_altRepoUrl, "alternate remote url to use when the declared remote fails to provide a dependency");
-    installCommand->add_flag("--invert-remote-order", m_invertRepositoryOrder, "invert alternate and base remote search order : alternate remote is searched before packagedependencies declared remote");
     installCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files : can be a local file or an url to the file"); // ,true);
     installCommand->add_flag("--project_mode,-p", m_projectMode, "enable project mode to generate project build files from packaging tools (conanbuildinfo ...).");//\nProject mode is enabled automatically when the folder containing the packagedependencies file also contains a QT project file");
 
