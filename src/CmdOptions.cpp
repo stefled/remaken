@@ -176,7 +176,7 @@ CmdOptions::CmdOptions()
     m_cliApp.add_option("--apiKey,-k", m_apiKey, "Artifactory api key");
     m_cliApp.add_option("--alternate-remote-type,-l", m_altRepoType, "[install command] alternate remote type: " + getOptionString("--alternate-remote-type"));
     m_cliApp.add_option("--alternate-remote-url,-u", m_altRepoUrl, "[install command] alternate remote url to use when the declared remote fails to provide a dependency");
-    m_cliApp.add_flag("--invert-remote-order", m_invertRepositoryOrder, "[install command] invert alternate and base remote search order : alternate remote is searched before packagedependencies declared remote");
+    m_cliApp.add_flag("--invert-remote-order,!--keep-remote-order", m_invertRepositoryOrder, "[install command] invert alternate and base remote search order : alternate remote is searched before packagedependencies declared remote");
 
     m_dependenciesFile = "packagedependencies.txt";
 
