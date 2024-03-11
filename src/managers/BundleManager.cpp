@@ -154,7 +154,9 @@ void BundleManager::bundleDependency(const Dependency & dependency, DependencyFi
     if (!outputDirectory.empty() && dependency.getType() == Dependency::Type::REMAKEN && m_options.recurse()) {
         this->bundleDependencies(outputDirectory / Constants::EXTRA_DEPS,  DependencyFileType::EXTRA_DEPS);
         if (type != DependencyFileType::EXTRA_DEPS) {
-            this->bundleDependencies(outputDirectory / typeToNameMap.at(type), type);
+            if (dependency.getMode() != "static") {
+                this->bundleDependencies(outputDirectory / typeToNameMap.at(type), type);
+            }
         }
     }
 }
