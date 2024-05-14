@@ -78,7 +78,9 @@ int DependencyManager::retrieve()
 int DependencyManager::parse()
 {
     bool bValid = true;
+#ifdef BOOST_OS_WINDOWS_AVAILABLE
     bool bNeedElevation = false;
+#endif
     fs::path depPath = buildDependencyPath();
     std::vector<Dependency> dependencies = DepUtils::parse(depPath, m_options.getMode());
     for (auto dep : dependencies) {
@@ -153,7 +155,7 @@ bool DependencyManager::installDep(Dependency &  dependency, const std::string &
         withHeaders = fs::exists(outputDirectory/Constants::PKGINFO_FOLDER/".headers");
     }
 
-    if (dependency.getType() != Dependency::Type::REMAKEN) {
+    if (dependency.getType() != Dependency::Type::REMAKEN && dependency.getType() != Dependency::Type::CONAN) {
         if (m_options.useCache()) {
             if (!m_cache.contains(source)) {
                 return true;
@@ -164,13 +166,13 @@ bool DependencyManager::installDep(Dependency &  dependency, const std::string &
     }
 
     if (m_options.useCache()) {
-        if (dependency.getMode() == "na" || (withHeaders && !withBinDir && !withLibDir)) {
+        if ((dependency.getMode() == "na") || (withHeaders && !withBinDir && !withLibDir)) {
             if (!fs::exists(outputDirectory)) {
                 return true;
             }
             return false;
         }
-        if (withLibDir && !fs::exists(libDirectory) || withBinDir && !fs::exists(binDirectory)) {
+        if ((withLibDir && !fs::exists(libDirectory)) || (withBinDir && !fs::exists(binDirectory))) {
             return true;
         }
         else {
@@ -183,7 +185,7 @@ bool DependencyManager::installDep(Dependency &  dependency, const std::string &
     }
 
     if (dependency.getMode() != "na") {
-        if (withLibDir && !fs::exists(libDirectory) || withBinDir && !fs::exists(binDirectory)) {
+        if ((withLibDir && !fs::exists(libDirectory)) || (withBinDir && !fs::exists(binDirectory))) {
             return true;
         }
         return false;
@@ -236,7 +238,7 @@ void DependencyManager::retrieveDependency(Dependency &  dependency, DependencyF
                     fileRetriever = FileHandlerFactory::instance()->getFileHandler(dependency, m_options);
                 }
                 if (!fileRetriever) { // no alternate repository found
-                    BOOST_LOG_TRIVIAL(error)<<"==> Unable to find '"<<dependency.getPackageName()<<":"<<dependency.getVersion()<<"' on "<<currentRepositoryType<<"('"<<dependency.getBaseRepository()<<"')";
+                    BOOST_LOG_TRIVIAL(error)<<"==> Unable to find '"<<dependency.getPackageName()<<":"<<dependency.getVersion()<< "' in '"<< dependency.getMode() <<"' mode on "<<currentRepositoryType<<"('"<<dependency.getBaseRepository()<<"')";
                     throw std::runtime_error(e.what());
                 }
                 else {
@@ -256,8 +258,10 @@ void DependencyManager::retrieveDependency(Dependency &  dependency, DependencyF
                 }
             }
             std::cout<<"===> "<<dependency.getName()<<" installed in "<<outputDirectory<<std::endl;
-            if (m_options.useCache()) {
-                m_cache.add(source);
+            if (dependency.getType() != Dependency::Type::CONAN) {
+                if (m_options.useCache()) {
+                    m_cache.add(source);
+                }
             }
         }
         catch (const std::runtime_error & e) {
@@ -313,25 +317,7 @@ void DependencyManager::retrieveDependencies(const fs::path &  dependenciesFile,
     std::map<std::string,bool> conditionsMap;   
     std::shared_ptr<IGeneratorBackend> generator = BackendGeneratorFactory::getGenerator(m_options);
     generator->parseConditionsFile(dependenciesFile.parent_path(), conditionsMap);
-
-    // Manage force configure conditions by command line
-    for (auto & arg : m_options.getConfigureConditions()) {
-        std::vector<std::string> condition;
-        boost::split(condition, arg, [](char c){return c == '=';});
-        string conditionName = condition[0];
-        string conditionValue;
-        if (condition.size() >= 2) {
-            conditionValue = condition[1];
-        }
-        if (!conditionName.empty() && !conditionValue.empty()) {
-            if (boost::iequals(conditionValue, "true")) {
-                conditionsMap.insert_or_assign(conditionName, true);
-            }
-            else if (boost::iequals(conditionValue, "false")) {
-                conditionsMap.insert_or_assign(conditionName, false);
-            }
-        }
-    }
+    generator->forceConditions(conditionsMap);
 
     std::vector<Dependency> conditionsDependencies;
     for (fs::path depsFile : dependenciesFileList) {

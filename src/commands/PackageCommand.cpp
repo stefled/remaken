@@ -1,13 +1,13 @@
 #include "PackageCommand.h"
-#include "managers/DependencyManager.h"
+//#include "managers/DependencyManager.h"
 #include "tools/ZipTool.h"
-#include "utils/OsUtils.h"
+//#include "utils/OsUtils.h"
 
 PackageCommand::PackageCommand(const CmdOptions & options):AbstractCommand(PackageCommand::NAME),m_options(options)
 {
 }
 
-void PackageCommand::compressFolder(fs::path folderPath)
+void PackageCommand::compressFolder([[maybe_unused]] fs::path folderPath)
 {
     auto zipTool = ZipTool::createZipTool(m_options);
 
@@ -21,7 +21,7 @@ void PackageCommand::compressFolder(fs::path folderPath)
 int PackageCommand::compress()
 {
     fs::detail::utf8_codecvt_facet utf8;
-    bool bRecurse = false;
+    //bool bRecurse = false;
     const std::map<std::string,std::string> & compressOptions = m_options.getCompressCommandOptions();
     fs::path rootFolder = compressOptions.at("rootdir");
     fs::path toolChainPrefix =  m_options.getOS() + "-" + m_options.getBuildToolchain();
@@ -57,7 +57,7 @@ int PackageCommand::compress()
                             try {
                                 fs::copy(pkgVersionFolder.path()/"interfaces", tmpFolder/"interfaces", fs::copy_options::recursive);
                             }
-                            catch (std::exception& e) { // Not using fs::filesystem_error since std::bad_alloc can throw too.
+                            catch (std::exception&) { // Not using fs::filesystem_error since std::bad_alloc can throw too.
                                 // Handle exception or use error code overload of fs::copy.
                             }
                         }
@@ -91,7 +91,7 @@ int PackageCommand::compress()
                                                         //OsUtils::copyLibraries(configFolder.path(),tmpFolder/,OsUtils::sharedSuffix(m_options.getOS()));
                                                         //OsUtils::copyLibraries(configFolder.path(),tmpFolder/,OsUtils::staticSuffix(m_options.getOS()));
                                                     }
-                                                    catch (std::exception& e) { // Not using fs::filesystem_error since std::bad_alloc can throw too.
+                                                    catch (std::exception&) { // Not using fs::filesystem_error since std::bad_alloc can throw too.
                                                         // Handle exception or use error code overload of fs::copy.
                                                     }
                                                 }

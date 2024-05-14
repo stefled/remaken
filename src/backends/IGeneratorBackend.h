@@ -40,7 +40,7 @@ public:
     virtual void generateIndex(std::map<std::string,fs::path> setupInfos) = 0;
     virtual void generateConfigureConditionsFile(const fs::path &  rootFolderPath, const std::vector<Dependency> & deps) = 0;
     virtual void parseConditionsFile(const fs::path &  rootFolderPath, std::map<std::string,bool> & conditionsMap) = 0;
-
+    virtual void forceConditions(std::map<std::string,bool> & conditionsMap) = 0;
 };
 
 
@@ -49,12 +49,35 @@ public:
     AbstractGeneratorBackend(const CmdOptions & options, const std::string & extension): m_options(options), m_extension(extension) {}
     virtual ~AbstractGeneratorBackend() override = default;
 
+    void forceConditions(std::map<std::string,bool> & conditionsMap) override
+    {
+        // Manage force configure conditions by command line
+        for (auto & arg : m_options.getConfigureConditions()) {
+            std::vector<std::string> condition;
+            boost::split(condition, arg, [](char c){return c == '=';});
+            std::string conditionName = condition[0];
+            std::string conditionValue;
+            if (condition.size() >= 2) {
+                conditionValue = condition[1];
+            }
+            if (!conditionName.empty() && !conditionValue.empty()) {
+                if (boost::iequals(conditionValue, "true")) {
+                    conditionsMap.insert_or_assign(conditionName, true);
+                }
+                else if (boost::iequals(conditionValue, "false")) {
+                    conditionsMap.insert_or_assign(conditionName, false);
+                }
+            }
+        }
+    }
+
 protected:
     std::string getGeneratorFileName(const std::string & file) const
     {
         std::string fileName = file + m_extension;
         return fileName;
     }
+
     const CmdOptions & m_options;
     std::string m_extension;
 };

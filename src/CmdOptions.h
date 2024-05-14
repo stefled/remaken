@@ -208,6 +208,10 @@ public:
         return m_installWizards;
     }
 
+    bool infoDisplayPathsOption() const {
+        return m_infoDisplayPathsOption;
+    }
+
     const std::string & getBuildConfig() const {
         return m_buildConfig;
     }
@@ -334,6 +338,7 @@ private:
     bool m_installWizards = false;
     bool m_debugEnabled = false;
     bool m_remoteOnly = false;
+    bool m_infoDisplayPathsOption = false;
     std::vector<std::string> m_conanForceBuildRefs;
     std::vector<std::string> m_configureConditions;
     CLI::App m_cliApp{"remaken"};

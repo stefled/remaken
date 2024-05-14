@@ -1,5 +1,5 @@
 TARGET = remaken
-VERSION=1.9.4
+VERSION=1.10.0
 
 CONFIG += c++1z
 CONFIG += console
@@ -147,7 +147,6 @@ unix {
 linux {
     LIBS += -ldl -lpthread
     QMAKE_CXXFLAGS += -std=c++17 -D_GLIBCXX_USE_CXX11_ABI=1
-    LIBS += -L/usr/local/lib -lZipper-static -lz
     INCLUDEPATH += /usr/local/include
 }
 
@@ -156,8 +155,6 @@ macx {
     QMAKE_MAC_SDK= macosx
     QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.15
     QMAKE_CXXFLAGS += -fasm-blocks -x objective-c++ -std=c++17
-    #LIBS += -L/usr/lib -lz -lssl -lcrypto -L/usr/local/lib -lZipper-static
-    #Zipper dependency : https://github.com/sebastiandev/zipper
     LIBS += -L/usr/local/lib -lboost_system -lstdc++
     QMAKE_LFLAGS += -mmacosx-version-min=10.15 -v -lstdc++
     INCLUDEPATH += /usr/local/include
@@ -165,12 +162,7 @@ macx {
 
 win32 {
     # windows libs
-    contains(QMAKE_TARGET.arch, x86_64) {
-        LIBS += -L$$(VCINSTALLDIR)lib/amd64 -L$$(VCINSTALLDIR)atlmfc/lib/amd64 -L$$(WINDOWSSDKDIR)lib/winv6.3/um/x64
-    }
-    else {
-        LIBS += -L$$(VCINSTALLDIR)lib -L$$(VCINSTALLDIR)atlmfc/lib -L$$(WINDOWSSDKDIR)lib/winv6.3/um/x86
-    }
+    LIBS += -L$$(WINDOWSSDKDIR)lib/winv6.3/um/x64
     LIBS += -lshell32 -lgdi32 -lComdlg32
     # openssl libs dependencies
     LIBS += -luser32 -ladvapi32 -lCrypt32

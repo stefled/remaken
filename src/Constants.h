@@ -36,7 +36,7 @@ public:
     static constexpr const char * REMAKEN_PROFILES_FOLDER = "profiles";
     static constexpr const char * REMAKEN_CACHE_FILE = ".remaken-cache";
     static constexpr const char * ARTIFACTORY_API_KEY = "artifactoryApiKey";
-    static constexpr const char * QMAKE_RULES_DEFAULT_TAG = "4.9.5";
+    static constexpr const char * QMAKE_RULES_DEFAULT_TAG = "4.10.0";
     static constexpr const char * PKGINFO_FOLDER = ".pkginfo";
     static constexpr const char * VCPKG_REPOURL = "https://github.com/microsoft/vcpkg";
     static constexpr const char * EXTRA_DEPS = "extra-packages.txt";
@@ -69,6 +69,8 @@ namespace fs = boost::filesystem;
 #include <pwd.h>
 #include <sys/types.h>
 #endif
+
+#include <map>
 
 
 template < typename Key, typename T> bool mapContains(const std::map<Key,T> & mapContainer, Key k)

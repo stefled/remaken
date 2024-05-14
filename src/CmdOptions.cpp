@@ -63,7 +63,7 @@ static const map<std::string,std::vector<std::string>> validationMap ={{"action"
                                                                        {"--config",{"release","debug"}},
                                                                        {"--mode",{"shared","static"}},
                                                                        {"--type",{"github","artifactory","nexus","path","http"}},
-                                                                       {"--alternate-remote-type",{"github","artifactory","nexus","path","http"}},
+                                                                       {"--alternate-remote-type",{"","github","artifactory","nexus","path","http"}},
                                                                        {"--operating-system",{"mac","win","unix","android","ios","linux"}},
                                                                        {"--cpp-std",{"11","14","17","20"}},
                                                                        {"--generator",{"qmake","cmake","pkgconfig","make","json","bazel"}},
@@ -173,6 +173,11 @@ CmdOptions::CmdOptions()
     m_cliApp.add_flag("--recurse", m_recurse, "recursive mode : parse dependencies recursively");
     m_cliApp.add_option("--conan_profile", m_conanProfile, "force conan profile name to use (overrides detected profile)"); // ,true);
     m_cliApp.add_option("--generator,-g", m_generator, "generator to use in [" + getOptionString("--generator") + "] (default: qmake) "); // ,true);
+    m_cliApp.add_option("--apiKey,-k", m_apiKey, "Artifactory api key");
+    m_cliApp.add_option("--alternate-remote-type,-l", m_altRepoType, "[install command] alternate remote type: " + getOptionString("--alternate-remote-type"));
+    m_cliApp.add_option("--alternate-remote-url,-u", m_altRepoUrl, "[install command] alternate remote url to use when the declared remote fails to provide a dependency");
+    m_cliApp.add_flag("--invert-remote-order,!--keep-remote-order", m_invertRepositoryOrder, "[install command] invert alternate and base remote search order : alternate remote is searched before packagedependencies declared remote");
+
     m_dependenciesFile = "packagedependencies.txt";
 
     // BUNDLE COMMAND
@@ -191,18 +196,23 @@ CmdOptions::CmdOptions()
     bundleXpcfCommand->add_option("xpcf_file", m_xpcfConfigurationFile, "XPCF xml module declaration file")->required();
     bundleXpcfCommand->add_flag("--ignore-errors", m_ignoreErrors, "force command execution : ignore error when a remaken dependency doesn't contains shared library");
 
-    CLI::App * cleanCommand = m_cliApp.add_subcommand("clean", "WARNING : remove every remaken installed packages");
+    /*CLI::App * cleanCommand =*/ m_cliApp.add_subcommand("clean", "WARNING : remove every remaken installed packages");
 
     // CONFIGURE COMMAND
     CLI::App * configureCommand = m_cliApp.add_subcommand("configure", "configure project dependencies");
     configureCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files - must be located in project root"); // ,true);
     configureCommand->add_option("--condition", m_configureConditions, "set condition to value");
+    m_mode = "shared";
+    configureCommand->add_option("--mode,-m", m_mode, "Mode: " + getOptionString("--mode")); // ,true);
 
     // INFO COMMAND
     CLI::App * infoCommand = m_cliApp.add_subcommand("info", "Read package dependencies informations");
     infoCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files"); // ,true);
     CLI::App * pkgSystemFileCommand = infoCommand->add_subcommand("pkg_systemfile", "write the dependency file of packaging system provided corresponding to the packagedependencies.txt - restrict with [" + getOptionString("--pkgrestrict") + "]");
     pkgSystemFileCommand->add_option("--destination,-d", m_destinationRoot, "Destination directory for save conanfile.txt")->required();
+    infoCommand->add_flag("--paths,-p", m_infoDisplayPathsOption, "display all lib and bin paths of dependencies");
+    m_mode = "shared";
+    infoCommand->add_option("--mode,-m", m_mode, "Mode: " + getOptionString("--mode")); // ,true);
 
     // PROFILE COMMAND
     CLI::App * profileCommand = m_cliApp.add_subcommand("profile", "manage remaken profiles configuration");
@@ -223,21 +233,17 @@ CmdOptions::CmdOptions()
     initVcpkgCommand->add_option("--tag", m_vcpkgTag, "the vcpkg tag version to install");
     CLI::App * initArtifactPackagerCommand = initCommand->add_subcommand("artifactpkg", "setup artifact packager script");
     initArtifactPackagerCommand->add_option("--tag", m_artifactPackagerTag, "the artifact packager tag version to install");
-    CLI::App * initWizardsCommand = initCommand->add_subcommand("wizards", "installs qtcreator wizards for remaken/Xpcf projects");
+    /*CLI::App * initWizardsCommand =*/ initCommand->add_subcommand("wizards", "installs qtcreator wizards for remaken/Xpcf projects");
 
 #if defined(BOOST_OS_MACOS_AVAILABLE) || defined(BOOST_OS_LINUX_AVAILABLE)
-    CLI::App * initBrewCommand = initCommand->add_subcommand("brew", "setup brew repository");
+    /*CLI::App * initBrewCommand =*/ initCommand->add_subcommand("brew", "setup brew repository");
 #endif
 
     // VERSION COMMAND
-    CLI::App * versionCommand = m_cliApp.add_subcommand("version", "display remaken version");
+    /*CLI::App * versionCommand =*/ m_cliApp.add_subcommand("version", "display remaken version");
 
     // INSTALL COMMAND
     CLI::App * installCommand = m_cliApp.add_subcommand("install", "install dependencies for a package from its packagedependencies file(s)");
-    installCommand->add_option("--alternate-remote-type,-l", m_altRepoType, "alternate remote type: " + getOptionString("--alternate-remote-type"));
-    installCommand->add_option("--alternate-remote-url,-u", m_altRepoUrl, "alternate remote url to use when the declared remote fails to provide a dependency");
-    installCommand->add_flag("--invert-remote-order", m_invertRepositoryOrder, "invert alternate and base remote search order : alternate remote is searched before packagedependencies declared remote");
-    installCommand->add_option("--apiKey,-k", m_apiKey, "Artifactory api key");
     installCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files : can be a local file or an url to the file"); // ,true);
     installCommand->add_flag("--project_mode,-p", m_projectMode, "enable project mode to generate project build files from packaging tools (conanbuildinfo ...).");//\nProject mode is enabled automatically when the folder containing the packagedependencies file also contains a QT project file");
 
@@ -271,7 +277,7 @@ CmdOptions::CmdOptions()
 
     // REMOTE COMMAND
     CLI::App * remoteCommand = m_cliApp.add_subcommand("remote", "Remote/sources/repositories/tap management");
-    CLI::App * remoteListCommand = remoteCommand->add_subcommand("list", "list all remotes/sources/tap from installed packaging systems");
+    /*CLI::App * remoteListCommand =*/ remoteCommand->add_subcommand("list", "list all remotes/sources/tap from installed packaging systems");
     CLI::App * remoteListFileCommand = remoteCommand->add_subcommand("listfile", "list remotes/sources/tap declared from packagedependencies file");
     remoteListFileCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files"); // ,true);
     CLI::App * remoteAddCommand = remoteCommand->add_subcommand("add", "add remotes/sources/tap declared from packagedependencies file");
@@ -413,7 +419,7 @@ CmdOptions::OptionResult CmdOptions::parseArguments(int argc, char** argv)
     try {
         fs::detail::utf8_codecvt_facet utf8;
         m_cliApp.parse(argc, argv);
-        validateOptions();
+         validateOptions();
         auto sub = m_cliApp.get_subcommands().at(0);
         if (sub->get_name() == "profile") {
             if (sub->get_subcommands().size() > 0) {
@@ -490,6 +496,18 @@ CmdOptions::OptionResult CmdOptions::parseArguments(int argc, char** argv)
                 return OptionResult::RESULT_ERROR;
             }
         }
+        if (sub->get_name() == "info") {
+            if (sub->get_subcommands().size() > 0) {
+                m_subcommand = sub->get_subcommands().at(0)->get_name();
+                if (!m_subcommand.empty()) {
+                    if (m_subcommand != "pkg_systemfile") {
+                        cout << "Error : info subcommand must be [pkg_systemfile]. "<<m_subcommand<<" is an invalid subcommand !"<<endl;
+                        return OptionResult::RESULT_ERROR;
+                    }
+                }
+            }
+        }
+
         if (m_cliApp.get_subcommands().size() == 1) {
             m_action = m_cliApp.get_subcommands().at(0)->get_name();
         }
@@ -521,6 +539,9 @@ void CmdOptions::writeConfigurationFile() const
     fs::detail::utf8_codecvt_facet utf8;
     fs::path remakenRootPath = PathBuilder::getHomePath() / Constants::REMAKEN_FOLDER;
     fs::path remakenProfilesPath = remakenRootPath / Constants::REMAKEN_PROFILES_FOLDER;
+    if (!fs::exists(remakenProfilesPath)) {
+        fs::create_directories(remakenProfilesPath);
+    }
     fs::path remakenProfilePath = remakenProfilesPath/m_profileName;
     ofstream fos;
     fos.open(remakenProfilePath.generic_string(utf8),ios::out|ios::trunc);

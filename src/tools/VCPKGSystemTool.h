@@ -39,8 +39,9 @@ public:
     void search (const std::string & pkgName, const std::string & version) override;
     std::vector<fs::path> binPaths(const Dependency & dependency) override;
     std::vector<fs::path> libPaths(const Dependency & dependency) override;
+    std::vector<fs::path> includePaths(const Dependency & dependency) override;
     void listRemotes() override { BOOST_LOG_TRIVIAL(info)<<"remote() is unique for "<<m_systemInstallerPath; }
-    void addRemote(const std::string & remoteReference) override {
+    void addRemote([[maybe_unused]] const std::string & remoteReference) override {
         BOOST_LOG_TRIVIAL(warning)<<"addRemote() not implemented yet for tool "<<m_systemInstallerPath;
     }
 

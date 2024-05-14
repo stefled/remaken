@@ -256,7 +256,7 @@ void BazelGeneratorBackend::parseConditionsFile(const fs::path &  rootFolderPath
         std::vector<std::string> results;
         std::string curStr;
         getline(configureFile,curStr);
-        std::string formatRegexStr = "^[\t ]*REMAKENDEFINES[\t ]*=[\t ]*[\[]+([a-zA-Z0-9_, ]*)[\]]+";
+        std::string formatRegexStr = "^[\t ]*REMAKENDEFINES[\t ]*=[\t ]*[\\[]+([a-zA-Z0-9_, ]*)[\\]]+";
         std::regex formatRegexr(formatRegexStr, std::regex_constants::extended);
         std::smatch sm;
         if (std::regex_search(curStr, sm, formatRegexr, std::regex_constants::match_any)) {

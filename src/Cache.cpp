@@ -62,7 +62,9 @@ void Cache::load() {
             while (!fis.eof()) {
                 string curStr;
                 getline(fis,curStr);
-                m_cachedUrls.push_back(curStr);
+                if (!curStr.empty()) {
+                    m_cachedUrls.push_back(curStr);
+                }
             }
             fis.close();
             m_loaded = true;

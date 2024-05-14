@@ -108,9 +108,9 @@ int BundleManager::bundleXpcf()
             fs::detail::utf8_codecvt_facet utf8;
             if (!fs::exists(modulePath)) {
                 if (m_options.ignoreErrors()) {
-                    BOOST_LOG_TRIVIAL(warning)<<"Ignoring bundleXpcf artefact error: shared library " << modulePath.generic_string(utf8) << " folder not found";
+                    BOOST_LOG_TRIVIAL(warning)<<"Ignoring bundleXpcf artefact error: Folder for shared library '" << name << "' not found: '" << modulePath.generic_string(utf8) << "'";
                 } else {
-                    throw std::runtime_error("Error : bundleXpcf: shared library " + modulePath.generic_string(utf8) + " folder not found");
+                    throw std::runtime_error("Error : bundleXpcf: Folder for shared library '" + name + "' not found: '" + modulePath.generic_string(utf8) + "'");
                 }
             }
             m_options.verboseMessage("--------------- Remaken bundleXpcf ---------------");
@@ -121,13 +121,13 @@ int BundleManager::bundleXpcf()
         for (auto & [name,modulePath] : modulesPathMap) {
             fs::path packageRootPath = XpcfXmlManager::findPackageRoot(modulePath, m_options.getVerbose());
             if (!fs::exists(packageRootPath)) {
-                BOOST_LOG_TRIVIAL(warning)<<"Unable to find root package path "<<packageRootPath<<" for module "<<name;
+                BOOST_LOG_TRIVIAL(warning)<<"Unable to find root package path '"<<packageRootPath<<"' for module '"<<name<<"'";
             }
             if (fs::exists(packageRootPath/"packagedependencies.txt")) {
                 bundleDependencies(packageRootPath/"packagedependencies.txt");
             }
             else {
-                BOOST_LOG_TRIVIAL(warning)<<"Unable to find packagedependencies.txt file in package path"<<packageRootPath<<" for module "<<name;
+                BOOST_LOG_TRIVIAL(warning)<<"Unable to find packagedependencies.txt file in package path '"<<packageRootPath<<"' for module '"<<name<<"'";
             }
         }
     }
@@ -154,7 +154,9 @@ void BundleManager::bundleDependency(const Dependency & dependency, DependencyFi
     if (!outputDirectory.empty() && dependency.getType() == Dependency::Type::REMAKEN && m_options.recurse()) {
         this->bundleDependencies(outputDirectory / Constants::EXTRA_DEPS,  DependencyFileType::EXTRA_DEPS);
         if (type != DependencyFileType::EXTRA_DEPS) {
-            this->bundleDependencies(outputDirectory / typeToNameMap.at(type), type);
+            if (dependency.getMode() != "static") {
+                this->bundleDependencies(outputDirectory / typeToNameMap.at(type), type);
+            }
         }
     }
 }

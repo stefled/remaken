@@ -39,6 +39,7 @@ public:
     std::pair<std::string, fs::path> invokeGenerator(std::vector<Dependency> & deps) override;
     std::vector<fs::path> binPaths([[maybe_unused]] const Dependency & dependency) override;
     std::vector<fs::path> libPaths([[maybe_unused]] const Dependency & dependency) override;
+    std::vector<fs::path> includePaths([[maybe_unused]] const Dependency & dependency) override;
     void listRemotes() override;
     void addRemote(const std::string & remoteReference) override;
     void write_pkg_file(std::vector<Dependency> & deps) override;
