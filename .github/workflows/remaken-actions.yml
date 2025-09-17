@@ -14,7 +14,7 @@ env:
   
 jobs:
   windows-ci:
-    runs-on: windows-2019
+    runs-on: windows-2022
     steps:
       # Remaken git checkout
       - name: Remaken git checkout
@@ -44,10 +44,10 @@ jobs:
       
       # if use runs-on: windows-2022
       # Visual Studio 2019 Community
-      # - name: Visual Studio 2019
-        # run: choco install visualstudio2019community
-      # - name: Visual C++ 2019
-        # run: choco install visualstudio2019-workload-nativedesktop
+      - name: Visual Studio 2019
+        run: choco install visualstudio2019community
+      - name: Visual C++ 2019
+        run: choco install visualstudio2019-workload-nativedesktop
       
       # Conan
       - name: Install conan 1.59.0
