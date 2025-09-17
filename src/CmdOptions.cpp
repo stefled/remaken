@@ -173,7 +173,7 @@ CmdOptions::CmdOptions()
     m_cliApp.add_flag("--recurse", m_recurse, "recursive mode : parse dependencies recursively");
     m_cliApp.add_option("--conan_profile", m_conanProfile, "force conan profile name to use (overrides detected profile)"); // ,true);
     m_cliApp.add_option("--generator,-g", m_generator, "generator to use in [" + getOptionString("--generator") + "] (default: qmake) "); // ,true);
-    m_cliApp.add_option("--apiKey,-k", m_apiKey, "Artifactory api key");
+    m_cliApp.add_option("--apiKey,-k", m_apiKey, "Api key (Artifactory or gitlab)");
     m_cliApp.add_option("--alternate-remote-type,-l", m_altRepoType, "[install command] alternate remote type: " + getOptionString("--alternate-remote-type"));
     m_cliApp.add_option("--alternate-remote-url,-u", m_altRepoUrl, "[install command] alternate remote url to use when the declared remote fails to provide a dependency");
     m_cliApp.add_flag("--invert-remote-order,!--keep-remote-order", m_invertRepositoryOrder, "[install command] invert alternate and base remote search order : alternate remote is searched before packagedependencies declared remote");

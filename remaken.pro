@@ -1,5 +1,5 @@
 TARGET = remaken
-VERSION=1.11.0
+VERSION=1.12.0
 
 CONFIG += c++1z
 CONFIG += console

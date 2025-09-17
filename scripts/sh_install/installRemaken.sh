@@ -1,6 +1,6 @@
 #!/bin/bash
 
-wget https://github.com/b-com-software-basis/remaken/releases/download/1.11.0%2Funixes/remaken-ubuntu22.04
+wget https://github.com/b-com-software-basis/remaken/releases/download/1.12.0%2Funixes/remaken-ubuntu22.04
 
 sudo chmod +x remaken-ubuntu22.04
 sudo mv remaken-ubuntu22.04 /usr/local/bin/remaken

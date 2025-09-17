@@ -42,6 +42,7 @@ http::status CredentialsFileRetriever::downloadArtefact (const std::string & sou
     req.set(http::field::host, httpWrapper->getHost());
     req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
     req.insert("X-JFrog-Art-Api", m_apiKey.c_str());
+    req.insert("PRIVATE-TOKEN", m_apiKey.c_str());
     // Send the HTTP request to the remote host
     httpWrapper->write(req);
 
