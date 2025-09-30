@@ -33,7 +33,23 @@ http::status CredentialsFileRetriever::downloadArtefact (const std::string & sou
     //auto const host = "www.github.com";
     //auto const port = "443";
     boost::asio::io_context ioc;
-    auto httpWrapper = HttpHandlerFactory::instance()->getHttpHandler(ioc,source);
+
+    // SLETODO : fix context of HttpHandlerFactory on multiple deps (handshake: certificate verify failed (SSL routines, tls_process_server_certificate) [asio.ssl:337047686])
+    //auto httpWrapper = HttpHandlerFactory::instance()->getHttpHandler(ioc,source);
+
+    std::shared_ptr<AsioWrapper<httpRequestType,httpResponseType>>  httpWrapper;
+    std::string httpRegexStr="^(http[s]*)://.*";
+    std::regex httpRegex(httpRegexStr, std::regex_constants::extended);
+    std::smatch sm;
+    ssl::context ctx(ssl::context::tlsv13);
+    if (std::regex_search(source, sm, httpRegex)) {
+        if (sm.str(1) == "http") {
+            httpWrapper =  make_shared<AsioSocketWrapper<httpRequestType,httpResponseType>>(ioc,source);
+        }
+        if (sm.str(1) == "https") {
+            httpWrapper = make_shared<AsioStreamWrapper<httpRequestType,httpResponseType>>(ioc,source,ctx);
+        }
+    }
 
     httpWrapper->connect();
     // Set up an HTTP GET request message
@@ -85,10 +101,10 @@ fs::path CredentialsFileRetriever::retrieveArtefact(const std::string & source)
     http::status status = downloadArtefact(source,output,newUrl);
     if (status == http::status::not_found) {
         std::string updatedSource = m_options.getOS()+ "-" + m_options.getBuildToolchain() + "_" + source;
-         status = downloadArtefact(source,output,newUrl);
+         status = downloadArtefact(updatedSource,output,newUrl);
          if (status == http::status::not_found) {
              updatedSource = m_options.getOS()+ "_" + source;
-             status = downloadArtefact(source,output,newUrl);
+             status = downloadArtefact(updatedSource,output,newUrl);
          }
     }
     while (convertStatus(status) == HttpStatus::MOVED) {

@@ -22,7 +22,22 @@ http::status HttpFileRetriever::downloadArtefact (const std::string & source,con
     //auto const host = "www.github.com";
     //auto const port = "443";
     boost::asio::io_context ioc;
-    auto httpWrapper = HttpHandlerFactory::instance()->getHttpHandler(ioc,source);
+    // SLETODO : fix context of HttpHandlerFactory on multiple deps (handshake: certificate verify failed (SSL routines, tls_process_server_certificate) [asio.ssl:337047686])
+    //auto httpWrapper = HttpHandlerFactory::instance()->getHttpHandler(ioc,source);
+
+    std::shared_ptr<AsioWrapper<httpRequestType,httpResponseType>>  httpWrapper;
+    std::string httpRegexStr="^(http[s]*)://.*";
+    std::regex httpRegex(httpRegexStr, std::regex_constants::extended);
+    std::smatch sm;
+    ssl::context ctx(ssl::context::tlsv13);
+    if (std::regex_search(source, sm, httpRegex)) {
+        if (sm.str(1) == "http") {
+            httpWrapper =  make_shared<AsioSocketWrapper<httpRequestType,httpResponseType>>(ioc,source);
+        }
+        if (sm.str(1) == "https") {
+            httpWrapper = make_shared<AsioStreamWrapper<httpRequestType,httpResponseType>>(ioc,source,ctx);
+        }
+    }
 
     httpWrapper->connect();
     // Set up an HTTP GET request message
