@@ -142,6 +142,10 @@ public:
         return m_altRepoUrl;
     }
 
+    const std::string & getTag() const {
+        return m_altTag;
+    }
+
     const fs::path & getModulesSubfolder() const {
         return m_moduleSubfolderPath;
     }
@@ -307,6 +311,7 @@ private:
     std::string m_zipTool;
     std::string m_altRepoUrl;
     std::string m_altRepoType;
+    std::string m_altTag;
     std::string m_moduleSubfolder;
     std::map<std::string,std::string> m_packageOptions;
     std::map<std::string,std::string> m_packageCompressOptions;

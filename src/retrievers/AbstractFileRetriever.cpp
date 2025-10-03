@@ -33,6 +33,7 @@ std::string AbstractFileRetriever::computeSourcePath( const Dependency &  depend
     std::string sourcePath = dependency.getBaseRepository();
     sourcePath += "/" + dependency.getPackageName();
     sourcePath += "/" + dependency.getVersion();
+    sourcePath += !m_options.getTag().empty() ? "-" + m_options.getTag() : "";
     sourcePath += "/" + m_options.getOS();
     sourcePath += "/" + dependency.getPackageName();
     sourcePath += "_" + dependency.getVersion();

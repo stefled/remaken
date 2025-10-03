@@ -10,6 +10,7 @@ const std::map<std::string,Dependency::Type> str2type = {
     {"artifactory",Dependency::Type::REMAKEN},
     {"nexus",Dependency::Type::REMAKEN},
     {"github",Dependency::Type::REMAKEN},
+    {"gitlab",Dependency::Type::REMAKEN},
     {"http",Dependency::Type::REMAKEN},
     {"path",Dependency::Type::REMAKEN},
     {"conan",Dependency::Type::CONAN},
@@ -59,8 +60,9 @@ std::string stripEndlineChar(const std::string & str)
 }
 
 static const std::map<std::string,std::string> identifier2repoType = {
-    {"bcomBuild","artifactory"},
-    {"thirdParties","artifactory"},
+    {"artifactory","gitlab"},
+    {"bcomBuild","gitlab"},
+    {"thirdParties","gitlab"},
     {"apt-get","system"},
     {"brew","system"},
     {"choco","system"},
@@ -187,7 +189,7 @@ Dependency::Dependency(const std::string & rawFormat, const std::string & mainMo
     m_type = deduceType(m_repositoryType);
 
     if (m_identifier != m_repositoryType &&
-            m_type != Dependency::Type::CONAN) {
+            (m_type != Dependency::Type::CONAN && !(m_identifier == "artifactory" && m_repositoryType =="gitlab"))) {
         m_bHasIdentifier = !m_identifier.empty();
         m_type = deduceType(m_identifier);
     }
@@ -210,10 +212,17 @@ Dependency::Dependency(const std::string & rawFormat, const std::string & mainMo
         }
     }
 
+    if (m_repositoryType == "gitlab" && m_identifier != "artifactory") {
+        std::size_t found = m_baseRepository.find("/packages/generic");
+        if (found == std::string::npos)
+        {
+            m_baseRepository += "/packages/generic";
+        }
+    }
+
     if (m_baseRepository.find("https://github") != std::string::npos) {// github url
-        if ((m_repositoryType == "artifactory") &&
-                ((m_identifier == "bcomBuild") ||
-                (m_identifier == "thirdParties"))) { // erroneous deduction : repository type maybe a github repository
+        if (((m_repositoryType == "artifactory") || (m_repositoryType == "gitlab")) &&
+                ((m_identifier == "bcomBuild") || (m_identifier == "thirdParties")) ) { // erroneous deduction : repository type maybe a github repository
             m_repositoryType = "github";
         }
     }
@@ -242,9 +251,9 @@ Dependency::Dependency(const std::string & rawFormat, const std::string & mainMo
 }
 
 
-static const std::vector<std::string> repoValidation = {"artifactory","github","nexus","path","vcpkg","conan","system","http"};
+static const std::vector<std::string> repoValidation = {"artifactory","github","nexus","path","vcpkg","conan","system","http","gitlab"};
 static const std::vector<std::string> linkModeValidation = {"static","shared","default","na"};
-static const std::map<std::string,std::vector<std::string>> unsupportedLinkModeRelations = {{"na",{"artifactory","nexus","github","path","vcpkg","http"}}};
+static const std::map<std::string,std::vector<std::string>> unsupportedLinkModeRelations = {{"na",{"artifactory","nexus","github","path","vcpkg","http","gitlab"}}};
 static const std::vector<std::string> systemIdentifierMap = {"system","apt-get","brew","yum","choco","scoop","pkg", "pkgutil", "pacman", "zypper"};
 
 bool Dependency::validate() const

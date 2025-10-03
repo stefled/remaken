@@ -62,8 +62,8 @@ static const map<std::string,std::vector<std::string>> validationMap ={{"action"
                                                                        {"--architecture",{"x86_64","i386","arm","arm64","arm64-v8a","armeabi-v7a","armv6","armv7","armv7hf","armv8"}},
                                                                        {"--config",{"release","debug"}},
                                                                        {"--mode",{"shared","static"}},
-                                                                       {"--type",{"github","artifactory","nexus","path","http"}},
-                                                                       {"--alternate-remote-type",{"","github","artifactory","nexus","path","http"}},
+                                                                       {"--type",{"github","artifactory","nexus","path","http","gitlab"}},
+                                                                       {"--alternate-remote-type",{"","github","artifactory","nexus","path","http","gitlab"}},
                                                                        {"--operating-system",{"mac","win","unix","android","ios","linux"}},
                                                                        {"--cpp-std",{"11","14","17","20"}},
                                                                        {"--generator",{"qmake","cmake","pkgconfig","make","json","bazel"}},
@@ -176,6 +176,9 @@ CmdOptions::CmdOptions()
     m_cliApp.add_option("--apiKey,-k", m_apiKey, "Api key (Artifactory or gitlab)");
     m_cliApp.add_option("--alternate-remote-type,-l", m_altRepoType, "[install command] alternate remote type: " + getOptionString("--alternate-remote-type"));
     m_cliApp.add_option("--alternate-remote-url,-u", m_altRepoUrl, "[install command] alternate remote url to use when the declared remote fails to provide a dependency");
+    m_cliApp.add_option("--tag", m_altTag, "[install command] alternate tag for version to use to retrieve dependency version like X.Y.Z-tag");
+
+
     m_cliApp.add_flag("--invert-remote-order,!--keep-remote-order", m_invertRepositoryOrder, "[install command] invert alternate and base remote search order : alternate remote is searched before packagedependencies declared remote");
 
     m_dependenciesFile = "packagedependencies.txt";
@@ -527,8 +530,8 @@ CmdOptions::OptionResult CmdOptions::parseArguments(int argc, char** argv)
         }
 
     }
-    if (m_repositoryType == "artifactory" && m_apiKey.empty()) {
-        cout << "Error : apiKey argument must be specified for artifactory repositories !"<<endl;
+    if ((m_repositoryType == "artifactory" || m_repositoryType == "gitlab") && m_apiKey.empty()) {
+        cout << "Error : apiKey argument must be specified for artifactory or gitlab repositories !"<<endl;
         return OptionResult::RESULT_ERROR;
     }
     initBuildConfig();
