@@ -6,6 +6,7 @@ on:
       - master
       - develop
       - '/releases/**'
+      - 'feat/**'
     tags:
       - '[0-9]+\.[0-9]+\.[0-9]+'
       
