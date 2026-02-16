@@ -797,7 +797,7 @@ std::vector<fs::path> ConanSystemTool::retrievePaths(const Dependency & dependen
             }
             std::string depBuildMode = dependency.getName() + "/*:" + buildMode;
 
-            std::string command = m_systemInstallerPath.generic_string(utf8) + " install " + "-o " + depBuildMode + " -o " + buildMode + " " + boost::algorithm::join(settingsArgs, " ") + " -s " + buildType +
+            std::string command = m_systemInstallerPath.generic_string(utf8) + " install " + "-o " + depBuildMode + /*" -o " + buildMode +*/ " " + boost::algorithm::join(settingsArgs, " ") + " -s " + buildType +
                                   " -s " + cppStd + " -pr " + profileName + " " + dest_param + " " + workingDirectory.generic_string(utf8) + " " + boost::algorithm::join(optionsArgs, " ") + " " + generator_param + " json " + source + " > " + conanBuildInfoJson.generic_string(utf8) + redirectNull;
 
             if (m_options.getVerbose()) {
