@@ -101,10 +101,10 @@ fs::path CredentialsFileRetriever::retrieveArtefact(const std::string & source)
     http::status status = downloadArtefact(source,output,newUrl);
     if (status == http::status::not_found) {
         std::string updatedSource = m_options.getOS()+ "-" + m_options.getBuildToolchain() + "_" + source;
-         status = downloadArtefact(updatedSource,output,newUrl);
+         status = downloadArtefact(source,output,newUrl);
          if (status == http::status::not_found) {
              updatedSource = m_options.getOS()+ "_" + source;
-             status = downloadArtefact(updatedSource,output,newUrl);
+             status = downloadArtefact(source,output,newUrl);
          }
     }
     while (convertStatus(status) == HttpStatus::MOVED) {
