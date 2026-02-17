@@ -54,7 +54,7 @@ jobs:
       - name: Install conan 2.25.2
         run: pip install --upgrade conan==2.25.2
       
-      # - Configuration
+      # Configuration
       - name: conan remote
         run: conan remote add --index 0 gitlab_remaken_deps https://gitlab.com/api/v4/projects/53589240/packages/conan
       - name: Copy conan profile configuration
@@ -129,21 +129,17 @@ jobs:
         run: sudo apt-get install qtbase5-dev
       
       # Conan
-      - name: Conan
-        run: pip install --upgrade conan==1.59.0
-      
-      # Conan configuration
-      - name: conan profile configuration
-        run: |
-         conan profile new default --detect
-         conan profile update settings.compiler.libcxx=libstdc++11 default
-         conan profile update settings.compiler.cppstd=17 default
-         conan profile update settings.compiler.version=11 default
-
-      # Conan configuration remote
+      - name: Install conan 2.25.2
+        run: pip install --upgrade conan==2.25.2
+         
+      # Configuration
       - name: conan remote
-        run: conan remote add -i 0 gitlab_remaken_deps https://gitlab.com/api/v4/projects/53589240/packages/conan
-      
+        run: conan remote add --index 0 gitlab_remaken_deps https://gitlab.com/api/v4/projects/53589240/packages/conan
+      - name: Copy conan profile configuration
+        run: cp ${{ github.workspace }}/.github/resources/default-linux ./default
+      - name: conan profile configuration
+        run: conan config install ./default -tf profiles      
+       
       # Build solution
       - name: Build remaken
         working-directory: ./scripts/unixes
