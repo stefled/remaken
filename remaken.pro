@@ -1,7 +1,7 @@
 TARGET = remaken
 VERSION=1.12.1
 
-CONFIG += c++1z
+CONFIG += c++1z verbose
 CONFIG += console
 CONFIG -= qt
 
