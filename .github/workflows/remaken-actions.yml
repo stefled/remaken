@@ -25,8 +25,8 @@ jobs:
 
       # Pkgconfig
       - name: Pkgconfig
-        #run: choco install -yr --acceptlicense --no-progress pkgconfiglite
-        run: pip install pkgconfig
+        run: choco install -yr --acceptlicense --no-progress pkgconfiglite
+        #run: pip install pkgconfig
       
       # nsis // already installed
       #- name: Nsis
@@ -85,6 +85,8 @@ jobs:
       - name: Build remaken
         working-directory: ./scripts/win
         run: .\build_remaken_project.bat remaken shared ..\.. 5.15.2 "${{ github.workspace }}\tools\Qt\5.15.2\msvc2019_64\bin" "${{ github.workspace }}\tools\Qt\Tools\qtcreator\bin\jom"
+        
+      - 
       
       # Move file at root for Tag release
       - name: move setup
