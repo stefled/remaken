@@ -17,7 +17,7 @@ int RemoteCommand::execute()
             DepUtils::parseRecurse(m_options.getDependenciesFile(), m_options, deps);
         }
         else {
-            deps = DepUtils::parse(m_options.getDependenciesFile(), m_options.getMode());
+            deps = DepUtils::parse(m_options.getDependenciesFile(), m_options);
         }
         std::cout<<"Adding declared remotes/taps/sources/repositories declared in dependencies:"<<std::endl;
         for (const auto & dep :deps) {
@@ -42,7 +42,7 @@ int RemoteCommand::execute()
             DepUtils::parseRecurse(m_options.getDependenciesFile(), m_options, deps);
         }
         else {
-            deps = DepUtils::parse(m_options.getDependenciesFile(), m_options.getMode());
+            deps = DepUtils::parse(m_options.getDependenciesFile(), m_options);
         }
         std::cout<<"Additional repositories declared in dependencies:"<<std::endl;
         for (const auto & dep :deps) {

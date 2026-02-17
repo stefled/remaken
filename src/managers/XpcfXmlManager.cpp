@@ -31,8 +31,7 @@ fs::path XpcfXmlManager::findPackageRoot(const fs::path & moduleLibPath, bool ve
         if (std::regex_search(currentFilenameStr, sm, tmplRegex, std::regex_constants::match_any)) {
             std::string matchStr = sm.str(0);
             if (verbose) {
-                BOOST_LOG_TRIVIAL(warning)<<"Found "<< matchStr<<" version for modulepath "<<currentModulePath;
-                std::cout<<"Found "<< matchStr<<" version "<<std::endl;
+                BOOST_LOG_TRIVIAL(info)<<"Found "<< matchStr<<" version for modulepath "<<currentModulePath;
             }
             return currentModulePath;
         }

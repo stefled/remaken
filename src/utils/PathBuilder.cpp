@@ -24,6 +24,7 @@
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 #include <boost/predef/os.h>
 #include "Constants.h"
+#include <boost/log/trivial.hpp>
 
 #ifdef WIN32
 #include <stdlib.h>
@@ -113,7 +114,7 @@ fs::path PathBuilder::buildModuleFilePath(const std::string & moduleName, const 
     return filePath;
 }
 
-fs::path PathBuilder::getHomePath()
+fs::path PathBuilder::getHomePath(const CmdOptions & options)
 {
     char * homePathStr;
     fs::path homePath;
@@ -129,23 +130,30 @@ fs::path PathBuilder::getHomePath()
     else {
         homePath = getUTF8PathObserver(homePathStr);
     }
-#else
-    struct passwd* pwd = getpwuid(getuid());
-    if (pwd) {
-        homePathStr = pwd->pw_dir;
+#else \
+    // try first with the $HOME environment variable
+    homePathStr = getenv("HOME");
+    if (homePathStr == NULL)
+    {
+        struct passwd* pwd = getpwuid(getuid());
+        if (pwd) {
+            homePathStr = pwd->pw_dir;
+            if (options.getVerbose()) {
+                BOOST_LOG_TRIVIAL(info)<<"remaken getHomePath with getpwuid(getuid()) method "<<homePathStr;
+            }
+        }
     }
-    else {
-        // try the $HOME environment variable
-        homePathStr = getenv("HOME");
+    if (options.getVerbose()) {
+        BOOST_LOG_TRIVIAL(info)<<"remaken getHomePath "<<homePathStr;
     }
     homePath = getUTF8PathObserver(homePathStr);
 #endif
     return homePath;
 }
 
-fs::path PathBuilder::getXPCFHomePath()
+fs::path PathBuilder::getXPCFHomePath(const CmdOptions & options)
 {
-    fs::path xpcfHomePath = getHomePath();
+    fs::path xpcfHomePath = getHomePath(options);
     xpcfHomePath /= ".xpcf";
     return xpcfHomePath;
 }

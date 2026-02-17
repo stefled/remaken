@@ -106,6 +106,8 @@ Section
 SectionEnd	
 
 var python_install_dir
+Var conan1Selected
+Var conan2Selected
 SectionGroup /e "Chocolatey" CHOCO_TOOLS
 	Section "-hidden readEnvVar"
 		ReadEnvStr $1 SYSTEMDRIVE
@@ -145,23 +147,16 @@ SectionGroup /e "Chocolatey" CHOCO_TOOLS
 			ExecWait '$1\ProgramData\Chocolatey\choco install -yr --force --acceptlicense --no-progress python3 --version=3.7.3 --params $\"/InstallDir:$python_install_dir$\"'
 		python_exists:
 
-		;always install/update pip
-		;IfFileExists $1\Python3\Scripts\pip.exe pip_exists
 			ExecWait '$0 -m pip install --upgrade pip'
 		;pip_exists:
 		
-		;always install/update conan
-		;IfFileExists $1\Python3\Scripts\conan.exe conan_exists
-			# 2023/03/08 set conan 1.x version
-			ExecWait '$python_install_dir\Scripts\pip install --upgrade conan==1.59.0'
-			# remove old conan-commnunity remote
-			ExecWait '$python_install_dir\Scripts\conan remote remove conan-community'
-			# remove binCrafters and conan-center remote url
-			ExecWait '$python_install_dir\Scripts\conan remote remove bincrafters'
-			ExecWait '$python_install_dir\Scripts\conan remote remove conan-center'
-			# reset config for binCrafters remote
+		${If} $conan1Selected == 1
+			ExecWait '$python_install_dir\Scripts\pip install --upgrade conan==1.64.0'
 			ExecWait '$python_install_dir\Scripts\conan config set general.revisions_enabled=0'
-		;conan_exists:
+		${Else}
+			ExecWait '$python_install_dir\Scripts\pip install --upgrade conan'
+		${EndIf}
+		
 	SectionEnd	
 	Section "pkg-config" CHOCO_TOOLS_PKG_CONFIG
 		ExecWait '$1\ProgramData\Chocolatey\choco install -yr --acceptlicense --no-progress pkgconfiglite'
@@ -244,6 +239,36 @@ FunctionEnd
 
 
 !ifdef CUSTOMIZE_ADD_CUSTOM_PAGE
+
+
+Function custompage_conanversion
+
+	#https://nsis.sourceforge.io/Show_custom_page_when_a_section_has_been_selected
+	SectionGetFlags ${CONAN} $R0 
+	IntOp $R0 $R0 & ${SF_SELECTED} 
+	IntCmp $R0 ${SF_SELECTED} show 
+ 	Abort 
+	show:	
+	
+	!insertmacro MUI_HEADER_TEXT "Define conan version" ""
+	nsDialogs::Create 1018
+	Pop $0
+	${NSD_CreateLabel} 0 28u 100% 12u "Select Conan version :"
+	${NSD_CreateRadioButton} 12u 44u 100% 12u "Install Conan 1 (1.64.0)"
+	pop $1
+	${NSD_CreateRadioButton} 12u 60u 100% 12u "Install Conan 2 (last version)"
+	pop $2
+	${NSD_Check} $2 ; Select conan 2 radio button
+	nsDialogs::Show
+	
+FunctionEnd
+
+Function custompage_conanversion_leave
+	${NSD_GetState} $1 $conan1Selected
+	${NSD_GetState} $2 $conan2Selected
+FunctionEnd
+
+
 Var TextBox
 Var BrowseButton
 Var NextButton

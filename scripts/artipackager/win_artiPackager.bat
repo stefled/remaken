@@ -36,6 +36,8 @@ For /f "delims=" %%p in ('dir "%workdir%" /b /a:d') do (
 					xcopy %%p\%%v\csharp %%f_%%m_%%c\%%p\%%v\csharp\ /Y /S /I
 					REM Add wizard for xpcf 
 					xcopy %%p\%%v\wizards %%f_%%m_%%c\%%p\%%v\wizards\ /Y /S /I
+					REM Add presets for Arcad
+					xcopy %%p\%%v\presets %%f_%%m_%%c\%%p\%%v\presets\ /Y /S /I
 					REM Add .pc files
 					xcopy %%p\%%v\*.pc %%f_%%m_%%c\%%p\%%v\ /Y /S /I
 					REM Add .txt files

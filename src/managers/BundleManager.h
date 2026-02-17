@@ -51,6 +51,8 @@ private:
     std::map<std::string,bool> m_ignoredPackages;
     const CmdOptions & m_options;
 
+    std::list<std::string> m_cachePackages;
+
 };
 
 #endif

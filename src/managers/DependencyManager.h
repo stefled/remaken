@@ -55,6 +55,7 @@ private:
     uint32_t m_indentLevel = 0;
     Cache m_cache;
     std::map<std::string,bool> m_defaultConditionsMap;
+    std::list<std::string> m_cache_txt_list;
 
 };
 

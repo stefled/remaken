@@ -76,8 +76,6 @@ if [[ ! ${PROJECTROOT:0:1} = / ]]; then
 	PROJECTROOT=../../../${PROJECTROOT}
 fi
 echo "Project path used is : ${PROJECTROOT}/${PROJECTNAME}.pro"
-source set_brew_env.sh
-
 
 BUILDROOTFOLDER=build-${PROJECTNAME}
 

@@ -50,17 +50,31 @@ int DependencyManager::retrieve()
         else {
             extradeps = rootPath.parent_path() / Constants::EXTRA_DEPS;
         }
+        m_cache_txt_list.clear();
         retrieveDependencies(extradeps, DependencyFileType::EXTRA_DEPS);
         retrieveDependencies(rootPath);
+        for (auto & str : m_cache_txt_list) {
+            std::cout<<str<<std::endl;
+        }
 
         std::cout<<std::endl;
         std::cout<<"--------- Installation status ---------"<<std::endl;
         if (!m_options.remoteOnly()) {
 
+
             for (auto & [depType,retriever] : FileHandlerFactory::instance()->getHandlers()) {
                 std::cout<<"=> '"<<depType<<"' dependencies installed:"<<std::endl;
+                std::list<string> dependencies_installed_text_list;
                 for (auto & dependency : retriever->installedDependencies()) {
-                    std::cout<<"===> "<<dependency.toString()<<std::endl;
+                    std::string str = "===> " + dependency.toString();
+                    std::list<std::string>::iterator it = std::find(dependencies_installed_text_list.begin(), dependencies_installed_text_list.end(), str);
+                    if (dependencies_installed_text_list.end() == it)
+                    {
+                        dependencies_installed_text_list.push_back(str);
+                    }
+                }
+                for (auto & str : dependencies_installed_text_list) {
+                    std::cout<<str<<std::endl;
                 }
                 std::cout<<std::endl;
             }
@@ -82,7 +96,7 @@ int DependencyManager::parse()
     bool bNeedElevation = false;
 #endif
     fs::path depPath = buildDependencyPath();
-    std::vector<Dependency> dependencies = DepUtils::parse(depPath, m_options.getMode());
+    std::vector<Dependency> dependencies = DepUtils::parse(depPath, m_options);
     for (auto dep : dependencies) {
         if (!dep.validate()) {
             bValid = false;
@@ -269,13 +283,21 @@ void DependencyManager::retrieveDependency(Dependency &  dependency, DependencyF
         }
     }
     else {
+        std::string str;
         if (m_cache.contains(source) && m_options.useCache()) {
-            std::cout<<"===> "<<dependency.getRepositoryType()<<"::"<<dependency.getName()<<"-"<<dependency.getVersion()<<" found in cache : already installed"<<std::endl;
+            str = "===> " + dependency.getRepositoryType() + "::" + dependency.getName() + "-" + dependency.getVersion() + " found in cache : already installed";
+
         }
         else {
-            std::cout<<"===> "<<dependency.getRepositoryType()<<"::"<<dependency.getName()<<"-"<<dependency.getVersion()<<" already installed in folder : "<<outputDirectory<<std::endl;
+            str = "===> " + dependency.getRepositoryType() + "::" + dependency.getName() + "-" + dependency.getVersion() + " already installed in folder : " + outputDirectory.generic_string(utf8);
+        }
+        std::list<std::string>::iterator it = std::find(m_cache_txt_list.begin(), m_cache_txt_list.end(), str);
+        if (m_cache_txt_list.end() == it)
+        {
+            m_cache_txt_list.push_back(str);
         }
     }
+    //SLETODO only first level!!
     if (dependency.getType() == Dependency::Type::REMAKEN) {
         // recurse on extra-packages or pkgdeps makes sense only for remaken deps
         this->retrieveDependencies(outputDirectory / Constants::EXTRA_DEPS,  DependencyFileType::EXTRA_DEPS);
@@ -322,7 +344,7 @@ void DependencyManager::retrieveDependencies(const fs::path &  dependenciesFile,
     std::vector<Dependency> conditionsDependencies;
     for (fs::path depsFile : dependenciesFileList) {
         if (fs::exists(depsFile)) {
-            std::vector<Dependency> dependencies = DepUtils::filterConditionDependencies(conditionsMap, DepUtils::parse(depsFile, m_options.getMode()) );
+            std::vector<Dependency> dependencies = DepUtils::filterConditionDependencies(conditionsMap, DepUtils::parse(depsFile, m_options) );
             for (auto dep : dependencies) {
                 if (!dep.validate()) {
                     throw std::runtime_error("Error parsing dependency file : invalid format ");
@@ -338,9 +360,12 @@ void DependencyManager::retrieveDependencies(const fs::path &  dependenciesFile,
 #ifdef REMAKEN_USE_THREADS
                 thread_group.push_back(std::make_shared<std::thread>(&DependencyManager::retrieveDependency,this, dependency));
 #else
-                retrieveDependency(dependency, type);
-                if (dependency.hasConditions()) {
-                    conditionsDependencies.push_back(dependency);
+                if (!m_options.installSharedOnly() || (m_options.installSharedOnly() && dependency.getMode() == "shared"))
+                {
+                    retrieveDependency(dependency, type);
+                    if (dependency.hasConditions()) {
+                        conditionsDependencies.push_back(dependency);
+                    }
                 }
 #endif
             }

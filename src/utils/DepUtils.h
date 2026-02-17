@@ -45,7 +45,7 @@ public:
     static fs::path getBuildPlatformFolder(const CmdOptions & options);
     static fs::path getProjectBuildSubFolder(const CmdOptions & options);
     static std::vector<fs::path> getChildrenDependencies(const fs::path & outputDirectory, const std::string & osPlatform, const std::string & filePrefix = "packagedependencies");
-    static std::vector<Dependency> parse(const fs::path & dependenciesPath, const std::string & linkMode);
+    static std::vector<Dependency> parse(const fs::path & dependenciesPath, const CmdOptions & options);
     // parseRecurse appends found dependencies to the deps vector - even duplicates.
     static void parseRecurse(const fs::path & dependenciesPath, const CmdOptions & options, std::vector<Dependency> & deps);
     static void readInfos(const fs::path &  dependenciesFile, const CmdOptions & options, uint32_t indentLevel = 0);

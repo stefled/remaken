@@ -40,7 +40,7 @@ std::shared_ptr<IFileRetriever> FileHandlerFactory::getHandler(Dependency::Type 
             (finalRepo == "http")) {
             m_handlers[finalRepo] = make_shared<HttpFileRetriever>(options);
         }
-        if ((finalRepo == "artifactory") || (finalRepo == "nexus")) {
+        if ((finalRepo == "artifactory") || (finalRepo == "nexus") || finalRepo == "gitlab") {
             m_handlers[finalRepo] = make_shared<CredentialsFileRetriever>(options);
         }
         if (finalRepo == "path") {

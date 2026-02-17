@@ -1,2 +1,3 @@
+Page custom custompage_conanversion custompage_conanversion_leave
 Page custom custompage_remakenroot custompage_remakenroot_leave
 Page custom custompage_xpcfmoduleroot custompage_xpcfmoduleroot_leave 

@@ -62,8 +62,8 @@ static const map<std::string,std::vector<std::string>> validationMap ={{"action"
                                                                        {"--architecture",{"x86_64","i386","arm","arm64","arm64-v8a","armeabi-v7a","armv6","armv7","armv7hf","armv8"}},
                                                                        {"--config",{"release","debug"}},
                                                                        {"--mode",{"shared","static"}},
-                                                                       {"--type",{"github","artifactory","nexus","path","http"}},
-                                                                       {"--alternate-remote-type",{"github","artifactory","nexus","path","http"}},
+                                                                       {"--type",{"github","artifactory","nexus","path","http","gitlab"}},
+                                                                       {"--alternate-remote-type",{"","github","artifactory","nexus","path","http","gitlab"}},
                                                                        {"--operating-system",{"mac","win","unix","android","ios","linux"}},
                                                                        {"--cpp-std",{"11","14","17","20"}},
                                                                        {"--generator",{"qmake","cmake","pkgconfig","make","json","bazel"}},
@@ -121,7 +121,7 @@ std::string CmdOptions::getOptionString(const std::string & optionName)
 CmdOptions::CmdOptions()
 {
     fs::detail::utf8_codecvt_facet utf8;
-    fs::path remakenRootPath = PathBuilder::getHomePath() / Constants::REMAKEN_FOLDER;
+    fs::path remakenRootPath = PathBuilder::getHomePath(*this) / Constants::REMAKEN_FOLDER;
     remakenRootPath /= "packages";
     char * rootDirectoryVar = getenv(Constants::REMAKENPKGROOT);
     if (rootDirectoryVar != nullptr) {
@@ -144,13 +144,13 @@ CmdOptions::CmdOptions()
         remakenRootPath = pkgPath;
     }
 
-    fs::path remakenProfileFolder = PathBuilder::getHomePath() / Constants::REMAKEN_FOLDER / Constants::REMAKEN_PROFILES_FOLDER ;
+    fs::path remakenProfileFolder = PathBuilder::getHomePath(*this) / Constants::REMAKEN_FOLDER / Constants::REMAKEN_PROFILES_FOLDER ;
     std::string profileName =  "default";
     m_cliApp.require_subcommand(1);
     m_cliApp.fallthrough(true);
     m_cliApp.option_defaults()->always_capture_default();
-    m_cliApp.set_config("--profile",profileName,"remaken profile file to read",remakenProfileFolder.generic_string(utf8));
-
+    m_cliApp.set_config("--profile",profileName,"remaken profile file to read",remakenProfileFolder.generic_string(utf8), false);
+    
     m_config = "release";
     m_cliApp.add_option("--config,-c", m_config, "Config: " + getOptionString("--config")); // ,true);
     m_cppVersion = "11";
@@ -173,7 +173,14 @@ CmdOptions::CmdOptions()
     m_cliApp.add_flag("--recurse", m_recurse, "recursive mode : parse dependencies recursively");
     m_cliApp.add_option("--conan_profile", m_conanProfile, "force conan profile name to use (overrides detected profile)"); // ,true);
     m_cliApp.add_option("--generator,-g", m_generator, "generator to use in [" + getOptionString("--generator") + "] (default: qmake) "); // ,true);
-    m_cliApp.add_option("--apiKey,-k", m_apiKey, "Artifactory api key");
+    m_cliApp.add_option("--apiKey,-k", m_apiKey, "Api key (Artifactory or gitlab)");
+    m_cliApp.add_option("--alternate-remote-type,-l", m_altRepoType, "[install command] alternate remote type: " + getOptionString("--alternate-remote-type"));
+    m_cliApp.add_option("--alternate-remote-url,-u", m_altRepoUrl, "[install command] alternate remote url to use when the declared remote fails to provide a dependency");
+    m_cliApp.add_option("--tag", m_altTag, "[install command] alternate tag for version to use to retrieve dependency version like X.Y.Z-tag");
+
+
+    m_cliApp.add_flag("--invert-remote-order,!--keep-remote-order", m_invertRepositoryOrder, "[install command] invert alternate and base remote search order : alternate remote is searched before packagedependencies declared remote");
+
     m_dependenciesFile = "packagedependencies.txt";
 
     // BUNDLE COMMAND
@@ -240,9 +247,6 @@ CmdOptions::CmdOptions()
 
     // INSTALL COMMAND
     CLI::App * installCommand = m_cliApp.add_subcommand("install", "install dependencies for a package from its packagedependencies file(s)");
-    installCommand->add_option("--alternate-remote-type,-l", m_altRepoType, "alternate remote type: " + getOptionString("--alternate-remote-type"));
-    installCommand->add_option("--alternate-remote-url,-u", m_altRepoUrl, "alternate remote url to use when the declared remote fails to provide a dependency");
-    installCommand->add_flag("--invert-remote-order", m_invertRepositoryOrder, "invert alternate and base remote search order : alternate remote is searched before packagedependencies declared remote");
     installCommand->add_option("file", m_dependenciesFile, "Remaken dependencies files : can be a local file or an url to the file"); // ,true);
     installCommand->add_flag("--project_mode,-p", m_projectMode, "enable project mode to generate project build files from packaging tools (conanbuildinfo ...).");//\nProject mode is enabled automatically when the folder containing the packagedependencies file also contains a QT project file");
 
@@ -257,6 +261,7 @@ CmdOptions::CmdOptions()
     installCommand->add_flag("--remote-only", m_remoteOnly, "Only add remote/source/tap from package dependencies, dependencies are not installed"); // same as remote add command
     installCommand->add_option("--conan-build", m_conanForceBuildRefs, "conan force build reference");
     installCommand->add_option("--condition", m_configureConditions, "set condition to value");
+    installCommand->add_option("--shared-only", m_installSharedOnly, "install shared dependencies only");
 
     // LIST COMMAND
     CLI::App * listCommand = m_cliApp.add_subcommand("list", "list remaken installed dependencies. If package is provided, list the package available version. If package and version are provided, list the package files");
@@ -525,8 +530,8 @@ CmdOptions::OptionResult CmdOptions::parseArguments(int argc, char** argv)
         }
 
     }
-    if (m_repositoryType == "artifactory" && m_apiKey.empty()) {
-        cout << "Error : apiKey argument must be specified for artifactory repositories !"<<endl;
+    if ((m_repositoryType == "artifactory" || m_repositoryType == "gitlab") && m_apiKey.empty()) {
+        cout << "Error : apiKey argument must be specified for artifactory or gitlab repositories !"<<endl;
         return OptionResult::RESULT_ERROR;
     }
     initBuildConfig();
@@ -536,15 +541,18 @@ CmdOptions::OptionResult CmdOptions::parseArguments(int argc, char** argv)
 void CmdOptions::writeConfigurationFile() const
 {
     fs::detail::utf8_codecvt_facet utf8;
-    fs::path remakenRootPath = PathBuilder::getHomePath() / Constants::REMAKEN_FOLDER;
+    fs::path remakenRootPath = PathBuilder::getHomePath(*this) / Constants::REMAKEN_FOLDER;
     fs::path remakenProfilesPath = remakenRootPath / Constants::REMAKEN_PROFILES_FOLDER;
+    
     if (!fs::exists(remakenProfilesPath)) {
+
         fs::create_directories(remakenProfilesPath);
     }
     fs::path remakenProfilePath = remakenProfilesPath/m_profileName;
     ofstream fos;
     fos.open(remakenProfilePath.generic_string(utf8),ios::out|ios::trunc);
     // workaround for CLI11 issue #648 and also waiting for issue #685
+
     std::string conf = m_cliApp.config_to_str(m_defaultProfileOptions,true);
     // comment all run arguments, as run command doesn't need to maintain options in configuration
     boost::replace_all(conf,"run.","#run.");
@@ -554,7 +562,7 @@ void CmdOptions::writeConfigurationFile() const
 
 void CmdOptions::displayConfigurationSettings() const
 {
-    std::cout<<m_cliApp.config_to_str(m_defaultProfileOptions,true);
+    std::cout<<m_cliApp.config_to_str(m_defaultProfileOptions,true)<< std::endl;
 }
 
 void CmdOptions::printUsage()

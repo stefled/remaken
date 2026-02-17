@@ -37,8 +37,8 @@ public:
     static fs::path replaceRootEnvVars(const std::string & sourcePath, const CmdOptions & options);
     static fs::path buildModuleFilePath(const std::string & moduleName,const std::string & filePath, const CmdOptions & options);
     static fs::path buildModuleFolderPath(const std::string & filePath, const CmdOptions & options);
-    static fs::path getHomePath();
-    static fs::path getXPCFHomePath();
+    static fs::path getHomePath(const CmdOptions & options);
+    static fs::path getXPCFHomePath(const CmdOptions & options);
     static fs::path appendModuleDecorations(const fs::path & sl);
     static fs::path appendModuleDecorations(const char * sl);
     static inline bool is_shared_library(const std::string& s) {

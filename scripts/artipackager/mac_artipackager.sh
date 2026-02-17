@@ -25,6 +25,8 @@ for package in $(ls); do
 					cp -r ${package}/${version}/csharp ${platform}_${mode}_${config}/${package}/${version}/.
 					# Add wizards for xpcf
 					cp -r ${package}/${version}/wizards ${platform}_${mode}_${config}/${package}/${version}/.
+					# Add wizards for arcad
+					cp -r ${package}/${version}/presets ${platform}_${mode}_${config}/${package}/${version}/.
 					# Add .pc files
 					cp ${package}/${version}/*.pc ${platform}_${mode}_${config}/${package}/${version}/.
 					# Add .txt files

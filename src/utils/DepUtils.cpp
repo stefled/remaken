@@ -37,7 +37,7 @@ fs::path DepUtils::detectDependencyPath(const fs::path & folderPath, const std::
         pkgDepsPath = folderPath / "packagedependencies.txt";
     }
     if (!fs::exists(pkgDepsPath)) {
-        throw std::runtime_error("The file does not exists " + pkgDepsPath.generic_string(utf8));
+        throw std::runtime_error("The dependency file does not exists " + pkgDepsPath.generic_string(utf8));
     }
     return pkgDepsPath;
 }
@@ -136,7 +136,7 @@ std::vector<Dependency> DepUtils::filterConditionDependencies(const std::map<std
     return filteredDepCollection;
 }
 
-std::vector<Dependency> DepUtils::parse(const fs::path &  dependenciesPath, const std::string & linkMode)
+std::vector<Dependency> DepUtils::parse(const fs::path &  dependenciesPath, const CmdOptions & options)
 {
     std::multimap<std::string,Dependency> libraries;
     if (fs::exists(dependenciesPath)) {
@@ -155,7 +155,7 @@ std::vector<Dependency> DepUtils::parse(const fs::path &  dependenciesPath, cons
                     boost::split(results, curStr, [](char c){return c == '|';});
                     if (results.size() >=4) {
                         // Dependency line is not commented: parsing the dependency
-                        Dependency dep(curStr, linkMode);
+                        Dependency dep(curStr, options.getMode());
 
                         if (!dep.validate()) {
                             throw std::runtime_error("Error parsing dependency file : invalid format ");
@@ -180,11 +180,11 @@ std::vector<Dependency> DepUtils::parse(const fs::path &  dependenciesPath, cons
                         }
                     }
                     else {
-                        std::cout<<"[IGNORED]: Dependency line '"<<curStr<<"' with invalid format !"<<std::endl;
+                        options.verboseMessage("[IGNORED]: Dependency line '" + curStr + "' with invalid format !");
                     }
                 }
                 else {
-                    std::cout<<"[IGNORED]: Dependency line '"<<curStr<<"' is commented !"<<std::endl;
+                    options.verboseMessage("[IGNORED]: Dependency line '" + curStr + "' is commented !");
                 }
             }
         }
@@ -199,7 +199,7 @@ void DepUtils::parseRecurse(const fs::path &  dependenciesPath, const CmdOptions
     std::vector<fs::path> dependenciesFileList = getChildrenDependencies(dependenciesPath.parent_path(), options.getOS(), dependenciesPath.stem().generic_string(utf8));
     for (fs::path & depsFile : dependenciesFileList) {
         if (fs::exists(depsFile)) {
-            std::vector<Dependency> dependencies = parse(depsFile, options.getMode());
+            std::vector<Dependency> dependencies = parse(depsFile, options);
             deps.insert(std::end(deps), std::begin(dependencies), std::end(dependencies));
             for (auto dep : dependencies) {
                 if (!dep.validate()) {
@@ -256,7 +256,7 @@ void DepUtils::readInfos(const fs::path &  dependenciesFile, const CmdOptions & 
     std::vector<fs::path> dependenciesFileList = DepUtils::getChildrenDependencies(dependenciesFile.parent_path(), options.getOS(), dependenciesFile.stem().generic_string(utf8));
     for (fs::path depsFile : dependenciesFileList) {
         if (fs::exists(depsFile)) {
-            std::vector<Dependency> dependencies = DepUtils::parse(depsFile, options.getMode());
+            std::vector<Dependency> dependencies = DepUtils::parse(depsFile, options);
             for (auto dep : dependencies) {
                 if (!dep.validate()) {
                     throw std::runtime_error("Error parsing dependency file : invalid format ");

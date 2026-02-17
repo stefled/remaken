@@ -6,4 +6,5 @@
 	url = https://github.com/nlohmann/json.git
 [submodule "libs/CLI11"]
 	path = libs/CLI11
-url=https://github.com/Firefly35/CLI11.git
+url=https://github.com/b-com-software-basis/CLI11.git
+

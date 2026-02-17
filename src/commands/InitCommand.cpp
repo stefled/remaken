@@ -67,7 +67,7 @@ int setupBrew()
 
 int setupArtifactPackager(const CmdOptions & options)
 {
-    fs::path remakenRootPath = PathBuilder::getHomePath() / Constants::REMAKEN_FOLDER;
+    fs::path remakenRootPath = PathBuilder::getHomePath(options) / Constants::REMAKEN_FOLDER;
     fs::path remakenScriptsPath = remakenRootPath / "scripts";
 
     if (!fs::exists(remakenScriptsPath)) {
@@ -99,13 +99,13 @@ int setupArtifactPackager(const CmdOptions & options)
     return 0;
 }
 
-int setupWizards(const fs::path & rulesPath)
+int setupWizards(const fs::path & rulesPath, const CmdOptions & options)
 {
     BOOST_LOG_TRIVIAL(info)<<"Installing qt creator wizards";
 #ifdef BOOST_OS_WINDOWS_AVAILABLE
     fs::path qtWizardsPath = PathBuilder::getUTF8PathObserver(getenv("APPDATA"));
 #else
-    fs::path qtWizardsPath = PathBuilder::getHomePath()/".config";
+    fs::path qtWizardsPath = PathBuilder::getHomePath(options)/".config";
 #endif
     qtWizardsPath /= "QtProject";
     qtWizardsPath /= "qtcreator";
@@ -150,7 +150,7 @@ int InitCommand::execute()
     }
 
     // process init command
-    fs::path remakenRootPath = PathBuilder::getHomePath() / Constants::REMAKEN_FOLDER;
+    fs::path remakenRootPath = PathBuilder::getHomePath(m_options) / Constants::REMAKEN_FOLDER;
     fs::path remakenRulesPath = remakenRootPath / "rules";
     fs::path remakenProfilesPath = remakenRootPath / Constants::REMAKEN_PROFILES_FOLDER;
     fs::path qmakeRootPath = remakenRulesPath / "qmake";
@@ -188,7 +188,7 @@ int InitCommand::execute()
     }
 
     if (m_options.installWizards() || subCommand == "wizards") {
-        setupWizards(qmakeRootPath);
+        setupWizards(qmakeRootPath, m_options);
     }
     return 0;
 }

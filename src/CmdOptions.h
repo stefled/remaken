@@ -142,6 +142,10 @@ public:
         return m_altRepoUrl;
     }
 
+    const std::string & getTag() const {
+        return m_altTag;
+    }
+
     const fs::path & getModulesSubfolder() const {
         return m_moduleSubfolderPath;
     }
@@ -210,6 +214,10 @@ public:
 
     bool infoDisplayPathsOption() const {
         return m_infoDisplayPathsOption;
+    }
+
+    bool installSharedOnly() const {
+        return m_installSharedOnly;
     }
 
     const std::string & getBuildConfig() const {
@@ -303,6 +311,7 @@ private:
     std::string m_zipTool;
     std::string m_altRepoUrl;
     std::string m_altRepoType;
+    std::string m_altTag;
     std::string m_moduleSubfolder;
     std::map<std::string,std::string> m_packageOptions;
     std::map<std::string,std::string> m_packageCompressOptions;
@@ -322,7 +331,7 @@ private:
     std::string m_applicationName = "";
     bool m_ignoreCache;
     bool m_invertRepositoryOrder = false;
-    bool m_verbose;
+    bool m_verbose = false;
     bool m_recurse;
     bool m_regex = false;
     bool m_tree = false;
@@ -339,6 +348,7 @@ private:
     bool m_debugEnabled = false;
     bool m_remoteOnly = false;
     bool m_infoDisplayPathsOption = false;
+    bool m_installSharedOnly = false;
     std::vector<std::string> m_conanForceBuildRefs;
     std::vector<std::string> m_configureConditions;
     CLI::App m_cliApp{"remaken"};

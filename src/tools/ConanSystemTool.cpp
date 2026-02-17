@@ -180,10 +180,6 @@ void ConanSystemTool::install(const Dependency & dependency)
         settingsArgs.push_back("arch=" + conanArchTranslationMap.at(m_options.getArchitecture()));
     }
     if (dependency.hasOptions()) {
-        std::string separator = "";
-        if (m_conanVersion >= 2) {
-            separator = "/*";
-        }
         boost::split(options, dependency.getToolOptions(), [](char c){return c == '#';});
         for (const auto & option: options) {
             std::vector<std::string> optionInfos;
@@ -191,8 +187,18 @@ void ConanSystemTool::install(const Dependency & dependency)
             std::string conanOptionPrefix = optionInfos.front();
             optionInfos.erase(optionInfos.begin());
             if (optionInfos.empty()) {
-                optionsArgs.push_back("-o " + option);
+                if (m_conanVersion >= 2) {
+                    optionsArgs.push_back("-o *:" + option);
+                }
+                else
+                {
+                    optionsArgs.push_back("-o " + option); // conan v1
+                }
             } else {
+                std::string separator = "";
+                if (m_conanVersion >= 2) {
+                    separator = "/*";
+                }
                 if (conanOptionPrefix.find(separator) != std::string::npos) {
                     optionsArgs.push_back("-o " + conanOptionPrefix + ":" + optionInfos.front());
                 } else {
@@ -226,11 +232,16 @@ void ConanSystemTool::install(const Dependency & dependency)
         result = bp::system(command.c_str());
     }
     else {
-        std::string buildMode = "shared=True";
-        if (dependency.getMode() == "static") {
-            buildMode = "shared=False";
+        std::string buildMode = "";
+        if (m_conanVersion >= 2) {
+            buildMode = dependency.getName() + "/*:";
         }
-
+        if (dependency.getMode() == "static") {
+            buildMode += "shared=False";
+        }
+        else {
+            buildMode += "shared=True";
+        }
         std::string command = m_systemInstallerPath.generic_string(utf8) + " install " + "-o " + buildMode + " " + boost::algorithm::join(settingsArgs, " ") + " -s " + buildType + " -s " + cppStd + " -pr " + profileName + " " + buildForceDep + " " + boost::algorithm::join(optionsArgs, " ") + " " + source;
         if (m_options.getVerbose()) {
             std::cout << command.c_str() << std::endl;
@@ -690,7 +701,12 @@ std::vector<fs::path> ConanSystemTool::retrievePaths(const Dependency & dependen
     if (dependency.hasOptions()) {
         boost::split(options, dependency.getToolOptions(), [](char c){return c == '#';});
         for (const auto & option: options) {
-            optionsArgs.push_back("-o " + option);
+            if (m_conanVersion >= 2) {
+                optionsArgs.push_back("-o *:" + option);
+            }
+            else {
+                optionsArgs.push_back("-o " + option);
+            }
         }
     }
     std::string profileName = m_options.getConanProfile();
@@ -717,7 +733,7 @@ std::vector<fs::path> ConanSystemTool::retrievePaths(const Dependency & dependen
             }
         }
         else {
-            std::string buildMode = "";//dependency.getName() + ":";
+            std::string buildMode = "";
             if (dependency.getMode() == "static") {
                 buildMode += "shared=False";
             }
@@ -769,25 +785,24 @@ std::vector<fs::path> ConanSystemTool::retrievePaths(const Dependency & dependen
             if (m_options.getVerbose()) {
                 std::cout << command.c_str() << std::endl;
             }
-            // SLETODO : issue with : bp::std_out > bp::null => use std::system (ok with it)
             result = std::system(command.c_str());
         }
         else {
-            std::string buildMode = "";//dependency.getName() + ":";
+            std::string buildMode = "";
             if (dependency.getMode() == "static") {
                 buildMode += "shared=False";
             }
             else {
                 buildMode += "shared=True";
             }
+            std::string depBuildMode = dependency.getName() + "/*:" + buildMode;
 
-            std::string command = m_systemInstallerPath.generic_string(utf8) + " install " + "-o " + buildMode + " " + boost::algorithm::join(settingsArgs, " ") + " -s " + buildType +
+            std::string command = m_systemInstallerPath.generic_string(utf8) + " install " + "-o " + depBuildMode + /*" -o " + buildMode +*/ " " + boost::algorithm::join(settingsArgs, " ") + " -s " + buildType +
                                   " -s " + cppStd + " -pr " + profileName + " " + dest_param + " " + workingDirectory.generic_string(utf8) + " " + boost::algorithm::join(optionsArgs, " ") + " " + generator_param + " json " + source + " > " + conanBuildInfoJson.generic_string(utf8) + redirectNull;
 
             if (m_options.getVerbose()) {
                 std::cout << command.c_str() << std::endl;
             }
-            // SLETODO : issue with redirect : bp::std_out > bp::null => use std::system (ok with it)
             result = std::system(command.c_str());
         }
         if (result != 0) {
