@@ -56,7 +56,7 @@ jobs:
       
       # - Configuration
       - name: conan remote
-        run: conan remote add -i 0 gitlab_remaken_deps https://gitlab.com/api/v4/projects/53589240/packages/conan
+        run: conan remote add --index 0 gitlab_remaken_deps https://gitlab.com/api/v4/projects/53589240/packages/conan
       - name: Copy conan profile configuration
         run: copy ${{ github.workspace }}/.github/resources/default-windows ./default
       - name: conan profile configuration
