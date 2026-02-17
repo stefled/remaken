@@ -51,8 +51,8 @@ jobs:
         run: choco install visualstudio2019-workload-nativedesktop
       
       # Conan
-      - name: Install conan 1.59.0
-        run: pip install --upgrade conan==1.59.0
+      - name: Install conan 2.25.2
+        run: pip install --upgrade conan==2.25.2
       
       # Conan configuration
       - name: conan profile configuration
